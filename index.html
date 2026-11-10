@@ -348,7 +348,26 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
 @media (prefers-reduced-motion:reduce){.lvlUp{animation:none}}
 @media (max-width:560px){.lvl .lb small{display:none}.lvl .lbar{width:44px}.accTop{padding:0 11px}}
 .gate{z-index:60;background:rgba(10,10,9,.92);backdrop-filter:blur(4px)}.gate .pkCard{max-height:calc(100vh - 32px);overflow:auto}
-.cCard,.courseBtn,.cCard .pic{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.cCard,.courseBtn,.cCard .pic,.crsIcon{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.sideSec{margin-top:18px}.secT{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 2px 10px}
+.secT .kd{width:22px;height:22px;border-radius:6px;border:1px solid var(--line)}.secT .kd.w{background:#ebecd0}.secT .kd.b{background:#2b2620}.secT small{font-weight:600;letter-spacing:0;text-transform:none;font-size:12px}
+.sideSec .courseCards{margin-top:0}.cCard .cMeta{display:block;font-size:12px;color:var(--muted);margin-top:4px}.cCard .cMeta b{display:inline;font-family:inherit;font-size:12px;line-height:inherit;color:var(--gold);font-weight:700}
+.backAll{position:relative;z-index:3;display:inline-flex;align-items:center;gap:6px;color:var(--brass);font-weight:700;font-size:14px;text-decoration:none;margin-bottom:10px}.backAll:hover{text-decoration:underline}
+.crsTop{position:relative;z-index:1;display:flex;align-items:center;gap:16px}.crsTop .pic{flex:none;width:72px;height:72px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,var(--sq-l),#cfd2b0)}.crsTop .pic.b{background:linear-gradient(145deg,var(--sq-d),#5d7b41)}.crsTop .pic svg{width:78%;height:78%}@media (max-width:560px){.crsTop{gap:12px}.crsTop .pic{width:54px;height:54px}}.crsTop .miniRing{margin-left:auto}
+.profStrip{all:unset;cursor:pointer;box-sizing:border-box;position:relative;z-index:1;display:flex;align-items:center;gap:12px;margin-top:16px;padding:10px 14px;border-radius:14px;background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.08);width:100%;font-size:14px}
+.profStrip:hover{border-color:var(--brass)}.profStrip .n{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--gold);color:#1a1510;font-weight:900}.profStrip .go{margin-left:auto;color:var(--brass);font-weight:700;white-space:nowrap}
+.prof{display:grid;gap:16px}.profCard{background:var(--bg-2);border:1px solid var(--line);border-radius:16px;padding:18px}.profCard h2{margin:0 0 12px;font-size:18px}
+.profHead{display:flex;flex-wrap:wrap;align-items:center;gap:18px}.profHead .big{display:grid;place-items:center;width:76px;height:76px;border-radius:50%;background:var(--gold);color:#1a1510;font-size:34px;font-weight:900;flex:none}
+.profHead h1{margin:0;font-family:var(--display);font-size:clamp(26px,4vw,38px)}.profHead .lb{flex:1;min-width:200px}.profHead .bar{height:8px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden;margin:8px 0 4px}.profHead .bar i{display:block;height:100%;background:var(--gold)}
+.profHead small{color:var(--muted)}.profHead #pOut{flex:none;width:auto;padding:0 18px}.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}.tiles div{background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:12px;padding:12px}.tiles b{display:block;font-size:24px}.tiles span{font-size:12.5px;color:var(--muted)}
+.crsRow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,2fr) auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.crsRow:last-child{border-bottom:0}.crsRow small{display:block;color:var(--muted);font-size:12px}
+.crsRow .bar{height:8px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden}.crsRow .bar i{display:block;height:100%;background:var(--accent)}.crsRow a{color:var(--brass);font-weight:700;text-decoration:none;font-size:13px;white-space:nowrap}
+.sideCmp{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sideCmp div{border-radius:12px;padding:14px;border:1px solid var(--line)}.sideCmp .w{background:rgba(235,236,208,.08)}.sideCmp .b{background:rgba(0,0,0,.3)}.sideCmp b{font-size:26px;display:block}.sideCmp span{font-size:13px;color:var(--muted)}
+.twoCol{display:grid;grid-template-columns:1fr 1fr;gap:16px}.lst{display:grid;gap:8px;margin:0;padding:0;list-style:none}.lst li{padding:10px 12px;border-radius:10px;background:rgba(0,0,0,.2);border:1px solid var(--line);font-size:14px}.lst li small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.lst li button{all:unset;cursor:pointer;color:var(--brass);font-weight:700;font-size:13px;margin-top:4px}.good li{border-left:3px solid var(--accent)}.bad li{border-left:3px solid #e2533b}.tips li{border-left:3px solid var(--gold)}
+.act14{display:flex;align-items:flex-end;gap:5px;height:70px}.act14 div{flex:1;background:rgba(255,255,255,.08);border-radius:4px 4px 0 0;min-height:4px;position:relative}.act14 div.on{background:var(--accent)}.actLbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
+.profEmpty{color:var(--muted);font-size:14px;margin:0}
+@media (max-width:720px){.twoCol,.sideCmp{grid-template-columns:1fr}.crsRow{grid-template-columns:1fr auto}.crsRow .bar{grid-column:1/-1;grid-row:2}}
 .accTabs{margin-top:4px}.pkCard.acc .accHint{margin:0;font-size:12.5px;color:var(--muted,#a99f8f)}.pkCard.acc .accHint[hidden]{display:none}.accMsg{min-height:1.2em;margin:2px 0 0;font-size:14px;color:var(--brass)}
 </style>
 
@@ -538,6 +557,7 @@ const CFG=window.TRENER_CONFIG||{};const HAS_SUPA=!!(CFG.supabaseUrl&&CFG.supaba
 function mergeStores(a,b){/* a=local, b=remote; keeps the better progress of both */
  const newer=(b.upd||0)>(a.upd||0)?b:a;const o=Object.assign({},a,{xp:Math.max(a.xp||0,b.xp||0),sound:newer.sound,theme:newer.theme,sort:newer.sort,death:newer.death,t1:newer.t1,upd:Math.max(a.upd||0,b.upd||0)});
  o.mastered=Object.assign({},b.mastered||{},a.mastered||{});o.prog={};
+ o.act={};new Set([...Object.keys(a.act||{}),...Object.keys(b.act||{})]).forEach(k=>{o.act[k]=Math.max((a.act||{})[k]||0,(b.act||{})[k]||0);});
  new Set([...Object.keys(a.prog||{}),...Object.keys(b.prog||{})]).forEach(c=>{const pa=(a.prog||{})[c]||{},pb=(b.prog||{})[c]||{};const r={};
   new Set([...Object.keys(pa),...Object.keys(pb)]).forEach(id=>{const x=pa[id],y=pb[id];if(!x||!y){r[id]=x||y;return;}r[id]=((y.box||0)>(x.box||0)||((y.box||0)===(x.box||0)&&(y.due||0)>(x.due||0)))?y:x;});o.prog[c]=r;});
  return o;}
@@ -624,13 +644,56 @@ function openLvl(){const pk=$('picker'),L=lvlOf(store.xp);let rows='';const max=
  for(let n=1;n<=max;n++)rows+=`<div class="${n===L.n?'me':n>L.n?'no':''}"><span>${n}. ${lvlName(n)}</span><span>${lvlXp(n)} XP</span></div>`;
  pk.innerHTML=`<div class="pkCard lvlInfo"><h2>Level ${L.n} – ${L.name}</h2><p>Máš <b>${store.xp||0} XP</b>. Do dalšího levelu chybí <b>${L.left} XP</b>. XP dostaneš za každou variantu zahranou zpaměti – bez chyby víc.</p><div class="lvlList">${rows}</div><div class="row"><button class="btn" id="lvlClose">Zavřít</button></div></div>`;
  pk.hidden=false;pk.onchange=null;pk.onclick=e=>{if(e.target===pk||e.target.id==='lvlClose')pk.hidden=true;};}
+/* ---------- profil hráče (#profil) ---------- */
+function courseStats(c){const pr=store.prog[c.id]||{};const L=c.chapters.flatMap(ch=>ch.lines.map(l=>({l,ch})));const o={c,total:L.length,done:0,due:0,learning:0,neu:0,n:0,ok:0,err:0,lines:[]};
+ L.forEach(({l,ch})=>{const st=stateIn(c,l);o[st==='new'?'neu':st==='done'?'done':st]++;if(st==='due')o.done++;const p=pr[l.id];if(p){o.n+=p.n||0;o.ok+=p.ok||0;o.err+=p.err||0;o.lines.push({c,l,ch,p,st});}});
+ o.pct=courseProg(c);o.acc=o.n?Math.round(o.ok/o.n*100):null;return o;}
+function renderProfile(){document.body.classList.add('homeMode');const Lv=lvlOf(store.xp);const S=COURSES.map(courseStats);
+ const sum=k=>S.reduce((a,x)=>a+x[k],0);const tot=sum('total'),done=sum('done'),due=sum('due'),n=sum('n'),ok=sum('ok'),err=sum('err');
+ const mast=COURSES.reduce((a,c)=>a+c.chapters.filter(ch=>chPct(ch,c)===100).length,0),chTot=COURSES.reduce((a,c)=>a+c.chapters.length,0);
+ const acc=n?Math.round(ok/n*100):null;
+ const side=sd=>{const xs=S.filter(x=>x.c.side===sd);const t=xs.reduce((a,x)=>a+x.total,0),d=xs.reduce((a,x)=>a+x.done,0),nn=xs.reduce((a,x)=>a+x.n,0),oo=xs.reduce((a,x)=>a+x.ok,0);return{t,d,pct:t?Math.round(d/t*100):0,acc:nn?Math.round(oo/nn*100):null};};
+ const W=side('w'),B=side('b');
+ /* activity */
+ const act=store.act||{};const days=[];for(let i=13;i>=0;i--){const d=new Date(Date.now()-i*864e5).toISOString().slice(0,10);days.push([d,act[d]||0]);}
+ const mx=Math.max(1,...days.map(d=>d[1]));let streak=0;for(let i=0;;i++){const d=new Date(Date.now()-i*864e5).toISOString().slice(0,10);if(act[d])streak++;else if(i>0)break;if(i>400)break;}
+ /* strengths & weaknesses */
+ const all=S.flatMap(x=>x.lines);
+ const strong=all.filter(x=>(x.p.box||0)>=3).sort((a,b)=>(b.p.box-a.p.box)||((b.p.ok||0)-(a.p.ok||0))).slice(0,5);
+ const weak=all.filter(x=>(x.p.err||0)>0||x.st==='learning').map(x=>({...x,rate:(x.p.err||0)/Math.max(1,x.p.n||1)})).sort((a,b)=>(b.rate-a.rate)||((b.p.err||0)-(a.p.err||0))).slice(0,6);
+ const chs=[];COURSES.forEach(c=>c.chapters.forEach(ch=>{const p=chPct(ch,c);const started=ch.lines.some(l=>(store.prog[c.id]||{})[l.id]);chs.push({c,ch,p,started});}));
+ const bestCh=chs.filter(x=>x.p>=60).sort((a,b)=>b.p-a.p).slice(0,3),weakCh=chs.filter(x=>x.started&&x.p<60).sort((a,b)=>a.p-b.p).slice(0,3);
+ /* tips */
+ const tips=[];
+ if(!done&&!all.length)tips.push(['Začni prvním kurzem. Vyber si zahájení za bílé i za černé – ať máš repertoár na obě barvy.','#']);
+ if(due)tips.push([`Máš <b>${due}</b> ${due===1?'variantu':due<5?'varianty':'variant'} k opakování. Zopakuj je co nejdřív, jinak je zapomeneš.`,'#'+(S.find(x=>x.due)||S[0]).c.id]);
+ if(acc!=null&&acc<70&&n>=5)tips.push([`Bez chyby zahraješ ${acc} % pokusů. Než začneš procvičovat, projdi variantu v režimu <b>Učit se</b> a čti si vysvětlení tahů.`,null]);
+ if(weakCh[0])tips.push([`Kapitola <b>${weakCh[0].ch.t}</b> (${weakCh[0].c.title}) je zatím na ${weakCh[0].p} %. Dokonči ji, ať v ní nemáš díry.`,'#'+weakCh[0].c.id]);
+ if(W.t&&B.t&&Math.abs(W.pct-B.pct)>=20)tips.push([`Za ${W.pct<B.pct?'bílé':'černé'} toho umíš méně (${Math.min(W.pct,B.pct)} % vs. ${Math.max(W.pct,B.pct)} %). Zkus přidat kurz za ${W.pct<B.pct?'bílé':'černé'}.`,'#']);
+ const fresh=S.filter(x=>!x.lines.length);if(fresh.length&&all.length)tips.push([`Ještě jsi nezkusil: <b>${fresh.map(x=>x.c.title).join(', ')}</b>.`,'#'+fresh[0].c.id]);
+ if(streak>=3)tips.push([`Trénuješ ${streak} dní v řadě – jen tak dál! 🔥`,null]);else if(all.length)tips.push(['Nejlíp se zahájení učí po kouskách každý den. Stačí 10 minut denně.',null]);
+ const li=(x,why)=>`<li><b>${x.l.name}</b><small>${x.c.title} · ${x.ch.t}${why?' · '+why:''}</small><button data-play="${x.c.id}|${x.l.id}">Zahrát →</button></li>`;
+ const tipLi=([t,h])=>`<li>${t}${h!=null?`<br><button data-goto="${h}">Otevřít →</button>`:''}</li>`;
+ let h=`<a class="backAll" href="#">← Všechny kurzy</a><div class="prof">
+ <div class="profCard profHead"><span class="big">${Lv.n}</span><div class="lb"><h1>${SYNC.user?escH(SYNC.user):'Můj profil'}</h1><div>Level ${Lv.n} – <b>${Lv.name}</b> · ${store.xp||0} XP</div><div class="bar"><i style="width:${Lv.pct}%"></i></div><small>Do dalšího levelu chybí ${Lv.left} XP · <button class="lnk" id="pLvl" style="padding:0">všechny levely</button></small></div>
+  ${SYNC.be&&SYNC.be.kind==='supa'?`<button class="btn" id="pOut">Odhlásit</button>`:''}</div>
+ <div class="profCard"><h2>Statistiky</h2><div class="tiles"><div><b>${done}/${tot}</b><span>variant naučeno</span></div><div><b>${mast}/${chTot}</b><span>kapitol na 100 %</span></div><div><b>${acc==null?'–':acc+' %'}</b><span>pokusů bez chyby</span></div><div><b>${n}</b><span>zahraných variant zpaměti</span></div><div><b>${err}</b><span>chyb celkem</span></div><div><b>${due}</b><span>k opakování</span></div><div><b>${streak}</b><span>${streak===1?'den':'dní'} v řadě</span></div></div></div>
+ <div class="profCard"><h2>Bílé vs. černé</h2><div class="sideCmp"><div class="w"><b>${W.pct} %</b><span>Za bílé · ${W.d}/${W.t} variant${W.acc!=null?` · ${W.acc} % bez chyby`:''}</span></div><div class="b"><b>${B.pct} %</b><span>Za černé · ${B.d}/${B.t} variant${B.acc!=null?` · ${B.acc} % bez chyby`:''}</span></div></div></div>
+ <div class="profCard"><h2>Doporučení</h2><ul class="lst tips">${tips.map(tipLi).join('')||'<li>Zatím nic – hraj a doporučení se objeví.</li>'}</ul></div>
+ <div class="twoCol"><div class="profCard"><h2>Co ti jde 💪</h2>${strong.length||bestCh.length?`<ul class="lst good">${bestCh.map(x=>`<li><b>${x.ch.t}</b><small>${x.c.title} · kapitola na ${x.p} %</small></li>`).join('')}${strong.map(x=>li(x,`umíš ji dlouhodobě${x.p.n?` · ${x.p.ok||0}/${x.p.n} bez chyby`:''}`)).join('')}</ul>`:'<p class="profEmpty">Tady se objeví varianty, které umíš nejlíp. Zahraj pár variant zpaměti.</p>'}</div>
+ <div class="profCard"><h2>Co zlepšit 🎯</h2>${weak.length||weakCh.length?`<ul class="lst bad">${weakCh.map(x=>`<li><b>${x.ch.t}</b><small>${x.c.title} · kapitola teprve na ${x.p} %</small><button data-goto="#${x.c.id}">Otevřít kurz →</button></li>`).join('')}${weak.map(x=>li(x,x.p.err?`${x.p.err} ${x.p.err===1?'chyba':x.p.err<5?'chyby':'chyb'} v ${x.p.n||1} ${(x.p.n||1)===1?'pokusu':'pokusech'}`:'zatím nezahraná zpaměti')).join('')}</ul>`:'<p class="profEmpty">Zatím žádné slabiny. 👍</p>'}</div></div>
+ <div class="profCard"><h2>Aktivita – posledních 14 dní</h2><div class="act14">${days.map(([d,v])=>`<div class="${v?'on':''}" style="height:${Math.max(6,v/mx*100)}%" title="${d}: ${v} variant"></div>`).join('')}</div><div class="actLbl"><span>před 2 týdny</span><span>dnes</span></div></div>
+ <div class="profCard"><h2>Kurzy</h2>${S.map(x=>`<div class="crsRow"><div><b>${x.c.title}</b><small>${x.c.side==='w'?'za bílé':'za černé'} · ${x.done}/${x.total} variant${x.due?` · ${x.due} k opakování`:''}${x.acc!=null?` · ${x.acc} % bez chyby`:''}</small></div><div class="bar"><i style="width:${x.pct}%"></i></div><a href="#${x.c.id}">${x.pct} % →</a></div>`).join('')}</div>
+ </div>`;
+ $('home').innerHTML=h;renderSide();
+ $('pLvl').onclick=openLvl;const po=document.getElementById('pOut');if(po)po.onclick=async()=>{await supaLogout();};}
 /* ---------- vývojářská stránka (jen účty s is_admin v Supabase; data hlídá server) ---------- */
 const fmtD=t=>t?new Date(t).toLocaleString('cs-CZ',{day:'numeric',month:'numeric',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'–';
 function progSummary(d){if(!d||!d.prog)return{xp:0,per:[],done:0};let done=0;const per=COURSES.map(c=>{const p=d.prog[c.id]||{};const ids=new Set(c.chapters.flatMap(ch=>ch.lines.map(l=>l.id)));
   let n=0;for(const id in p)if(ids.has(id)&&(p[id].box||0)>=2)n++;done+=n;return{t:c.title,n,of:ids.size};});return{xp:d.xp||0,per,done};}
-async function openDev(){const pk=$('picker');if(!(SYNC.admin&&getTok())){if(location.hash==='#dev')history.replaceState(null,'',location.pathname+location.search);return;}
+async function openDev(){const pk=$('picker');if(!(SYNC.admin&&getTok())){if(location.hash==='#dev')history.replaceState(null,'',location.pathname+location.search+pageHash());return;}
  if(location.hash!=='#dev')history.replaceState(null,'',location.pathname+location.search+'#dev');
- const close=()=>{pk.hidden=true;history.replaceState(null,'',location.pathname+location.search);};
+ const close=()=>{pk.hidden=true;history.replaceState(null,'',location.pathname+location.search+pageHash());};
  pk.innerHTML='<div class="pkCard dev"><h2>Vývojářská stránka</h2><p>Načítám…</p></div>';pk.hidden=false;
  let list=[];try{list=await rpc('trener_admin_players',{p_token:getTok()})||[];}catch(e){pk.innerHTML=`<div class="pkCard dev"><h2>Vývojářská stránka</h2><p>${/forbidden/.test(e.message||'')?'Tenhle účet nemá přístup.':escH(AUTH_ERR(e.message||String(e)))}</p><div class="row"><button class="btn" id="devClose">Zavřít</button></div></div>`;pk.onclick=ev=>{if(ev.target===pk||ev.target.id==='devClose')close();};return;}
  const now=Date.now(),wk=list.filter(p=>p.updated_at&&now-new Date(p.updated_at)<7*864e5).length;
@@ -648,7 +711,7 @@ async function openDev(){const pk=$('picker');if(!(SYNC.admin&&getTok())){if(loc
    if(t.dataset.del){if(!confirm(`Opravdu smazat hráče „${t.dataset.del}“ i s celým postupem? Nejde to vrátit.`))return;await rpc('trener_admin_delete',{p_token:getTok(),p_user:t.dataset.del});openDev();}
   }catch(e){if(msg)msg.textContent=AUTH_ERR(e.message||String(e));}};}
 const b64e=s=>btoa(unescape(encodeURIComponent(s))),b64d=s=>decodeURIComponent(escape(atob(s)));
-function backupCode(){return 'SACH1.'+b64e(JSON.stringify({xp:store.xp,prog:store.prog,mastered:store.mastered,upd:store.upd}));}
+function backupCode(){return 'SACH1.'+b64e(JSON.stringify({xp:store.xp,prog:store.prog,mastered:store.mastered,act:store.act,upd:store.upd}));}
 function importCode(c){c=(c||'').trim();if(!c.startsWith('SACH1.'))throw 0;const r=JSON.parse(b64d(c.slice(6)));if(!r||typeof r.prog!=='object')throw 0;
  applyMerged(mergeStores(store,Object.assign({},store,r,{upd:0})));save();}
 const P=()=>store.prog[course.id];
@@ -670,7 +733,7 @@ function t1Toast(on){const d=document.createElement('div');d.className='t1toast'
 function applyT1(){document.body.classList.toggle('t1',!!store.t1);}
 function toggleT1(){store.t1=!store.t1;save();applyT1();t1Toast(store.t1);if(store.t1){t1Moo();t1Shake();if(typeof confetti==='function'&&!$('trainer').hidden)confetti();}if(!$('home').hidden)renderHome();}
 let t1buf='';document.addEventListener('keydown',e=>{if(e.target&&/input|textarea/i.test(e.target.tagName))return;if(e.key&&e.key.length===1){t1buf=(t1buf+e.key.toLowerCase()).slice(-6);if(t1buf==='tyler1'){t1buf='';toggleT1();}}});
-let t1taps=[];document.addEventListener('pointerdown',e=>{const pic=e.target.closest&&e.target.closest('.cCard[data-c="cow"] .pic, .courseBtn[data-c="cow"] .ic');if(!pic)return;const now=Date.now();t1taps=t1taps.filter(t=>now-t<2500);t1taps.push(now);if(t1taps.length>=5){t1taps=[];toggleT1();}},true);
+let t1taps=[];document.addEventListener('pointerdown',e=>{const pic=e.target.closest&&e.target.closest('.cCard[data-c="cow"] .pic, .courseBtn[data-c="cow"] .ic, .crsIcon[data-c="cow"]');if(!pic)return;const now=Date.now();t1taps=t1taps.filter(t=>now-t<2500);t1taps.push(now);if(t1taps.length>=5){t1taps=[];toggleT1();}},true);
 /* ---------- Sound ---------- */
 let AC=null;
 function ac(){if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();}if(AC.state==='suspended')AC.resume();return AC;}
@@ -791,8 +854,9 @@ $('moves').addEventListener('click',e=>{const b=e.target.closest('.mv');if(b)goV
 /* ---------- Sidebar, courses, stats ---------- */
 let openCh={};
 function courseProg(c){const pcts=c.chapters.map(ch=>chPct(ch,c));return Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);}
+function courseIcon(c){return c.id==='cow'?COW_SVG:PIECE_SVG(c.icon||(c.side==='w'?(c.id==='italian'?'wB':'wN'):'bN'));}
 function renderCourses(){$('courses').innerHTML=COURSES.map(c=>{const pct=courseProg(c);const d=pct,n=100;return `<button class="courseBtn" data-c="${c.id}" aria-pressed="${c===course}"><span class="ic">${PIECE_SVG(c.side==='w'?'wN':'bN')}</span><span><b>${c.title}</b><small>${c.sub}</small><span class="cp"><span class="bar"><i style="width:${pct}%"></i></span><em class="${pct===100?'ok':''}">${pct===100?'Hotovo 100 % ✓':`${pct} %`}</em></span></span></button>`;}).join('');}
-$('courses').addEventListener('click',e=>{const b=e.target.closest('.courseBtn');if(!b)return;const c=COURSES.find(x=>x.id===b.dataset.c);course=c;cur=pickStart();showHome();});
+$('courses').addEventListener('click',e=>{const b=e.target.closest('.courseBtn');if(!b)return;go('#'+b.dataset.c);});
 function renderSide(){const side=$('side');const sc=side.scrollTop;const oc=openCh[course.id]=openCh[course.id]||new Set([0]);let h='';
  course.chapters.forEach((ch,ci)=>{const learned=ch.lines.filter(isDone).length;if(ch.lines.includes(cur))oc.add(ci);
   const complete=learned===ch.lines.length,mast=isMastered(ch),pct=chPct(ch);
@@ -822,10 +886,34 @@ function byPop(arr){return arr.map((l,i)=>[l,i]).sort((a,b)=>(popScore(b[0])-pop
 function sortedLines(ch){return store.sort==='pop'?byPop(ch.lines):ch.lines;}
 /* order in which the trainer offers lines: by similarity (course order) or by popularity across the whole course */
 function ORDER(){return store.sort==='pop'?byPop(LINES()):LINES();}
-function renderHome(){document.body.classList.add('homeMode');const L=LINES();const rec=recommend();
- let h=`<div class="homeHead"><div class="kicker">Šachový trenažér zahájení${store.t1?' <button class="t1chip" id="t1off" title="Vypnout T1 mód">T1 MÓD ✕</button>':''}</div><h1>Nauč se repertoár tah po tahu</h1><p>Vyber si kurz a kapitolu. Každá varianta je ověřená enginem a seřazená podle toho, jak se hraje na Lichess.</p>
- <div class="courseCards">${COURSES.map(c=>{const p=courseProg(c);return `<button class="cCard" data-c="${c.id}" aria-pressed="${c===course}"><span class="pic ${c.side==='b'?'b':''}">${c.id==='cow'?COW_SVG:PIECE_SVG(c.side==='w'?(c.id==='italian'?'wB':'wN'):'bN')}</span><span><b>${c.title}</b><small>${c.sub.replace('Repertoár ','')}</small></span><span class="miniRing">${ringSVG(p,18,5)}<span>${p}%</span></span></button>`;}).join('')}</div></div>`;
- h+=`<div class="panelBar"><div class="sum"><span><b>${courseProg(course)} %</b>${course.title}</span><span><b>${L.filter(isDone).length}/${L.length}</b>variant hotovo</span><span><b>${course.chapters.filter(isMastered).length}/${course.chapters.length}</b>kapitol na 100 %</span><span><b>${L.filter(l=>stateOf(l)==='due').length}</b>k opakování</span><span><b>Level ${lvlOf(store.xp).n}</b>${lvlOf(store.xp).name} · ${store.xp} XP</span></div>
+/* ---------- stránky: #  = přehled kurzů, #<id kurzu> = kurz, #profil = profil hráče ---------- */
+let page='all';
+function parseRoute(){const h=decodeURIComponent(location.hash.slice(1));if(h==='profil'){page='profile';return;}const c=COURSES.find(x=>x.id===h);if(c){if(c!==course){course=c;cur=pickStart();flipped=course.side==='b';}page='course';return;}if(h!=='dev')page='all';}
+function route(){if(location.hash==='#dev'){openDev();return;}parseRoute();showHome();}
+function pageHash(){return page==='course'?'#'+course.id:page==='profile'?'#profil':'';}
+function go(hash){if(hash==='#')hash='';if(location.hash===hash||(hash===''&&!location.hash))route();else location.hash=hash;}
+function stateIn(c,l){const p=(store.prog[c.id]||{})[l.id];if(!p)return'new';if((p.box||0)<2)return'learning';return p.due<=Date.now()?'due':'done';}
+const t1chip=()=>store.t1?' <button class="t1chip" id="t1off" title="Vypnout T1 mód">T1 MÓD ✕</button>':'';
+function cardHTML(c){const p=courseProg(c),L=c.chapters.flatMap(ch=>ch.lines),d=L.filter(l=>{const s=stateIn(c,l);return s==='done'||s==='due';}).length,due=L.filter(l=>stateIn(c,l)==='due').length;
+ return `<button class="cCard" data-c="${c.id}"><span class="pic ${c.side==='b'?'b':''}">${courseIcon(c)}</span><span><b>${c.title}</b><small>${c.sub.replace(/^Repertoár za (bílé|černé) · /,'')}</small><span class="cMeta">${d}/${L.length} variant${due?` · <b>${due} k opakování</b>`:''}</span></span><span class="miniRing">${ringSVG(p,18,5)}<span>${p}%</span></span></button>`;}
+function syncHTML(){return `<div class="syncRow"><span id="syncInfo">${syncLabel()}</span><span class="syncBtns"><button class="lnk" id="bkBtn">Záloha postupu</button></span></div>
+ <div class="bkPanel" id="bkPanel"${BK.open?'':' hidden'}><p>Zkopíruj si kód a ulož ho (třeba do poznámek). Na jiném zařízení nebo po smazání dat ho vlož sem a postup se obnoví – nic se nepřepíše, vezme se lepší výsledek z obou.</p>
+ <textarea id="bkText" rows="3" spellcheck="false" placeholder="Sem vlož kód zálohy…"></textarea><div class="bkActs"><button class="btn" id="bkCopy">Zkopírovat můj kód</button><button class="btn primary" id="bkLoad">Načíst kód</button><span id="bkMsg">${BK.msg}</span></div></div>`;}
+function wireSync(){$('bkBtn').onclick=()=>{const p=$('bkPanel');p.hidden=!p.hidden;BK.open=!p.hidden;BK.msg='';$('bkMsg').textContent='';};
+ $('bkCopy').onclick=async()=>{const c=backupCode();$('bkText').value=c;$('bkText').select();let ok=false;try{await navigator.clipboard.writeText(c);ok=true;}catch(e){try{ok=document.execCommand('copy');}catch(_){}}BK.msg=$('bkMsg').textContent=ok?'Zkopírováno ✓':'Kód je v poli – zkopíruj ho ručně';};
+ $('bkLoad').onclick=()=>{let m;try{importCode($('bkText').value);m='Postup obnoven ✓';}catch(e){m='Tohle není platný kód zálohy';}BK.msg=m;const el=document.getElementById('bkMsg');if(el)el.textContent=m;};
+ const t1o=document.getElementById('t1off');if(t1o)t1o.onclick=toggleT1;}
+function renderOverview(){document.body.classList.add('homeMode');const L=lvlOf(store.xp);
+ const sec=(side,label)=>{const cs=COURSES.filter(c=>c.side===side);return cs.length?`<section class="sideSec"><h2 class="secT"><span class="kd ${side}"></span>${label} <small>· ${cs.length} ${cs.length===1?'kurz':cs.length<5?'kurzy':'kurzů'}</small></h2><div class="courseCards">${cs.map(cardHTML).join('')}</div></section>`:'';};
+ let h=`<div class="homeHead"><div class="kicker">Šachový trenažér zahájení${t1chip()}</div><h1>Nauč se repertoár tah po tahu</h1><p>Vyber si kurz. Každý má vlastní stránku s kapitolami a variantami ověřenými enginem.</p>
+ <button class="profStrip" id="toProf"><span class="n">${L.n}</span><span><b>${SYNC.user?escH(SYNC.user):'Můj profil'}</b> · ${L.name} · ${store.xp||0} XP</span><span class="go">Profil a statistiky →</span></button></div>`;
+ h+=sec('w','Za bílé')+sec('b','Za černé')+syncHTML();
+ $('home').innerHTML=h;renderSide();wireSync();$('toProf').onclick=()=>go('#profil');}
+function renderHome(){if(page==='all')return renderOverview();if(page==='profile')return renderProfile();
+ document.body.classList.add('homeMode');const L=LINES();const rec=recommend();const cp=courseProg(course);
+ let h=`<div class="homeHead"><a class="backAll" href="#">← Všechny kurzy</a><div class="kicker">${course.side==='w'?'Za bílé':'Za černé'}${t1chip()}</div>
+ <div class="crsTop"><span class="pic crsIcon ${course.side==='b'?'b':''}" data-c="${course.id}">${courseIcon(course)}</span><div><h1>${course.title}</h1><p>${course.sub.replace(/^Repertoár za (bílé|černé) · /,'')} · ${course.chapters.length} kapitol · ${L.length} variant</p></div><span class="miniRing">${ringSVG(cp,22,6)}<span>${cp}%</span></span></div></div>`;
+ h+=`<div class="panelBar"><div class="sum"><span><b>${cp} %</b>${course.title}</span><span><b>${L.filter(isDone).length}/${L.length}</b>variant hotovo</span><span><b>${course.chapters.filter(isMastered).length}/${course.chapters.length}</b>kapitol na 100 %</span><span><b>${L.filter(l=>stateOf(l)==='due').length}</b>k opakování</span><span><b>Level ${lvlOf(store.xp).n}</b>${lvlOf(store.xp).name} · ${store.xp} XP</span></div>
  <div class="acts"><button class="btn" id="hCustom">Vlastní drill</button><button class="btn primary" id="hGo">${rec.t}<small>${rec.s}</small></button></div></div>`;
  h+=`<div class="toolsRow"><div class="chip2" role="group" aria-label="Řazení variant"><button data-sort="tree" aria-pressed="${store.sort!=='pop'}">Podle podobnosti</button><button data-sort="pop" aria-pressed="${store.sort==='pop'}">Nejhranější</button></div>
  <label class="death" title="V drillu: jedna chyba a celý drill začíná znovu"><input type="checkbox" id="deathToggle" ${store.death?'checked':''}> <span>Mód smrti${store.death?' <b>zapnutý</b>':''}</span></label>
@@ -837,19 +925,15 @@ function renderHome(){document.body.classList.add('homeMode');const L=LINES();co
   <div class="chBody"><div class="chPlan2"><b>Plán:</b> ${ch.plan}</div><div class="lineTable">`;
   sortedLines(ch).forEach(l=>{const st=stateOf(l);h+=`<button class="hLine" data-id="${l.id}" title="${ST[st][0]}"><span class="st s-${st}">${STI[st]}</span><span>${l.name}<span class="full">${l.full}</span></span>${popHTML(l)||'<span></span>'}<span class="act">${st==='new'?'Učit se →':'Procvičit →'}</span></button>`;});
   h+=`</div></div></details>`;});
- h+=`</div><div class="syncRow"><span id="syncInfo">${syncLabel()}</span><span class="syncBtns"><button class="lnk" id="bkBtn">Záloha postupu</button></span></div>
- <div class="bkPanel" id="bkPanel"${BK.open?'':' hidden'}><p>Zkopíruj si kód a ulož ho (třeba do poznámek). Na jiném zařízení nebo po smazání dat ho vlož sem a postup se obnoví – nic se nepřepíše, vezme se lepší výsledek z obou.</p>
- <textarea id="bkText" rows="3" spellcheck="false" placeholder="Sem vlož kód zálohy…"></textarea><div class="bkActs"><button class="btn" id="bkCopy">Zkopírovat můj kód</button><button class="btn primary" id="bkLoad">Načíst kód</button><span id="bkMsg">${BK.msg}</span></div></div>`;
- $('home').innerHTML=h;renderSide();
- const accB=document.getElementById('accBtn');if(accB)accB.onclick=openAccount;
- $('bkBtn').onclick=()=>{const p=$('bkPanel');p.hidden=!p.hidden;BK.open=!p.hidden;BK.msg='';$('bkMsg').textContent='';};
- $('bkCopy').onclick=async()=>{const c=backupCode();$('bkText').value=c;$('bkText').select();let ok=false;try{await navigator.clipboard.writeText(c);ok=true;}catch(e){try{ok=document.execCommand('copy');}catch(_){}}BK.msg=$('bkMsg').textContent=ok?'Zkopírováno ✓':'Kód je v poli – zkopíruj ho ručně';};
- $('bkLoad').onclick=()=>{let m;try{importCode($('bkText').value);m='Postup obnoven ✓';}catch(e){m='Tohle není platný kód zálohy';}BK.msg=m;const el=document.getElementById('bkMsg');if(el)el.textContent=m;};
+ h+=`</div>`+syncHTML();
+ $('home').innerHTML=h;renderSide();wireSync();
  $('home').querySelectorAll('details.chRow').forEach(dd=>dd.addEventListener('toggle',()=>{const ci=+dd.dataset.ci;dd.open?oc.add(ci):oc.delete(ci);}));
  $('hGo').onclick=()=>{if(rec.ch){showTrainer();startSession(rec.ch.lines,`Test kapitoly: ${rec.ch.t}`,rec.ch);}else openLine(rec.l,rec.m);};
- $('hCustom').onclick=()=>openPicker();const t1o=document.getElementById('t1off');if(t1o)t1o.onclick=toggleT1;
+ $('hCustom').onclick=()=>openPicker();
  $('deathToggle').onchange=e=>{store.death=e.target.checked;save();renderHome();};}
-$('home').addEventListener('click',e=>{const cc=e.target.closest('.cCard');if(cc){course=COURSES.find(x=>x.id===cc.dataset.c);cur=pickStart();flipped=course.side==='b';buildSquares();renderCourses();renderHome();return;}
+$('home').addEventListener('click',e=>{const cc=e.target.closest('.cCard');if(cc){go('#'+cc.dataset.c);return;}
+ const pa=e.target.closest('[data-goto]');if(pa){go(pa.dataset.goto);return;}
+ const pl=e.target.closest('[data-play]');if(pl){const [cid,lid]=pl.dataset.play.split('|');const c=COURSES.find(x=>x.id===cid);if(c){if(c!==course){course=c;}page='course';history.pushState(null,'','#'+c.id);openLine(LINES().find(l=>l.id===lid));}return;}
  const so=e.target.closest('[data-sort]');if(so){store.sort=so.dataset.sort;save();renderHome();return;}
  const ln=e.target.closest('.hLine');if(ln){openLine(LINES().find(l=>l.id===ln.dataset.id));return;}
  const b=e.target.closest('[data-learn],[data-drill],[data-test]');if(!b)return;e.preventDefault();const ch=course.chapters[+(b.dataset.learn??b.dataset.drill??b.dataset.test)];
@@ -956,6 +1040,8 @@ function planArrows(){if(!cur.cont){arrow(null);return'';}const mv=cur.cont.spli
  arrowsEl.innerHTML=items.map((it,i)=>draw(it.m,it.mine?'#2f8fe8':'#e2533b',i+1,1-i*.1)).join('');
  return `<div class="contList"><b>Jak hra pokračuje (engine)</b><small><span class="dotB"></span>tvoje tahy <span class="dotR"></span>tahy soupeře · čísla na šachovnici ukazují pořadí</small><ol>${items.map((it,i)=>`<li class="${it.mine?'me':'op'}"><span class="n">${i+1}</span><span><b>${it.mine?'Ty':'Soupeř'}: ${it.lab}</b> ${it.desc}</span></li>`).join('')}</ol></div>`;}
 function finish(){finished=true;arrow(null);const perfect=mistakes===0;const pr=P();const p=pr[cur.id]||{box:0,due:0};let gain=0,text;
+ if(mode!=='learn'){p.n=(p.n||0)+1;p.ok=(p.ok||0)+(perfect?1:0);p.err=(p.err||0)+mistakes;}p.last=Date.now();
+ const dk=new Date().toISOString().slice(0,10);store.act=store.act||{};store.act[dk]=(store.act[dk]||0)+1;
  if(mode==='learn'){if(!pr[cur.id]){p.box=1;p.due=Date.now();}gain=5;text='Teď ji zkus zahrát zpaměti v režimu Procvičit.';}
  else if(perfect){p.box=Math.min(Math.max(p.box+1,2),5);p.due=Date.now()+INTERVALS[p.box]*DAY;gain=10+p.box*2;text='Varianta se ti vrátí za '+days(INTERVALS[p.box])+'.';}
  else{p.box=Math.min(p.box||1,1);p.due=Date.now();gain=2;text='S chybou. Zahraj ji ještě jednou bez chyby a bude hotová.';}
@@ -1035,8 +1121,8 @@ const SND_ON='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5
 const SND_OFF='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12A4.5 4.5 0 0 0 14 8v2.2l2.5 2.5V12zM19 12c0 .9-.2 1.8-.5 2.6l1.5 1.5A9 9 0 0 0 14 3.2v2.1A7 7 0 0 1 19 12zM4.3 3 3 4.3 7.7 9H3v6h4l5 5v-6.7l4.3 4.3c-.7.5-1.4.9-2.3 1.2v2.1a9 9 0 0 0 3.7-1.8l2 2 1.3-1.3L4.3 3zM12 4 9.9 6.1 12 8.2V4z"/></svg>';
 function renderSound(){$('sound').innerHTML=store.sound?SND_ON:SND_OFF;$('sound').setAttribute('aria-label',store.sound?'Vypnout zvuk':'Zapnout zvuk');}
 $('sound').onclick=()=>{store.sound=!store.sound;save();renderSound();if(store.sound){ac();sfx('move');}};
-applyTheme();applyT1();renderSound();cur=pickStart();flipped=course.side==='b';buildSquares();showHome();
-$('accTop').onclick=openAccount;$('sLvl').onclick=openLvl;renderLvl();$('devTop').onclick=openDev;window.addEventListener('hashchange',()=>{if(location.hash==='#dev')openDev();});renderAccTop();
+applyTheme();applyT1();renderSound();parseRoute();cur=pickStart();flipped=course.side==='b';buildSquares();showHome();
+$('accTop').onclick=()=>{if(SYNC.be&&SYNC.be.kind==='supa')go('#profil');else openAccount();};$('sLvl').onclick=openLvl;renderLvl();$('devTop').onclick=openDev;window.addEventListener('hashchange',route);renderAccTop();
 initCloud();window.addEventListener('pagehide',()=>{if(SYNC.dirty){clearTimeout(SYNC.t);pushCloud();}});
 </script>
 
