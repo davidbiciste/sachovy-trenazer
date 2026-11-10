@@ -6,7 +6,10 @@
 <meta name="robots" content="noindex">
 <script src="config.js"></script>
 <style>:root{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}body{margin:0}</style>
-<title>Šachový trenažér zahájení</title>
+<title>Šachový trenažér</title>
+<meta property="og:title" content="Šachový trenažér">
+<meta property="og:description" content="Nauč se šachová zahájení tah po tahu.">
+<meta name="description" content="Nauč se šachová zahájení tah po tahu.">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap">
@@ -407,11 +410,15 @@ i.en{font-style:normal;font-weight:500;color:var(--muted);font-size:.86em}i.en::
 .exTx{min-width:0}.exTx b{display:block;font-size:14px}.exTx small{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.exTx .exFull{font-size:11px;opacity:.75}
 @media (min-width:821px){.exLeft{position:sticky;top:12px}}
 @media (max-width:820px){.exWrap{grid-template-columns:1fr}}
+.homeBtn{font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 16px 0 12px;border-radius:12px;border:1px solid var(--brass);background:rgba(217,179,108,.14);color:var(--brass);font-weight:800;font-size:14px;flex:none}
+.homeBtn svg{width:20px;height:20px}.homeBtn:hover{background:rgba(217,179,108,.26)}@media (max-width:560px){.homeBtn{height:36px;padding:0 10px}.homeBtn span{display:none}}
+.exCtl .btn{font-size:16px}#xBoard{box-shadow:0 10px 30px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.35)}
 .accTabs{margin-top:4px}.pkCard.acc .accHint{margin:0;font-size:12.5px;color:var(--muted,#a99f8f)}.pkCard.acc .accHint[hidden]{display:none}.accMsg{min-height:1.2em;margin:2px 0 0;font-size:14px;color:var(--brass)}
 </style>
 
 <div class="app">
   <div class="top">
+    <button class="homeBtn" id="homeTop" title="Domů – všechny kurzy"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 12h3v8h6v-5h2v5h6v-8h3z"/></svg><span>Domů</span></button>
     <div class="courses" id="courses" role="group" aria-label="Kurz"></div>
     <div class="stats">
       <span class="stat" title="Varianty zahrané zpaměti bez chyby"><svg viewBox="0 0 24 24" fill="var(--accent)"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg><b id="sLearned">0</b>/<span id="sTotal">0</span>&nbsp;hotovo</span>
@@ -686,41 +693,70 @@ function openLvl(){const pk=$('picker'),L=lvlOf(store.xp);let rows='';const max=
  pk.innerHTML=`<div class="pkCard lvlInfo"><h2>Level ${L.n} – ${L.name}</h2><p>Máš <b>${store.xp||0} XP</b>. Do dalšího levelu chybí <b>${L.left} XP</b>. XP dostaneš za každou variantu zahranou zpaměti – bez chyby víc.</p><div class="lvlList">${rows}</div><div class="row"><button class="btn" id="lvlClose">Zavřít</button></div></div>`;
  pk.hidden=false;pk.onchange=null;pk.onclick=e=>{if(e.target===pk||e.target.id==='lvlClose')pk.hidden=true;};}
 /* ---------- Najít variantu (#hledat): hraješ tahy, stránka ukáže varianty, které k nim vedou ---------- */
-let EX={moves:[],flip:false,sel:null},EXI=null;
+let EX={moves:[],flip:false},EXI=null;
 const sanK=m=>m.replace(/[+#!?]/g,'');const fenK=f=>f.split(' ').slice(0,4).join(' ');
 function exIndex(){if(EXI)return EXI;EXI=[];COURSES.forEach(c=>c.chapters.forEach(ch=>ch.lines.forEach(l=>{const g=new CHESS();const fens=[fenK(g.fen())];const sans=[];
  for(const m of l.m.split(' ')){let mv;try{mv=g.move(m,{strict:false});}catch(e){break;}sans.push(sanK(mv.san));fens.push(fenK(g.fen()));}EXI.push({c,ch,l,sans,fens});})));return EXI;}
 function exGame(){const g=new CHESS();for(const m of EX.moves)g.move(m);return g;}
 async function renderExplore(){document.body.classList.add('homeMode');
  if(!CHESS){$('home').innerHTML='<a class="backAll" href="#">← Všechny kurzy</a><p class="profEmpty">Načítám…</p>';try{await chessLib();}catch(e){$('home').innerHTML='<a class="backAll" href="#">← Všechny kurzy</a><p class="profEmpty">Nepodařilo se načíst pravidla šachu. Obnov stránku.</p>';return;}if(page!=='explore')return;}
- const I=exIndex(),g=exGame(),n=EX.moves.length,key=fenK(g.fen()),seq=EX.moves.map(sanK);
+ exIndex();
+ $('home').innerHTML=`<a class="backAll" href="#">← Všechny kurzy</a><div class="exWrap"><div class="exLeft"><div class="profCard"><h2>Najít variantu</h2><p class="profEmpty" style="margin-bottom:10px">Táhni za bílého i černého (klikni nebo přetáhni figuru). Hned uvidíš, které varianty z tvých kurzů k téhle pozici vedou.</p>
+ <div class="boardWrap"><div class="board" id="xBoard"><div class="sqs" id="xSqs"></div><div class="pcs" id="xPcs"></div></div></div>
+ <div class="exCtl"><button class="btn" id="exStart" title="Na začátek">⏮</button><button class="btn" id="exBack" title="Tah zpět">◀</button><button class="btn" id="exFwd" title="Tah vpřed">▶</button><button class="btn" id="exFlip" title="Otočit šachovnici">⇅</button></div>
+ <div class="exMoves" id="exMoves"></div></div></div><div class="exRight" id="exRight"></div></div>`;
+ renderSide();XB.redo=[];xBuild();xSet();exPanels();
+ $('exStart').onclick=()=>{if(!EX.moves.length)return;XB.redo=EX.moves.slice().reverse().concat(XB.redo);EX.moves=[];xJump();};
+ $('exBack').onclick=()=>{if(!EX.moves.length)return;XB.redo.unshift(EX.moves.pop());xJump();};
+ $('exFwd').onclick=()=>{if(!XB.redo.length)return;exPlay(XB.redo.shift(),true);};
+ $('exFlip').onclick=()=>{EX.flip=!EX.flip;xBuild();xSet();};
+ $('exMoves').onclick=e=>{const bt=e.target.closest('.exMv');if(!bt)return;const k=+bt.dataset.to;XB.redo=EX.moves.slice(k).concat(XB.redo);EX.moves=EX.moves.slice(0,k);xJump();};
+ $('exRight').onclick=e=>{const ch=e.target.closest('.exChip');if(ch){exPlay(ch.dataset.play);return;}
+  const ln=e.target.closest('.exLine');if(ln){const [cid,lid]=ln.dataset.open.split('|');const c=COURSES.find(x=>x.id===cid);course=c;page='course';history.pushState(null,'','#'+c.id);openLine(LINES().find(l=>l.id===lid));}};
+ xInput();}
+/* šachovnice stránky hledání – stejné prvky a styl jako v trenažéru */
+const XB={sq:[],pcs:{},sel:null,drag:null,redo:[]};
+const xCol=i=>EX.flip?7-(i&7):(i&7),xRow=i=>EX.flip?(i>>3):7-(i>>3);
+function xPlace(el,i){el.style.transform=`translate(${xCol(i)*100}%,${xRow(i)*100}%)`;}
+function xBuild(){const el=$('xSqs');if(!el)return;el.innerHTML='';XB.sq=[];for(let row=0;row<8;row++)for(let col=0;col<8;col++){const r=EX.flip?row:7-row,f=EX.flip?7-col:col,i=r*8+f;const d=document.createElement('div');d.className='sq '+((r+f)%2?'l':'d');
+ if(col===0)d.innerHTML+=`<span class="co r">${r+1}</span>`;if(row===7)d.innerHTML+=`<span class="co f">${FILES[f]}</span>`;el.appendChild(d);XB.sq[i]=d;}}
+function xSet(){const g=exGame(),P=$('xPcs');if(!P)return;P.innerHTML='';XB.pcs={};const b=g.board();
+ for(let r=0;r<8;r++)for(let f=0;f<8;f++){const pc=b[r][f];if(!pc)continue;const i=(7-r)*8+f;const el=document.createElement('div');el.className='pc';el.innerHTML=PIECE_SVG(pc.color+pc.type.toUpperCase());xPlace(el,i);P.appendChild(el);XB.pcs[i]=el;}
+ xMarks();}
+function xMarks(){XB.sq.forEach(d=>d.classList.remove('last','sel','dt','rg'));const g=exGame();const h=g.history({verbose:true});const last=h[h.length-1];
+ if(last){XB.sq[sqOf(last.from)].classList.add('last');XB.sq[sqOf(last.to)].classList.add('last');}
+ if(XB.sel!=null){XB.sq[XB.sel].classList.add('sel');g.moves({square:sqName(XB.sel),verbose:true}).forEach(m=>{const t=sqOf(m.to);XB.sq[t].classList.add(g.get(m.to)||m.flags.includes('e')?'rg':'dt');});}}
+function xAnimate(mv){const from=sqOf(mv.from),to=sqOf(mv.to);const el=XB.pcs[from];const capSq=mv.flags.includes('e')?to+(mv.color==='w'?-8:8):to;const cap=XB.pcs[capSq];
+ if(cap&&cap!==el){delete XB.pcs[capSq];cap.style.zIndex=1;setTimeout(()=>{cap.classList.add('gone');setTimeout(()=>cap.remove(),220);},130);}
+ delete XB.pcs[from];XB.pcs[to]=el;if(el){el.classList.remove('drag');xPlace(el,to);if(mv.promotion)el.innerHTML=PIECE_SVG(mv.color+mv.promotion.toUpperCase());}
+ if(mv.flags.includes('k')||mv.flags.includes('q')){const h=mv.color==='w'?0:56;const [a,b2]=mv.flags.includes('k')?[h+7,h+5]:[h,h+3];const r=XB.pcs[a];delete XB.pcs[a];XB.pcs[b2]=r;if(r)xPlace(r,b2);}}
+function exPlay(san,keepRedo){const g=exGame();let mv;try{mv=g.move(san,{strict:false});}catch(e){return false;}if(!mv)return false;
+ if(!keepRedo){XB.redo=XB.redo[0]===mv.san?XB.redo.slice(1):[];}EX.moves.push(mv.san);XB.sel=null;xAnimate(mv);xMarks();sfx(mv.flags.includes('k')||mv.flags.includes('q')?'castle':g.inCheck()?'check':mv.captured?'capture':'move');exPanels();return true;}
+function xJump(){XB.sel=null;xSet();exPanels();sfx('move');}
+function xSqAt(x,y){const r=$('xBoard').getBoundingClientRect();const col=Math.floor((x-r.left)/r.width*8),row=Math.floor((y-r.top)/r.height*8);if(col<0||col>7||row<0||row>7)return null;const f=EX.flip?7-col:col,rk=EX.flip?row:7-row;return rk*8+f;}
+function xTry(from,to){const g=exGame();let mv=null;try{mv=g.move({from:sqName(from),to:sqName(to),promotion:'q'});}catch(e){}if(!mv)return false;return exPlay(mv.san);}
+function xInput(){const B=$('xBoard');
+ B.addEventListener('pointerdown',e=>{if(e.button>0)return;ac();const i=xSqAt(e.clientX,e.clientY);if(i==null)return;const g=exGame();const pc=g.get(sqName(i));
+  if(XB.sel!=null&&XB.sel!==i&&xTry(XB.sel,i))return;
+  if(pc&&pc.color===g.turn()){const was=XB.sel===i;XB.sel=i;xMarks();XB.drag={from:i,el:XB.pcs[i],x:e.clientX,y:e.clientY,moved:false,was};B.setPointerCapture(e.pointerId);e.preventDefault();}
+  else{XB.sel=null;xMarks();}});
+ B.addEventListener('pointermove',e=>{const d=XB.drag;if(!d||!d.el)return;if(!d.moved&&Math.hypot(e.clientX-d.x,e.clientY-d.y)<5)return;d.moved=true;const r=B.getBoundingClientRect(),s=r.width/8;d.el.classList.add('drag');
+  const x=Math.max(-s/2,Math.min(r.width-s/2,e.clientX-r.left-s/2)),y=Math.max(-s/2,Math.min(r.height-s/2,e.clientY-r.top-s/2));d.el.style.transform=`translate(${x}px,${y}px)`;});
+ B.addEventListener('pointerup',e=>{const d=XB.drag;XB.drag=null;if(!d)return;
+  if(d.moved){const to=xSqAt(e.clientX,e.clientY);if(to==null||to===d.from||!xTry(d.from,to)){d.el.classList.remove('drag');xPlace(d.el,d.from);}}
+  else if(d.was){XB.sel=null;xMarks();}});
+ B.addEventListener('pointercancel',()=>{const d=XB.drag;XB.drag=null;if(d&&d.el){d.el.classList.remove('drag');xPlace(d.el,d.from);}});}
+function exPanels(){const I=exIndex(),g=exGame(),n=EX.moves.length,key=fenK(g.fen()),seq=EX.moves.map(sanK);
  const exact=I.filter(x=>x.sans.length>=n&&seq.every((m,i)=>x.sans[i]===m));
  const trans=n?I.filter(x=>!exact.includes(x)&&x.fens.indexOf(key)>0):[];
  const nxt={};exact.forEach(x=>{if(x.sans.length>n){const m=x.sans[n];nxt[m]=(nxt[m]||0)+1;}});trans.forEach(x=>{const k=x.fens.indexOf(key);if(k>=0&&k<x.sans.length){const m=x.sans[k];nxt[m]=(nxt[m]||0)+1;}});
  const nxtS=Object.entries(nxt).sort((a,b)=>b[1]-a[1]);
- /* board */
- const b=g.board(),sel=EX.sel,targets=sel?g.moves({square:sel,verbose:true}).map(m=>m.to):[];const last=g.history({verbose:true}).slice(-1)[0];
- let bd='';for(let r=0;r<8;r++)for(let f=0;f<8;f++){const rr=EX.flip?7-r:r,ff=EX.flip?7-f:f;const sq='abcdefgh'[ff]+(8-rr);const pc=b[rr][ff];const light=(rr+ff)%2===0;
-  bd+=`<div class="exSq ${light?'l':'d'}${sel===sq?' sel':''}${last&&(last.from===sq||last.to===sq)?' last':''}" data-sq="${sq}">${pc?PIECE_SVG(pc.color+pc.type.toUpperCase()):''}${targets.includes(sq)?`<i class="${pc?'cap':'dot'}"></i>`:''}${f===0?`<span class="rk">${8-rr}</span>`:''}${r===7?`<span class="fl">${'abcdefgh'[ff]}</span>`:''}</div>`;}
- const mvList=EX.moves.map((m,i)=>(i%2===0?`<b>${i/2+1}.</b>`:'')+`<button class="exMv${i===n-1?' cur':''}" data-to="${i+1}">${m}</button>`).join(' ')||'<span class="profEmpty">Zatím žádný tah. Zahraj první tah za bílého.</span>';
+ $('exMoves').innerHTML=EX.moves.map((m,i)=>(i%2===0?`<b>${i/2+1}.</b>`:'')+`<button class="exMv${i===n-1?' cur':''}" data-to="${i+1}">${m}</button>`).join(' ')||'<span class="profEmpty">Zatím žádný tah. Zahraj první tah za bílého.</span>';
  const row=(x,tr)=>{const st=stateIn(x.c,x.l);return `<button class="exLine" data-open="${x.c.id}|${x.l.id}"><span class="exIc ${x.c.side==='b'?'b':''}">${courseIcon(x.c)}</span><span class="exTx"><b>${x.l.name}${enH(x.l)}</b><small>${x.c.title} · ${x.ch.t}${tr?' · jiné pořadí tahů':''}</small><small class="exFull">${x.l.full}</small></span><span class="st s-${st}" title="${ST[st][0]}">${STI[st]}</span></button>`;};
  const LIM=60;
- let h=`<a class="backAll" href="#">← Všechny kurzy</a><div class="exWrap"><div class="exLeft"><div class="profCard"><h2>Najít variantu</h2><p class="profEmpty" style="margin-bottom:10px">Táhni za bílého i černého. Pod šachovnicí uvidíš, které varianty z tvých kurzů k téhle pozici vedou.</p>
- <div class="exBoard">${bd}</div><div class="exCtl"><button class="btn" id="exStart">⏮ Začátek</button><button class="btn" id="exBack">↶ Zpět</button><button class="btn" id="exFlip">⇅ Otočit</button></div>
- <div class="exMoves">${mvList}</div></div></div><div class="exRight">
- <div class="profCard"><h2>Jak repertoár pokračuje</h2>${nxtS.length?`<div class="exNext">${nxtS.map(([m,k])=>`<button class="exChip" data-play="${m}">${m}<small>${k} ${k===1?'varianta':k<5?'varianty':'variant'}</small></button>`).join('')}</div>`:`<p class="profEmpty">${n?'Tady už žádná varianta z kurzů nepokračuje.':'—'}</p>`}</div>
+ $('exRight').innerHTML=`<div class="profCard"><h2>Jak repertoár pokračuje</h2>${nxtS.length?`<div class="exNext">${nxtS.map(([m,k])=>`<button class="exChip" data-play="${m}">${m}<small>${k} ${k===1?'varianta':k<5?'varianty':'variant'}</small></button>`).join('')}</div>`:`<p class="profEmpty">${n?'Tady už žádná varianta z kurzů nepokračuje.':'—'}</p>`}</div>
  <div class="profCard"><h2>Varianty, které k tomu vedou <small class="exCnt">${exact.length}</small></h2>${exact.length?`<div class="exList">${exact.slice(0,LIM).map(x=>row(x,false)).join('')}</div>${exact.length>LIM?`<p class="profEmpty">…a dalších ${exact.length-LIM}. Zahraj další tah a seznam se zúží.</p>`:''}`:'<p class="profEmpty">Žádná varianta z kurzů nejde přesně tímhle pořadím tahů.</p>'}</div>
- ${trans.length?`<div class="profCard"><h2>Stejná pozice jiným pořadím tahů <small class="exCnt">${trans.length}</small></h2><div class="exList">${trans.slice(0,LIM).map(x=>row(x,true)).join('')}</div></div>`:''}
- </div></div>`;
- $('home').innerHTML=h;renderSide();
- const H=$('home');
- H.querySelector('.exBoard').onclick=e=>{const el=e.target.closest('.exSq');if(!el)return;const sq=el.dataset.sq;const g2=exGame();
-  if(EX.sel&&EX.sel!==sq){let mv=null;try{mv=g2.move({from:EX.sel,to:sq,promotion:'q'});}catch(err){}if(mv){EX.moves.push(mv.san);EX.sel=null;sfx(mv.captured?'capture':'move');renderExplore();return;}}
-  const pc=g2.get(sq);EX.sel=pc&&pc.color===g2.turn()&&EX.sel!==sq?sq:null;renderExplore();};
- $('exStart').onclick=()=>{EX.moves=[];EX.sel=null;renderExplore();};$('exBack').onclick=()=>{EX.moves.pop();EX.sel=null;renderExplore();};$('exFlip').onclick=()=>{EX.flip=!EX.flip;renderExplore();};
- H.querySelectorAll('.exMv').forEach(bt=>bt.onclick=()=>{EX.moves=EX.moves.slice(0,+bt.dataset.to);EX.sel=null;renderExplore();});
- H.querySelectorAll('.exChip').forEach(bt=>bt.onclick=()=>{const g2=exGame();try{const mv=g2.move(bt.dataset.play,{strict:false});EX.moves.push(mv.san);sfx('move');}catch(e){}EX.sel=null;renderExplore();});
- H.querySelectorAll('.exLine').forEach(bt=>bt.onclick=()=>{const [cid,lid]=bt.dataset.open.split('|');const c=COURSES.find(x=>x.id===cid);course=c;page='course';history.pushState(null,'','#'+c.id);openLine(LINES().find(l=>l.id===lid));});}
+ ${trans.length?`<div class="profCard"><h2>Stejná pozice jiným pořadím tahů <small class="exCnt">${trans.length}</small></h2><div class="exList">${trans.slice(0,LIM).map(x=>row(x,true)).join('')}</div></div>`:''}`;}
 /* ---------- profil hráče (#profil) ---------- */
 function courseStats(c){const pr=store.prog[c.id]||{};const L=c.chapters.flatMap(ch=>ch.lines.map(l=>({l,ch})));const o={c,total:L.length,done:0,due:0,learning:0,neu:0,n:0,ok:0,err:0,lines:[]};
  L.forEach(({l,ch})=>{const st=stateIn(c,l);o[st==='new'?'neu':st==='done'?'done':st]++;if(st==='due')o.done++;const p=pr[l.id];if(p){o.n+=p.n||0;o.ok+=p.ok||0;o.err+=p.err||0;o.lines.push({c,l,ch,p,st});}});
@@ -982,7 +1018,7 @@ function wireSync(){
  const t1o=document.getElementById('t1off');if(t1o)t1o.onclick=toggleT1;}
 function renderOverview(){document.body.classList.add('homeMode');const L=lvlOf(store.xp);
  const sec=(side,label)=>{const cs=COURSES.filter(c=>c.side===side);return cs.length?`<section class="sideSec"><h2 class="secT"><span class="kd ${side}"></span>${label} <small>· ${cs.length} ${cs.length===1?'kurz':cs.length<5?'kurzy':'kurzů'}</small></h2><div class="courseCards">${cs.map(cardHTML).join('')}</div></section>`:'';};
- let h=`<div class="homeHead"><div class="kicker">Šachový trenažér zahájení${t1chip()}</div><h1>Nauč se repertoár tah po tahu</h1><p>Vyber si kurz. Každý má vlastní stránku s kapitolami a variantami ověřenými enginem.</p>
+ let h=`<div class="homeHead"><div class="kicker">Šachový trenažér${t1chip()}</div><h1>Nauč se repertoár tah po tahu</h1><p>Vyber si kurz. Každý má vlastní stránku s kapitolami a variantami ověřenými enginem.</p>
  <button class="profStrip" id="toProf"><span class="n">${L.n}</span><span><b>${SYNC.user?escH(SYNC.user):'Můj profil'}</b> · ${L.name} · ${store.xp||0} XP</span><span class="go">Profil a statistiky →</span></button><button class="profStrip exStrip" id="toEx"><span class="n">🔍</span><span><b>Najít variantu</b> · zahraj tahy na šachovnici a uvidíš, které varianty k nim patří</span><span class="go">Otevřít →</span></button></div>`;
  h+=sec('w','Za bílé')+sec('b','Za černé')+syncHTML();
  $('home').innerHTML=h;renderSide();wireSync();$('toProf').onclick=()=>go('#profil');$('toEx').onclick=()=>go('#hledat');}
@@ -1280,7 +1316,7 @@ const SND_OFF='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12A4.
 function renderSound(){$('sound').innerHTML=store.sound?SND_ON:SND_OFF;$('sound').setAttribute('aria-label',store.sound?'Vypnout zvuk':'Zapnout zvuk');}
 $('sound').onclick=()=>{store.sound=!store.sound;save();renderSound();if(store.sound){ac();sfx('move');}};
 applyTheme();applyT1();renderSound();parseRoute();cur=pickStart();flipped=course.side==='b';buildSquares();showHome();
-$('accTop').onclick=()=>{if(SYNC.be&&SYNC.be.kind==='supa')go('#profil');else openAccount();};$('sLvl').onclick=openLvl;renderLvl();$('devTop').onclick=openDev;window.addEventListener('hashchange',route);renderAccTop();
+$('homeTop').onclick=()=>go('');$('accTop').onclick=()=>{if(SYNC.be&&SYNC.be.kind==='supa')go('#profil');else openAccount();};$('sLvl').onclick=openLvl;renderLvl();$('devTop').onclick=openDev;window.addEventListener('hashchange',route);renderAccTop();
 initCloud();window.addEventListener('pagehide',()=>{if(SYNC.dirty){clearTimeout(SYNC.t);pushCloud();}});
 </script>
 
