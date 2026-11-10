@@ -1082,7 +1082,8 @@ function goView(v){v=Math.max(0,Math.min(ply,v));if(v===view)return;
  if(v===view+1){const m=mvs[view];animate(m,hist[v]);view=v;markLast(m);sfx(hist[v-1][m.to]||m.ep!=null?'capture':'move');}
  else{const back=v<view;view=v;setPosition(hist[v]);markLast(mvs[v-1]);if(back)sfx('move');}
  select(null);badge(null);showHint();renderMoves();
- if(view<ply){const n=view-1;if(n>=0)card('info','Prohlížíš si tahy','Klikni na šachovnici a pokračuj',moveLabel(n),`<p class="why">${noteFor(n)||explainN(n,mvs[n])}</p>`);}
+ if(mode==='free'){arrow(null);freeCard();}
+ else if(view<ply){const n=view-1;if(n>=0)card('info','Prohlížíš si tahy','Klikni na šachovnici a pokračuj',moveLabel(n),`<p class="why">${noteFor(n)||explainN(n,mvs[n])}</p>`);}
  else showPrompt();}
 
 /* ---------- Stockfish v prohlížeči (engine/stockfish.js, běží u hráče ve Web Workeru) + chess.js na pravidla ---------- */
@@ -1144,12 +1145,13 @@ function freeTargets(from){if(!FREE)return[];return FREE.g.moves({square:sqName(
 function freeMove(from,to){const g=FREE.g;let mv;try{mv=g.move({from:sqName(from),to:sqName(to),promotion:'q'});}catch(e){return false;}if(!mv)return false;
  const home=mv.color==='w'?0:56;const m={from,to,promo:mv.promotion?mv.promotion.toUpperCase():null,ep:mv.flags.includes('e')?to+(mv.color==='w'?-8:8):null,castle:mv.flags.includes('k')?[home+7,home+5]:mv.flags.includes('q')?[home,home+3]:null};
  cur.moves.push(mv.san);select(null);arrow(null);FREE.best=null;commit(m);renderMoves();freeCard();liveEval();return true;}
-function freeUndo(){if(!FREE||ply<=FREE.base)return;FREE.g.undo();cur.moves.pop();hist.pop();mvs.pop();ply--;view=ply;setPosition(hist[ply]);markLast(mvs[ply-1]);arrow(null);FREE.best=null;renderMoves();freeCard();liveEval();}
+function freeTruncate(n){if(!FREE||n>=ply)return;const g=new CHESS();for(const m of cur.moves.slice(0,n))g.move(m,{strict:false});FREE.g=g;cur.moves.length=n;hist.length=n+1;mvs.length=n;ply=n;view=n;FREE.best=null;FREE.lastR=null;}
+function freeUndo(){if(!FREE||view<=0)return;const t=view-1;freeTruncate(t);setPosition(hist[t]);markLast(mvs[t-1]);arrow(null);select(null);renderMoves();freeCard();liveEval();}
 function freeEnd(){if(!FREE)return;cur=FREE.orig;mode=FREE.mode;FREE=null;setMode(mode);start();}
-function freeCard(extra){const g=FREE.g;const turn=g.turn()==='w'?'bílý':'černý';let st='';
+function freeCard(extra){const atEnd=view===ply;const g=atEnd?FREE.g:new CHESS(fenAt(view));const turn=g.turn()==='w'?'bílý':'černý';let st=atEnd?'':`<p class="why">Prohlížíš tah ${view}. Když teď táhneš, varianta se odtud rozvětví (další tahy se smažou).</p>`;
  if(g.isCheckmate())st=`<p class="why"><b>Mat!</b> Vyhrál ${g.turn()==='w'?'černý':'bílý'}.</p>`;else if(g.isDraw())st='<p class="why"><b>Remíza.</b></p>';else if(g.inCheck())st=`<p class="why">Šach! ${turn[0].toUpperCase()+turn.slice(1)} musí krále ochránit.</p>`;
- card('info','Volná hra',`Táhne ${turn} · hraješ za obě strany`,'',`${st}<p class="auto">Zkoušej libovolné tahy za bílého i černého. Hodnocení vlevo počítá Stockfish.</p><div class="engBox" id="freeEng">${FREE.best||'<span class="spin"></span> Engine počítá…'}</div>
- <div class="freeBtns"><button class="btn" id="fBest">Nejlepší tah</button><button class="btn" id="fUndo"${ply<=FREE.base?' disabled':''}>Vrátit tah</button><button class="btn" id="fEnd">Konec volné hry</button></div>`);
+ card('info','Volná hra',`Táhne ${turn} · hraješ za obě strany`,'',`${st}<p class="auto">Zkoušej libovolné tahy za bílého i černého. Šipkami pod šachovnicí nebo kliknutím na tah v seznamu se vrátíš kamkoli a můžeš zkusit jiný tah – třeba co by se stalo, kdyby soupeř zahrál něco jiného. Hodnocení vlevo počítá Stockfish.</p><div class="engBox" id="freeEng">${FREE.best||'<span class="spin"></span> Engine počítá…'}</div>
+ <div class="freeBtns"><button class="btn" id="fBest">Nejlepší tah</button><button class="btn" id="fUndo"${view<=0?' disabled':''}>Vrátit tah</button><button class="btn" id="fEnd">Konec volné hry</button></div>`);
  $('fBest').onclick=()=>{FREE.showBest=true;if(FREE.lastR)freeInfo(FREE.lastR);};$('fUndo').onclick=freeUndo;$('fEnd').onclick=freeEnd;}
 function freeInfo(r){if(!FREE)return;FREE.lastR=r;const el=document.getElementById('freeEng');if(!el)return;const l=r.lines[0];if(!l)return;const fen=r.fen;
  let h=`<b>Hodnocení:</b> ${fmtCp(l.cp)} <small>(${l.cp>40?'lepší má bílý':l.cp<-40?'lepší má černý':'vyrovnané'})</small>`;
@@ -1173,7 +1175,7 @@ function sqAt(x,y){const r=boardEl.getBoundingClientRect();const col=Math.floor(
  if(col<0||col>7||row<0||row>7)return null;const f=flipped?7-col:col,rk=flipped?row:7-row;return rk*8+f;}
 let hov=null;function setHov(i){if(hov!=null)SQ[hov].classList.remove('hov');hov=i;if(i!=null)SQ[i].classList.add('hov');}
 boardEl.addEventListener('pointerdown',e=>{if(e.button>0)return;ac();clearMarks();const i=sqAt(e.clientX,e.clientY);if(i==null)return;
- if(view!==ply){goView(ply);return;}if(finished||busy||!userTurn())return;const b=board();
+ if(view!==ply){if(mode==='free')freeTruncate(view);else{goView(ply);return;}}if(finished||busy||!userTurn())return;const b=board();
  if(b[i]&&b[i][0]===(mode==='free'?FREE.g.turn():me())){const was=sel===i;select(i);drag={from:i,el:pcs[i],x:e.clientX,y:e.clientY,moved:false,was};boardEl.setPointerCapture(e.pointerId);e.preventDefault();return;}
  if(sel!=null){const from=sel;if(tgts(from).includes(i))tryMove(from,i);else select(null);}});
 boardEl.addEventListener('pointermove',e=>{if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<5)return;
