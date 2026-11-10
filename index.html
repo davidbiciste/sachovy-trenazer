@@ -371,6 +371,14 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
 .engBox{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(47,143,232,.1);border:1px solid rgba(47,143,232,.35);font-size:14px;line-height:1.5}.engBox small{color:var(--muted)}
 .engLeg{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:12px;color:var(--muted)}.engLeg i{display:inline-block;width:18px;height:5px;border-radius:3px;margin-right:5px;vertical-align:2px}.engMore{margin-top:6px}.engMore summary{cursor:pointer;color:var(--brass);font-weight:700}.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.25);border-top-color:#2f8fe8;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-1px;margin-right:4px}
 @keyframes spin{to{transform:rotate(360deg)}}.freeBtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.freeBtns .btn{flex:1;min-width:110px}.doneCard .freeBtn{margin-top:8px;width:100%}
+.doneX{display:none}
+@media (max-width:820px){
+ .done.show{position:fixed;inset:0;z-index:70;margin:0;display:grid;place-items:center;padding:16px;background:rgba(10,10,9,.72);backdrop-filter:blur(3px);animation:doneFade .25s ease}
+ .done.show .doneCard{position:relative;width:min(100%,420px);max-height:calc(100vh - 32px);overflow:auto;animation:rise .35s cubic-bezier(.3,1.3,.5,1)}
+ .done.show+.card{display:block}
+ .doneX{display:grid;place-items:center;position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.08);color:var(--fg);font-size:16px;cursor:pointer}
+}
+@keyframes doneFade{from{opacity:0}}
 .accTabs{margin-top:4px}.pkCard.acc .accHint{margin:0;font-size:12.5px;color:var(--muted,#a99f8f)}.pkCard.acc .accHint[hidden]{display:none}.accMsg{min-height:1.2em;margin:2px 0 0;font-size:14px;color:var(--brass)}
 </style>
 
@@ -427,6 +435,7 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
         <div class="lt"><small id="chName"></small><h2 id="lnName"></h2></div>
       </div>
       <div class="done" id="done"><div class="doneCard">
+        <button class="doneX" id="doneClose" aria-label="Zavřít a prohlédnout šachovnici">✕</button>
         <div class="xp" id="doneXp"></div>
         <h2 id="doneTitle"></h2>
         <p id="doneText"></p><div class="sum" id="doneSum"></div>
@@ -1185,7 +1194,7 @@ function confetti(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)re
 /* ---------- Controls ---------- */
 function setMode(m){mode=m;$('mLearn').setAttribute('aria-pressed',m==='learn');$('mDrill').setAttribute('aria-pressed',m==='drill');}
 $('mLearn').onclick=()=>{endSession();setMode('learn');start();};$('mDrill').onclick=()=>{setMode('drill');start();};
-$('restart').onclick=start;$('doneMenu').onclick=showHome;$('doneFree').onclick=startFree;
+$('restart').onclick=start;$('doneMenu').onclick=showHome;$('doneFree').onclick=startFree;$('doneClose').onclick=()=>$('done').classList.remove('show');
 $('doneAgain').onclick=()=>{if(session&&session.queue[session.queue.length-1]===cur.id&&finished)session.queue.pop();start();};
 $('hintBtn').onclick=()=>{if(mode==='free'){FREE.showBest=true;if(FREE.lastR)freeInfo(FREE.lastR);return;}if(finished||!userTurn()||busy)return;if(view!==ply)goView(ply);if(mode==='learn')return;hintLevel=Math.min(3,hintLevel+1);mistakes=Math.max(mistakes,1);showPrompt();showHint();};
 function nextDue(){const L=ORDER();const due=L.find(l=>stateOf(l)==='due'),lr=L.find(l=>stateOf(l)==='learning'),nw=nextNew();
