@@ -4,6 +4,8 @@ Odpovídej česky, jednoduše (majitel není programátor).
 
 ## Jak web funguje
 - Statický web: `index.html` (celá aplikace v jednom souboru), `config.js` (veřejné údaje Supabase).
+- `engine/`: Stockfish 17.1 lite (WASM, běží v prohlížeči hráče) + `chess.js` (pravidla pro volnou hru). Engine se načte až v trenažéru. Lokální test potřebuje HTTP server (`python3 -m http.server`), z `file://` Worker nefunguje.
+- Stránky přes hash: `#` přehled kurzů, `#<id kurzu>` kurz, `#profil`, `#dev`.
 - Hosting: **Render** (Static Site) staví web automaticky z větve `main`. Push do `main` = za 1–2 min je změna na webu.
 - Účty a postup hráčů: **Supabase**, projekt `ylcybuglsjdcoklnaijl` („ŠACHOVÝ TRENAŽER“).
 - Databáze se mění jen přes `supabase.sql` (spustit se dá opakovaně, nic nemaže).

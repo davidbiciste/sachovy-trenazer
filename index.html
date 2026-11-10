@@ -368,6 +368,9 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
 .act14{display:flex;align-items:flex-end;gap:5px;height:70px}.act14 div{flex:1;background:rgba(255,255,255,.08);border-radius:4px 4px 0 0;min-height:4px;position:relative}.act14 div.on{background:var(--accent)}.actLbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
 .profEmpty{color:var(--muted);font-size:14px;margin:0}
 @media (max-width:720px){.twoCol,.sideCmp{grid-template-columns:1fr}.crsRow{grid-template-columns:1fr auto}.crsRow .bar{grid-column:1/-1;grid-row:2}}
+.engBox{margin-top:10px;padding:10px 12px;border-radius:10px;background:rgba(47,143,232,.1);border:1px solid rgba(47,143,232,.35);font-size:14px;line-height:1.5}.engBox small{color:var(--muted)}
+.engMore{margin-top:6px}.engMore summary{cursor:pointer;color:var(--brass);font-weight:700}.spin{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.25);border-top-color:#2f8fe8;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-1px;margin-right:4px}
+@keyframes spin{to{transform:rotate(360deg)}}.freeBtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.freeBtns .btn{flex:1;min-width:110px}.doneCard .freeBtn{margin-top:8px;width:100%}
 .accTabs{margin-top:4px}.pkCard.acc .accHint{margin:0;font-size:12.5px;color:var(--muted,#a99f8f)}.pkCard.acc .accHint[hidden]{display:none}.accMsg{min-height:1.2em;margin:2px 0 0;font-size:14px;color:var(--brass)}
 </style>
 
@@ -429,6 +432,7 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
         <p id="doneText"></p><div class="sum" id="doneSum"></div>
         <div class="row"><button class="btn" id="doneMenu">Menu</button><button class="btn" id="doneAgain">Znovu</button></div>
         <button class="btn primary" id="doneNext">Další</button>
+        <button class="btn freeBtn" id="doneFree">♟ Hrát volně dál</button>
       </div></div>
       <div class="card info" id="card" aria-live="polite"></div>
       <div class="idea" id="idea"></div>
@@ -766,7 +770,7 @@ const LINES=()=>course.chapters.flatMap(ch=>ch.lines);
 COURSES.forEach(co=>co.chapters.forEach(ch=>ch.lines.forEach(l=>{l.ch=ch;l.moves=l.m.split(' ');})));
 const me=()=>course.side;
 const board=()=>hist[ply];
-const userTurn=()=>(ply%2===0)===(me()==='w');
+const userTurn=()=>mode==='free'||(ply%2===0)===(me()==='w');
 
 /* ---------- Board geometry ---------- */
 function buildSquares(){sqsEl.innerHTML='';SQ=[];
@@ -782,7 +786,8 @@ function animate(m,after){const el=pcs[m.from];const capSq=m.ep!=null?m.ep:m.to;
  if(m.castle){const r=pcs[m.castle[0]];delete pcs[m.castle[0]];pcs[m.castle[1]]=r;if(r)place(r,m.castle[1]);}}
 function clr(c){SQ.forEach(s=>s.classList.remove(c));}
 function markLast(m){clr('last');if(m){SQ[m.from].classList.add('last');SQ[m.to].classList.add('last');}}
-function showTargets(from){clr('dt');clr('rg');if(from==null)return;const b=board();targets(b,from,mvs[ply-1]).forEach(i=>SQ[i].classList.add(b[i]?'rg':'dt'));}
+function tgts(from){return mode==='free'?freeTargets(from):targets(board(),from,mvs[ply-1]);}
+function showTargets(from){clr('dt');clr('rg');if(from==null)return;const b=board();tgts(from).forEach(i=>SQ[i].classList.add(b[i]?'rg':'dt'));}
 function select(i){clr('sel');sel=i;if(i!=null)SQ[i].classList.add('sel');showTargets(i);}
 function arrow(m,color){if(!m){arrowsEl.innerHTML='';return;}
  const cx=i=>colOf(i)+.5,cy=i=>rowOf(i)+.5;let x1=cx(m.from),y1=cy(m.from),x2=cx(m.to),y2=cy(m.to);
@@ -822,7 +827,7 @@ function whyHTML(n){const note=noteFor(n);const m=resolve(hist[n],cur.moves[n],n
  return note?`<p class="why">${note}</p><p class="auto">${auto}</p>`:`<p class="why">${auto}</p>`;}
 function oppHTML(n){if(n<0||n>=cur.moves.length)return'';const m=mvs[n];if(!m)return'';return`<p class="opp">Soupeř odpověděl <b>${moveLabel(n)}</b>. ${explainN(n,m)}</p>`;}
 function showPrompt(){/* before the user's move */
- if(finished)return;const n=ply;
+ if(mode==='free'){freeCard();return;}if(finished)return;const n=ply;
  if(mode==='learn')card('learn','Tvůj tah','Zahraj tah podle šipky',moveLabel(n),whyHTML(n)+oppHTML(n-1));
  else if(hintLevel>=3)card('info','Zahraj tento tah','Šipka ukazuje správný tah',moveLabel(n),whyHTML(n)+oppHTML(n-1));
  else if(hintLevel===2)card('info','Nápověda','Táhni zvýrazněnou figurou','',`<p class="why">${verbalHint(n)}</p><p class="auto">Svítící figurou máš táhnout. Kam s ní, už musíš najít sám.</p>`+oppHTML(n-1));
@@ -844,11 +849,11 @@ function verbalHint(n){const b=hist[n],m=expected(),p=b[m.from],e=p[0]==='w'?'b'
  return`Rada: hraje se ${{N:'jezdcem',B:'střelcem',R:'věží',Q:'dámou',K:'králem'}[p[1]]}.`;}
 
 /* ---------- Move list & progress ---------- */
-function renderMoves(){const el=$('moves');{const total=cur.moves.length;$('progBar').style.width=(ply/total*100)+'%';$('progTxt').textContent=`${Math.ceil(ply/2)}/${Math.ceil(total/2)}`;}if(!ply){el.innerHTML=`<div class="empty">${me()==='w'?'Začni prvním tahem bílého.':'Bílý táhne první, pak jsi na řadě ty.'}</div>`;return;}
+function renderMoves(){const el=$('moves');{const total=cur.moves.length;$('progBar').style.width=(ply/total*100)+'%';$('progTxt').textContent=`${Math.ceil(ply/2)}/${Math.ceil(total/2)}`;}if(!ply){el.innerHTML=`<div class="empty">${me()==='w'?'Začni prvním tahem bílého.':'Bílý táhne první, pak jsi na řadě ty.'}</div>`;liveEval();return;}
  let h='';for(let i=0;i<ply;i+=2){h+=`<div class="mrow"><span class="n">${i/2+1}.</span>`;
   for(const j of [i,i+1]){if(j<ply){const mine=(j%2===0)===(me()==='w');h+=`<button class="mv ${mine?'me':'op'}${j===view-1?' cur':''}" data-j="${j}">${cur.moves[j]}</button>`;}else h+='<span></span>';}h+='</div>';}
  el.innerHTML=h;const c=el.querySelector('.cur');if(c){const top=c.offsetTop;if(top<el.scrollTop||top>el.scrollTop+el.clientHeight-30)el.scrollTop=top-el.clientHeight/2;}
- const total=cur.moves.length;$('progBar').style.width=(ply/total*100)+'%';$('progTxt').textContent=`${Math.ceil(ply/2)}/${Math.ceil(total/2)}`;}
+ const total=cur.moves.length;$('progBar').style.width=(ply/total*100)+'%';$('progTxt').textContent=`${Math.ceil(ply/2)}/${Math.ceil(total/2)}`;liveEval();}
 $('moves').addEventListener('click',e=>{const b=e.target.closest('.mv');if(b)goView(+b.dataset.j+1);});
 
 /* ---------- Sidebar, courses, stats ---------- */
@@ -878,7 +883,7 @@ function recommend(){const L=ORDER();const due=L.find(l=>stateOf(l)==='due'),lr=
  const ch=course.chapters.find(c=>!isMastered(c));if(ch)return{ch,t:'Test kapitoly',s:ch.t};return{l:L[0],m:'drill',t:'Opakovat',s:'všechno máš hotové'};}
 function openLine(l,m){endSession();cur=l;setMode(m||(stateOf(l)==='new'?'learn':'drill'));showTrainer();start();}
 function showTrainer(){document.body.classList.remove('homeMode');document.body.classList.add('trainerMode');window.scrollTo(0,0);$('home').hidden=true;$('trainer').hidden=false;flipped=course.side==='b';buildSquares();renderCourses();}
-function showHome(){document.body.classList.remove('trainerMode');clearTimeout(timer);clearIdle();endSession();$('done').classList.remove('show');$('trainer').hidden=true;$('home').hidden=false;renderCourses();renderHome();window.scrollTo(0,0);}
+function showHome(){if(FREE){cur=FREE.orig;mode=FREE.mode;FREE=null;setMode(mode);}sfStop();LIVE.fen=null;document.body.classList.remove('trainerMode');clearTimeout(timer);clearIdle();endSession();$('done').classList.remove('show');$('trainer').hidden=true;$('home').hidden=false;renderCourses();renderHome();window.scrollTo(0,0);}
 function ringSVG(p,r,w){const C=2*Math.PI*r;const s=2*(r+w/2);return `<svg viewBox="0 0 ${s} ${s}"><circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="${w}"/><circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" stroke="${p===100?'var(--accent)':'var(--brass)'}" stroke-width="${w}" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p/100)}"/></svg>`;}
 const isPopular=l=>!!l.pop&&(l.pop[2]===1||l.pop[0]>=20);
 const popScore=l=>l.pop?l.pop[1]:-1;
@@ -980,7 +985,7 @@ function boardIntoView(){if($('trainer').hidden)return;const el=document.querySe
  try{el.scrollIntoView({behavior:beh,block:'start'});}catch(e){el.scrollIntoView(true);}
  if(scrollY>0)window.scrollTo({top:0,behavior:beh});
  setTimeout(()=>{try{el.scrollIntoView({block:'start'});}catch(e){}},450);}
-function start(){clearMarks();boardIntoView();if(started)sfx('start');started=true;clearTimeout(timer);clearIdle();clr("hintsq");hist=[startBoard()];mvs=[];ply=0;view=0;mistakes=0;hintOn=false;busy=false;finished=false;
+function start(){if(FREE){cur=FREE.orig;mode=FREE.mode;FREE=null;setMode(mode);}clearMarks();boardIntoView();if(started)sfx('start');started=true;clearTimeout(timer);clearIdle();clr("hintsq");hist=[startBoard()];mvs=[];ply=0;view=0;mistakes=0;hintOn=false;busy=false;finished=false;
  select(null);markLast(null);badge(null);arrow(null);$('done').classList.remove('show');setPosition(hist[0]);
  $('chName').textContent=`Kapitola ${course.chapters.indexOf(cur.ch)+1} · ${cur.ch.t}`;$('lnName').textContent=cur.name;$('progLabel').textContent=`${cur.ch.t} · ${cur.name}`;
  $('idea').innerHTML=`<b>Varianta:</b> ${cur.idea}${popHTML(cur,true)}<details class="chPlan"><summary>Plán kapitoly: kam hra směřuje a kam rošádovat</summary>${cur.ch.plan}</details>`;renderSession();renderMoves();renderSide();showEval(20);
@@ -993,10 +998,10 @@ function commit(m){clearMarks();const before=board();const after=apply(before,m)
 function oppMove(){busy=true;commit(resolve(board(),cur.moves[ply],ply%2?'b':'w'));busy=false;renderMoves();
  if(ply>=cur.moves.length){finish();return;}newTurn();showPrompt();showHint();updateEvalForPly();}
 function expected(){return ply<cur.moves.length?resolve(board(),cur.moves[ply],ply%2?'b':'w'):null;}
-function showHint(){clr('hintsq');if(finished||!userTurn()||view!==ply){arrow(null);return;}const ex=expected();
+function showHint(){clr('hintsq');if(mode==='free')return;if(finished||!userTurn()||view!==ply){arrow(null);return;}const ex=expected();
  if(mode==='learn'||hintLevel>=3)arrow(ex,'#ffaa00');else{arrow(null);if(hintLevel===2)SQ[ex.from].classList.add('hintsq');}}
 
-function tryMove(from,to){if(busy||finished||!userTurn())return false;const exp=expected();const n=ply;
+function tryMove(from,to){if(mode==='free')return freeMove(from,to);if(busy||finished||!userTurn())return false;const exp=expected();const n=ply;
  if(exp.from===from&&exp.to===to){select(null);arrow(null);commit(exp);const v=verdict(n);badge(to,v.kind);
   card(v.kind,moveMiss&&mode==='drill'?'Správně':v.label,'',moveLabel(n),whyHTML(n));
   clearIdle();clr('hintsq');hintLevel=0;renderMoves();updateEvalForPly();
@@ -1015,7 +1020,7 @@ function tryMove(from,to){if(busy||finished||!userTurn())return false;const exp=
  else if(hintLevel===2)card('bad','Tohle ne','Nápověda: táhni zvýrazněnou figurou','',`<p class="why">${verbalHint(n)}</p><p class="auto">Svítící figurou máš táhnout. Ještě jedna chyba a ukážu ti celý tah.</p>`);
  else if(hintLevel===1)card('bad','Tohle ne',`Zkus to znovu (pokus ${moveMiss+1})`,'',`<p class="why">${verbalHint(n)}</p><p class="auto">${moveMiss===1?'Máš ještě dva pokusy, pak ti ukážu figuru.':'Ještě jeden pokus, pak ti ukážu figuru.'}</p>`);
  else card('bad','Tohle ne',`Zkus to znovu (pokus ${moveMiss+1})`,'',`<p class="auto">To není tah z repertoáru. ${moveMiss===1?'Máš ještě dva pokusy, pak ti napovím figuru.':'Ještě jeden pokus, pak ti napovím figuru.'}</p>`);
- showHint();return false;}
+ showHint();explainWrong(n,from,to,mode==='learn'||hintLevel>=3);return false;}
 
 function endSummary(){const b=hist[ply],c=me(),o=c==='w'?'b':'w',home=c==='w'?0:56,ohome=c==='w'?56:0;const out=[];
  const kSq=b.indexOf(c+'K'),okSq=b.indexOf(o+'K');const moved=pc=>cur.moves.slice(0,ply).some((m,i)=>(i%2===0)===(c==='w')&&(m.startsWith('O-')||m[0]===pc));
@@ -1070,6 +1075,75 @@ function goView(v){v=Math.max(0,Math.min(ply,v));if(v===view)return;
  if(view<ply){const n=view-1;if(n>=0)card('info','Prohlížíš si tahy','Klikni na šachovnici a pokračuj',moveLabel(n),`<p class="why">${noteFor(n)||explainN(n,mvs[n])}</p>`);}
  else showPrompt();}
 
+/* ---------- Stockfish v prohlížeči (engine/stockfish.js, běží u hráče ve Web Workeru) + chess.js na pravidla ---------- */
+let CHESS=null,CHP=null;function chessLib(){if(!CHP)CHP=import('./engine/chess.js').then(m=>{CHESS=m.Chess;return CHESS;}).catch(e=>{CHP=null;throw e;});return CHP;}
+const SF={w:null,p:null,job:null,next:null,dead:false};
+const IS_MOBILE=matchMedia('(pointer:coarse)').matches;
+function sfInit(){if(SF.p)return SF.p;SF.p=new Promise((ok,ko)=>{let w;try{w=new Worker('engine/stockfish.js');}catch(e){SF.dead=true;ko(e);return;}SF.w=w;let up=false;
+ const to=setTimeout(()=>{if(!up){SF.dead=true;ko(new Error('timeout'));}},20000);
+ w.onmessage=e=>{const l=String(e.data||'');if(!up){if(l==='uciok'){w.postMessage('setoption name Hash value 16');w.postMessage('isready');}else if(l==='readyok'){up=true;clearTimeout(to);ok();}return;}sfLine(l);};
+ w.onerror=e=>{SF.dead=true;clearTimeout(to);ko(e);};w.postMessage('uci');});return SF.p;}
+function sfLine(l){const j=SF.job;if(!j)return;
+ if(l.startsWith('info ')&&l.includes(' pv ')&&!/ (lower|upper)bound/.test(l)){const mp=+((l.match(/ multipv (\d+)/)||[0,1])[1]),d=+((l.match(/ depth (\d+)/)||[0,0])[1]);const sc=l.match(/ score (cp|mate) (-?\d+)/);if(!sc)return;
+  const pv=l.split(' pv ')[1].trim().split(' ');let v=+sc[2];if(sc[1]==='mate')v=(v>0?1:-1)*(3000-Math.abs(v));if(j.fen.split(' ')[1]==='b')v=-v;/* skóre vždy z pohledu bílého */
+  j.lines[mp-1]={cp:v,mate:sc[1]==='mate'?+sc[2]:null,pv,depth:d};if(mp===1){j.depth=d;if(j.onInfo)j.onInfo(j);}}
+ else if(l.startsWith('bestmove')){SF.job=null;j.res(j.cancelled?null:j);if(SF.next){const n=SF.next;SF.next=null;sfRun(n);}}}
+function sfRun(j){SF.job=j;const w=SF.w,o=j.opt;w.postMessage('setoption name MultiPV value '+(o.multipv||1));w.postMessage('position fen '+j.fen);
+ w.postMessage('go'+(o.depth?' depth '+o.depth:'')+(o.movetime?' movetime '+o.movetime:'')+(o.searchmoves?' searchmoves '+o.searchmoves.join(' '):''));}
+/* nová analýza zastaví běžící; čekající nahradí (zahozená vrátí null) */
+function sfAnalyse(fen,opt){return sfInit().then(()=>new Promise(res=>{const j={fen,opt:opt||{},lines:[],res,onInfo:opt&&opt.onInfo};
+ if(SF.job){if(SF.next)SF.next.res(null);SF.next=j;if(!SF.job.stopping){SF.job.stopping=true;SF.job.cancelled=true;SF.w.postMessage('stop');}}else sfRun(j);}));}
+function sfStop(){if(SF.next){SF.next.res(null);SF.next=null;}if(SF.job&&!SF.job.stopping){SF.job.stopping=true;SF.job.cancelled=true;SF.w.postMessage('stop');}}
+/* FEN pozic aktuální varianty (+ volné hry) */
+function fenAt(n){if(!CHESS)return null;if(!cur._fens||cur._fens.src!==cur.moves||cur._fens.n!==cur.moves.length){const g=new CHESS();const f=[g.fen()];for(const m of cur.moves){try{g.move(m,{strict:false});}catch(e){break;}f.push(g.fen());}cur._fens={src:cur.moves,n:cur.moves.length,f};}
+ return cur._fens.f[n]||null;}
+function pvSan(fen,pv,max){if(!CHESS)return'';const g=new CHESS(fen);const out=[];for(const u of pv.slice(0,max||6)){let m;try{m=g.move({from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||'q'});}catch(e){break;}
+  const n=g.moveNumber(),wh=m.color==='w';out.push((wh?`${n}.`:(out.length?'':`${n-1}…`))+m.san);}return out.join(' ');}
+function sanOf(fen,u){return pvSan(fen,[u],1).replace(/^\d+(\.|…)+/,'');}
+const fmtCp=v=>Math.abs(v)>=2900?((v>0?'+':'−')+'M'+(3000-Math.abs(v))):((v>0?'+':v<0?'−':'')+(Math.abs(v)/100).toFixed(1).replace('.',','));
+/* ---- hodnocení naživo ---- */
+let LIVE={t:null,fen:null};
+function liveEval(){clearTimeout(LIVE.t);if(SF.dead||$('trainer').hidden)return;LIVE.t=setTimeout(async()=>{try{await chessLib();}catch(e){return;}
+ const fen=fenAt(view);if(!fen||fen===LIVE.fen&&SF.job)return;LIVE.fen=fen;const bar=$('evalBar');
+ try{const r=await sfAnalyse(fen,{movetime:IS_MOBILE?1500:2500,onInfo:j=>{if(j.depth>=6&&LIVE.fen===fen){showEval(j.lines[0].cp);bar.title=`Stockfish 17 · hloubka ${j.depth} · ${fmtCp(j.lines[0].cp)}`;}}});
+  if(r&&r.lines[0]&&LIVE.fen===fen){showEval(r.lines[0].cp);bar.title=`Stockfish 17 · hloubka ${r.depth} · ${fmtCp(r.lines[0].cp)}`;if(mode==='free')freeInfo(r);}}catch(e){}},150);}
+/* ---- proč je tah špatný ---- */
+async function explainWrong(n,from,to,reveal){const u=sqName(from)+sqName(to);let fen;try{await chessLib();await sfInit();fen=fenAt(n);}catch(e){return;}if(!fen)return;
+ const c=$('card');const box=document.createElement('div');box.className='engBox';box.innerHTML='<span class="spin"></span> Engine počítá, proč to není dobré…';c.appendChild(box);
+ const g=new CHESS(fen);let my;try{my=g.move({from:sqName(from),to:sqName(to),promotion:'q'});}catch(e){box.remove();return;}
+ const T=IS_MOBILE?900:1300;const best=await sfAnalyse(fen,{movetime:T});if(!best||!box.isConnected)return;const mine=await sfAnalyse(fen,{movetime:T,searchmoves:[my.lan||u]});if(!mine||!box.isConnected)return;
+ const pov=fen.split(' ')[1]==='w'?1:-1,b0=best.lines[0],m0=mine.lines[0];if(!b0||!m0){box.remove();return;}
+ const loss=Math.max(0,pov*(b0.cp-m0.cp));const after=g.fen();
+ const ref=m0.pv.slice(1);const refTxt=ref.length?pvSan(after,ref,5):'';
+ let h=`<b>🔎 Engine:</b> po tvém tahu <b>${my.san}</b> je hodnocení <b>${fmtCp(m0.cp)}</b>`;
+ h+=loss<30?` – skoro stejně dobré jako nejlepší tah. V repertoáru ale hrajeme jiný tah.`:` – to je o <b>${(loss/100).toFixed(1).replace('.',',')} pěšce</b> horší než nejlepší tah${loss>=300?' (hrubá chyba)':loss>=100?' (chyba)':' (nepřesnost)'}.`;
+ if(refTxt&&loss>=30){const rp=refTxt.split(' ');h+=`<br><b>Proč:</b> soupeř nejspíš odpoví <b>${rp[0]}</b>${rp.length>1?` a hra může pokračovat ${rp.slice(1).join(' ')}`:''}.`;}
+ const rep=cur.moves[n],bs0=sanOf(fen,b0.pv[0]);const bestTxt=pvSan(fen,b0.pv,6),repNote=(rep&&bs0&&bs0.replace(/[+#]/g,'')!==rep.replace(/[+#]/g,'')?`<br><small>Engine tu dává přednost tahu ${bs0}, v repertoáru hrajeme <b>${rep}</b> – oba tahy jsou dobré.</small>`:'');
+ h+=reveal?`<br><b>Jak hrát dál:</b> ${bestTxt} <small>(${fmtCp(b0.cp)})</small>${repNote}`:`<details class="engMore"><summary>Ukázat, jak hrát dál (prozradí správný tah)</summary>${bestTxt} <small>(${fmtCp(b0.cp)})</small>${repNote}</details>`;
+ box.innerHTML=h;if(ref[0]&&loss>=30&&!reveal&&mode==='drill'&&hintLevel<3)arrow({from:sqOf(ref[0].slice(0,2)),to:sqOf(ref[0].slice(2,4))},'#e2533b');
+ liveEval();}
+/* ---- volná hra za obě strany (po dohrání varianty) ---- */
+let FREE=null;
+async function startFree(){try{await chessLib();}catch(e){alert('Volnou hru se nepodařilo načíst. Obnov stránku.');return;}
+ $('done').classList.remove('show');const g=new CHESS();for(const m of cur.moves.slice(0,ply))g.move(m,{strict:false});
+ FREE={orig:cur,mode,g,base:ply,best:null};cur=Object.assign({},cur,{moves:cur.moves.slice(0,ply)});mode='free';finished=false;busy=false;clearIdle();clr('hintsq');arrow(null);select(null);badge(null);
+ if(view!==ply)goView(ply);renderMoves();freeCard();liveEval();}
+function freeTargets(from){if(!FREE)return[];return FREE.g.moves({square:sqName(from),verbose:true}).map(m=>sqOf(m.to));}
+function freeMove(from,to){const g=FREE.g;let mv;try{mv=g.move({from:sqName(from),to:sqName(to),promotion:'q'});}catch(e){return false;}if(!mv)return false;
+ const home=mv.color==='w'?0:56;const m={from,to,promo:mv.promotion?mv.promotion.toUpperCase():null,ep:mv.flags.includes('e')?to+(mv.color==='w'?-8:8):null,castle:mv.flags.includes('k')?[home+7,home+5]:mv.flags.includes('q')?[home,home+3]:null};
+ cur.moves.push(mv.san);select(null);arrow(null);FREE.best=null;commit(m);renderMoves();freeCard();liveEval();return true;}
+function freeUndo(){if(!FREE||ply<=FREE.base)return;FREE.g.undo();cur.moves.pop();hist.pop();mvs.pop();ply--;view=ply;setPosition(hist[ply]);markLast(mvs[ply-1]);arrow(null);FREE.best=null;renderMoves();freeCard();liveEval();}
+function freeEnd(){if(!FREE)return;cur=FREE.orig;mode=FREE.mode;FREE=null;setMode(mode);start();}
+function freeCard(extra){const g=FREE.g;const turn=g.turn()==='w'?'bílý':'černý';let st='';
+ if(g.isCheckmate())st=`<p class="why"><b>Mat!</b> Vyhrál ${g.turn()==='w'?'černý':'bílý'}.</p>`;else if(g.isDraw())st='<p class="why"><b>Remíza.</b></p>';else if(g.inCheck())st=`<p class="why">Šach! ${turn[0].toUpperCase()+turn.slice(1)} musí krále ochránit.</p>`;
+ card('info','Volná hra',`Táhne ${turn} · hraješ za obě strany`,'',`${st}<p class="auto">Zkoušej libovolné tahy za bílého i černého. Hodnocení vlevo počítá Stockfish.</p><div class="engBox" id="freeEng">${FREE.best||'<span class="spin"></span> Engine počítá…'}</div>
+ <div class="freeBtns"><button class="btn" id="fBest">Nejlepší tah</button><button class="btn" id="fUndo"${ply<=FREE.base?' disabled':''}>Vrátit tah</button><button class="btn" id="fEnd">Konec volné hry</button></div>`);
+ $('fBest').onclick=()=>{FREE.showBest=true;if(FREE.lastR)freeInfo(FREE.lastR);};$('fUndo').onclick=freeUndo;$('fEnd').onclick=freeEnd;}
+function freeInfo(r){if(!FREE)return;FREE.lastR=r;const el=document.getElementById('freeEng');if(!el)return;const l=r.lines[0];if(!l)return;const fen=r.fen;
+ let h=`<b>Hodnocení:</b> ${fmtCp(l.cp)} <small>(${l.cp>40?'lepší má bílý':l.cp<-40?'lepší má černý':'vyrovnané'})</small>`;
+ if(FREE.showBest){h+=`<br><b>Nejlepší pokračování:</b> ${pvSan(fen,l.pv,6)}`;if(l.pv[0])arrow({from:sqOf(l.pv[0].slice(0,2)),to:sqOf(l.pv[0].slice(2,4))},'#2f8fe8');}
+ FREE.best=h;el.innerHTML=h;}
+
 /* ---------- Drawing (right mouse button like chess.com, or pen mode) ---------- */
 let marks=[],drawStart=null,pen=false;
 function renderMarks(){const cx=q=>colOf(q)+.5,cy=q=>rowOf(q)+.5;$('draw').innerHTML=marks.map(k=>{const col=k.c||'#15b04a';if(k.f===k.t)return `<circle cx="${cx(k.f)}" cy="${cy(k.f)}" r=".44" fill="none" stroke="${col}" stroke-width=".08" opacity=".85"/>`;
@@ -1088,14 +1162,14 @@ function sqAt(x,y){const r=boardEl.getBoundingClientRect();const col=Math.floor(
 let hov=null;function setHov(i){if(hov!=null)SQ[hov].classList.remove('hov');hov=i;if(i!=null)SQ[i].classList.add('hov');}
 boardEl.addEventListener('pointerdown',e=>{if(e.button>0)return;ac();clearMarks();const i=sqAt(e.clientX,e.clientY);if(i==null)return;
  if(view!==ply){goView(ply);return;}if(finished||busy||!userTurn())return;const b=board();
- if(b[i]&&b[i][0]===me()){const was=sel===i;select(i);drag={from:i,el:pcs[i],x:e.clientX,y:e.clientY,moved:false,was};boardEl.setPointerCapture(e.pointerId);e.preventDefault();return;}
- if(sel!=null){const from=sel;if(targets(b,from,mvs[ply-1]).includes(i))tryMove(from,i);else select(null);}});
+ if(b[i]&&b[i][0]===(mode==='free'?FREE.g.turn():me())){const was=sel===i;select(i);drag={from:i,el:pcs[i],x:e.clientX,y:e.clientY,moved:false,was};boardEl.setPointerCapture(e.pointerId);e.preventDefault();return;}
+ if(sel!=null){const from=sel;if(tgts(from).includes(i))tryMove(from,i);else select(null);}});
 boardEl.addEventListener('pointermove',e=>{if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<5)return;
  drag.moved=true;const r=boardEl.getBoundingClientRect(),s=r.width/8;drag.el.classList.add('drag');
  const x=Math.max(-s/2,Math.min(r.width-s/2,e.clientX-r.left-s/2)),y=Math.max(-s/2,Math.min(r.height-s/2,e.clientY-r.top-s/2));
  drag.el.style.transform=`translate(${x}px,${y}px)`;setHov(sqAt(e.clientX,e.clientY));});
 boardEl.addEventListener('pointerup',e=>{if(!drag)return;const d=drag;drag=null;setHov(null);
- if(d.moved){const to=sqAt(e.clientX,e.clientY);if(to!=null&&to!==d.from&&targets(board(),d.from,mvs[ply-1]).includes(to))tryMove(d.from,to);else{d.el.classList.remove('drag');place(d.el,d.from);}}
+ if(d.moved){const to=sqAt(e.clientX,e.clientY);if(to!=null&&to!==d.from&&tgts(d.from).includes(to))tryMove(d.from,to);else{d.el.classList.remove('drag');place(d.el,d.from);}}
  else if(d.was)select(null);});
 boardEl.addEventListener('pointercancel',()=>{if(drag){drag.el.classList.remove('drag');place(drag.el,drag.from);drag=null;setHov(null);}});
 
@@ -1108,9 +1182,9 @@ function confetti(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)re
 /* ---------- Controls ---------- */
 function setMode(m){mode=m;$('mLearn').setAttribute('aria-pressed',m==='learn');$('mDrill').setAttribute('aria-pressed',m==='drill');}
 $('mLearn').onclick=()=>{endSession();setMode('learn');start();};$('mDrill').onclick=()=>{setMode('drill');start();};
-$('restart').onclick=start;$('doneMenu').onclick=showHome;
+$('restart').onclick=start;$('doneMenu').onclick=showHome;$('doneFree').onclick=startFree;
 $('doneAgain').onclick=()=>{if(session&&session.queue[session.queue.length-1]===cur.id&&finished)session.queue.pop();start();};
-$('hintBtn').onclick=()=>{if(finished||!userTurn()||busy)return;if(view!==ply)goView(ply);if(mode==='learn')return;hintLevel=Math.min(3,hintLevel+1);mistakes=Math.max(mistakes,1);showPrompt();showHint();};
+$('hintBtn').onclick=()=>{if(mode==='free'){FREE.showBest=true;if(FREE.lastR)freeInfo(FREE.lastR);return;}if(finished||!userTurn()||busy)return;if(view!==ply)goView(ply);if(mode==='learn')return;hintLevel=Math.min(3,hintLevel+1);mistakes=Math.max(mistakes,1);showPrompt();showHint();};
 function nextDue(){const L=ORDER();const due=L.find(l=>stateOf(l)==='due'),lr=L.find(l=>stateOf(l)==='learning'),nw=nextNew();
  if(due){cur=due;setMode('drill');}else if(lr){cur=lr;setMode('drill');}else if(nw){cur=nw;setMode('learn');}else{cur=L.slice().sort((a,b)=>P()[a.id].due-P()[b.id].due)[0];setMode('drill');}start();}
 $('next').onclick=nextDue;let afterAction='review',groupIds=[];
