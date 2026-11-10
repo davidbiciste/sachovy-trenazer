@@ -157,6 +157,25 @@ revoke all on function public.trener_admin_players(text), public.trener_admin_se
 grant execute on function public.trener_admin_players(text), public.trener_admin_set_password(text, text, text),
   public.trener_admin_delete(text, text) to anon, authenticated;
 
+-- ===== Žebříček (vidí jen přihlášení hráči; kdo má v postupu hideLb=true, není vidět) =====
+create or replace function public.trener_leaderboard(p_token text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare me uuid;
+begin
+  select player_id into me from player_sessions where token = p_token;
+  if me is null then raise exception 'bad_token'; end if;
+  return coalesce((select json_agg(x order by x.week desc, x.xp desc) from (
+    select p.username, (p.id = me) as is_me,
+           coalesce((pr.data->>'xp')::bigint, 0) as xp,
+           coalesce((select sum(v::bigint) from jsonb_each_text(coalesce(pr.data->'xpDay','{}'::jsonb)) as d(k, v)
+                     where k >= to_char(now() - interval '6 days', 'YYYY-MM-DD')), 0) as week,
+           coalesce((pr.data->>'hideLb')::boolean, false) as hidden
+      from players p left join player_progress pr on pr.player_id = p.id
+     where p.id = me or coalesce((pr.data->>'hideLb')::boolean, false) = false) x), '[]'::json);
+end $$;
+revoke all on function public.trener_leaderboard(text) from public;
+grant execute on function public.trener_leaderboard(text) to anon, authenticated;
+
 -- ===== Udržování databáze vzhůru (volá ji automatická úloha na GitHubu každé 2 dny) =====
 create or replace function public.trener_ping()
 returns timestamptz language sql security definer set search_path = public as $$ select now() $$;

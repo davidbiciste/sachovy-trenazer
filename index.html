@@ -415,6 +415,9 @@ i.en{font-style:normal;font-weight:500;color:var(--muted);font-size:.86em}i.en::
 .exCtl .btn{font-size:16px}#xBoard{box-shadow:0 10px 30px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.35)}
 .xRow{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}@media (max-width:560px){.xRow{grid-template-columns:14px minmax(0,1fr);gap:6px}}
 .titleForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}.titleForm[hidden]{display:none}.titleForm input{flex:1;min-width:160px;min-height:40px;font:inherit;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.25);color:var(--fg)}.titleForm small{flex-basis:100%;color:var(--muted)}
+.lbList{display:grid;gap:6px;margin-top:12px}.lbRow{display:grid;grid-template-columns:40px 34px minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.2);border:1px solid var(--line)}
+.lbRow.me{border-color:var(--gold);background:rgba(240,192,64,.08)}.lbRank{font-size:18px;font-weight:800;text-align:center}.lbLv{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--gold);color:#1a1510;font-weight:900;font-size:13px}
+.lbName{min-width:0}.lbName b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lbName small,.lbXp small{color:var(--muted);font-size:12px}.lbXp{text-align:right}.lbXp b{font-size:18px;margin-right:3px}.lbTog{flex-basis:100%;margin-top:4px}
 .accTabs{margin-top:4px}.pkCard.acc .accHint{margin:0;font-size:12.5px;color:var(--muted,#a99f8f)}.pkCard.acc .accHint[hidden]{display:none}.accMsg{min-height:1.2em;margin:2px 0 0;font-size:14px;color:var(--brass)}
 </style>
 
@@ -608,6 +611,8 @@ function mergeStores(a,b){/* a=local, b=remote; keeps the better progress of bot
  const newer=(b.upd||0)>(a.upd||0)?b:a;const o=Object.assign({},a,{xp:Math.max(a.xp||0,b.xp||0),sound:newer.sound,theme:newer.theme,lvlTitle:('lvlTitle' in newer)?newer.lvlTitle:(a.lvlTitle||b.lvlTitle),sort:newer.sort,death:newer.death,t1:newer.t1,upd:Math.max(a.upd||0,b.upd||0)});
  o.mastered=Object.assign({},b.mastered||{},a.mastered||{});o.prog={};
  o.act={};new Set([...Object.keys(a.act||{}),...Object.keys(b.act||{})]).forEach(k=>{o.act[k]=Math.max((a.act||{})[k]||0,(b.act||{})[k]||0);});
+ o.xpDay={};new Set([...Object.keys(a.xpDay||{}),...Object.keys(b.xpDay||{})]).forEach(k=>{o.xpDay[k]=Math.max((a.xpDay||{})[k]||0,(b.xpDay||{})[k]||0);});
+ o.hideLb=('hideLb' in newer)?newer.hideLb:(a.hideLb||b.hideLb||false);
  new Set([...Object.keys(a.prog||{}),...Object.keys(b.prog||{})]).forEach(c=>{const pa=(a.prog||{})[c]||{},pb=(b.prog||{})[c]||{};const r={};
   new Set([...Object.keys(pa),...Object.keys(pb)]).forEach(id=>{const x=pa[id],y=pb[id];if(!x||!y){r[id]=x||y;return;}r[id]=((y.box||0)>(x.box||0)||((y.box||0)===(x.box||0)&&(y.due||0)>(x.due||0)))?y:x;});o.prog[c]=r;});
  return o;}
@@ -691,7 +696,7 @@ const myLvl=L=>store.lvlTitle?escH(store.lvlTitle):L.name;/* vlastní název lev
 function lvlOf(xp){xp=xp||0;let n=1;while(xp>=lvlXp(n+1))n++;const a=lvlXp(n),b=lvlXp(n+1);return{n,name:lvlName(n),from:a,to:b,left:b-xp,pct:Math.round((xp-a)/(b-a)*100)};}
 function renderLvl(){const el=document.getElementById('sLvl');if(!el)return;const L=lvlOf(store.xp);
  el.innerHTML=`<span class="n">${L.n}</span><span class="lb">${myLvl(L)}<span class="lbar"><i style="width:${L.pct}%"></i></span><small>${store.xp||0} / ${L.to} XP</small></span>`;el.title=`Level ${L.n} – ${myLvl(L)}. Do dalšího levelu chybí ${L.left} XP.`;}
-function addXp(gain){const before=lvlOf(store.xp).n;store.xp=(store.xp||0)+gain;const L=lvlOf(store.xp);renderLvl();if(L.n>before)setTimeout(()=>levelUp(L),700);}
+function addXp(gain){const before=lvlOf(store.xp).n;store.xp=(store.xp||0)+gain;{const dk=new Date().toISOString().slice(0,10);store.xpDay=store.xpDay||{};store.xpDay[dk]=(store.xpDay[dk]||0)+gain;}const L=lvlOf(store.xp);renderLvl();if(L.n>before)setTimeout(()=>levelUp(L),700);}
 function levelUp(L){if(store.sound)try{[523,659,784,1047,1319].forEach((f,i)=>tone(i*.1,f,.4,.11));tone(.55,1568,.6,.09,'triangle');}catch(e){}
  const d=document.createElement('div');d.className='lvlUp';d.setAttribute('role','status');d.innerHTML=`<div class="k">LEVEL UP!</div><div class="big">${L.n}</div><div class="nm">${myLvl(L)}</div><small>Další level za ${L.left} XP</small>`;document.body.appendChild(d);
  setTimeout(()=>d.classList.add('out'),2600);setTimeout(()=>d.remove(),3100);}
@@ -780,6 +785,20 @@ function exPanels(){const I=exIndex(),g=exGame(),n=EX.moves.length,key=fenK(g.fe
  <div class="profCard"><h2>Varianty, které k tomu vedou <small class="exCnt">${exact.length}</small></h2>${exact.length?`<div class="exList">${exact.slice(0,LIM).map(x=>row(x,false)).join('')}</div>${exact.length>LIM?`<p class="profEmpty">…a dalších ${exact.length-LIM}. Zahraj další tah a seznam se zúží.</p>`:''}`:'<p class="profEmpty">Žádná varianta z kurzů nejde přesně tímhle pořadím tahů.</p>'}</div>
  ${trans.length?`<div class="profCard"><h2>Stejná pozice jiným pořadím tahů <small class="exCnt">${trans.length}</small></h2><div class="exList">${trans.slice(0,LIM).map(x=>row(x,true)).join('')}</div></div>`:''}`;
  $('xBestBtn').onclick=()=>{EX.showBest=!EX.showBest;$('xBestBtn').textContent=EX.showBest?'Skrýt nejlepší tah':'Ukázat nejlepší tah';if(XE.last)xEvalShow(XE.last);else xArrow(null);};xArrow(null);exEval();}
+/* ---------- Žebříček (#zebricek) ---------- */
+let LB={tab:'week'};
+async function renderBoardPage(){document.body.classList.add('homeMode');
+ const head=`<a class="backAll" href="#">← Všechny kurzy</a><div class="prof"><div class="profCard"><h2>🏆 Žebříček</h2><div class="chip2" role="group"><button data-lbt="week" aria-pressed="${LB.tab==='week'}">Tento týden</button><button data-lbt="all" aria-pressed="${LB.tab==='all'}">Celkem</button></div><div id="lbBody"><p class="profEmpty" style="margin-top:12px"><span class="spin"></span> Načítám…</p></div>
+ <p class="profEmpty" style="margin-top:12px">„Tento týden“ = XP za posledních 7 dní. Nechceš být vidět? V profilu vypni <b>Zobrazovat mě v žebříčku</b>.</p></div></div>`;
+ $('home').innerHTML=head;renderSide();
+ $('home').querySelectorAll('[data-lbt]').forEach(b=>b.onclick=()=>{LB.tab=b.dataset.lbt;renderBoardPage();});
+ if(!SB||!getTok()){$('lbBody').innerHTML='<p class="profEmpty">Žebříček uvidíš po přihlášení.</p>';return;}
+ if(SYNC.dirty){clearTimeout(SYNC.t);try{await pushCloud();}catch(e){}}
+ let list;try{list=await rpc('trener_leaderboard',{p_token:getTok()})||[];}catch(e){if(page==='board')$('lbBody').innerHTML=`<p class="profEmpty">${escH(AUTH_ERR(e.message||String(e)))}</p>`;return;}
+ if(page!=='board')return;
+ const k=LB.tab==='week'?'week':'xp';list=list.slice().sort((a,b)=>(b[k]-a[k])||(b.xp-a.xp));
+ const medal=i=>i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}.`;
+ $('lbBody').innerHTML=`<div class="lbList">${list.map((p,i)=>{const L=lvlOf(p.xp);return `<div class="lbRow${p.is_me?' me':''}"><span class="lbRank">${medal(i)}</span><span class="lbLv">${L.n}</span><span class="lbName"><b>${escH(p.username)}${p.is_me?' (ty)':''}</b><small>${L.name}${p.is_me&&p.hidden?' · skrytý pro ostatní':''}</small></span><span class="lbXp"><b>${p[k]}</b><small>XP</small></span></div>`;}).join('')||'<p class="profEmpty">Zatím nikdo.</p>'}</div>`;}
 /* ---------- profil hráče (#profil) ---------- */
 function courseStats(c){const pr=store.prog[c.id]||{};const L=c.chapters.flatMap(ch=>ch.lines.map(l=>({l,ch})));const o={c,total:L.length,done:0,due:0,learning:0,neu:0,n:0,ok:0,err:0,lines:[]};
  L.forEach(({l,ch})=>{const st=stateIn(c,l);o[st==='new'?'neu':st==='done'?'done':st]++;if(st==='due')o.done++;const p=pr[l.id];if(p){o.n+=p.n||0;o.ok+=p.ok||0;o.err+=p.err||0;o.lines.push({c,l,ch,p,st});}});
@@ -812,7 +831,7 @@ function renderProfile(){document.body.classList.add('homeMode');const Lv=lvlOf(
  const tipLi=([t,h])=>`<li>${t}${h!=null?`<br><button data-goto="${h}">Otevřít →</button>`:''}</li>`;
  let h=`<a class="backAll" href="#">← Všechny kurzy</a><div class="prof">
  <div class="profCard profHead"><span class="big">${Lv.n}</span><div class="lb"><h1>${SYNC.user?escH(SYNC.user):'Můj profil'}</h1><div>Level ${Lv.n} – <b>${myLvl(Lv)}</b> · ${store.xp||0} XP</div><div class="bar"><i style="width:${Lv.pct}%"></i></div><small>Do dalšího levelu chybí ${Lv.left} XP · <button class="lnk" id="pLvl" style="padding:0">všechny levely</button> · <button class="lnk" id="pTitle" style="padding:0">vlastní název</button></small><form class="titleForm" id="titleForm" hidden><input id="titleIn" maxlength="40" placeholder="Vlastní název levelu" value="${escH(store.lvlTitle||'')}"><button class="btn" type="submit">Uložit</button><button class="btn" type="button" id="titleClear">Původní</button><small>Uvidíš ho jen ty na svém účtu.</small></form></div>
-  ${SYNC.be&&SYNC.be.kind==='supa'?`<button class="btn" id="pOut">Odhlásit</button>`:''}</div>
+  ${SYNC.be&&SYNC.be.kind==='supa'?`<button class="btn" id="pOut">Odhlásit</button>`:''}<label class="death lbTog"><input type="checkbox" id="pLb" ${store.hideLb?'':'checked'}> <span>Zobrazovat mě v žebříčku</span></label></div>
  <div class="profCard"><h2>Statistiky</h2><div class="tiles"><div><b>${done}/${tot}</b><span>variant naučeno</span></div><div><b>${mast}/${chTot}</b><span>kapitol na 100 %</span></div><div><b>${acc==null?'–':acc+' %'}</b><span>pokusů bez chyby</span></div><div><b>${n}</b><span>zahraných variant zpaměti</span></div><div><b>${err}</b><span>chyb celkem</span></div><div><b>${due}</b><span>k opakování</span></div><div><b>${streak}</b><span>${streak===1?'den':'dní'} v řadě</span></div></div></div>
  <div class="profCard"><h2>Bílé vs. černé</h2><div class="sideCmp"><div class="w"><b>${W.pct} %</b><span>Za bílé · ${W.d}/${W.t} variant${W.acc!=null?` · ${W.acc} % bez chyby`:''}</span></div><div class="b"><b>${B.pct} %</b><span>Za černé · ${B.d}/${B.t} variant${B.acc!=null?` · ${B.acc} % bez chyby`:''}</span></div></div></div>
  <div class="profCard"><h2>Doporučení</h2><ul class="lst tips">${tips.map(tipLi).join('')||'<li>Zatím nic – hraj a doporučení se objeví.</li>'}</ul></div>
@@ -822,7 +841,7 @@ function renderProfile(){document.body.classList.add('homeMode');const Lv=lvlOf(
  <div class="profCard"><h2>Kurzy</h2>${S.map(x=>`<div class="crsRow"><div><b>${x.c.title}</b><small>${x.c.side==='w'?'za bílé':'za černé'} · ${x.done}/${x.total} variant${x.due?` · ${x.due} k opakování`:''}${x.acc!=null?` · ${x.acc} % bez chyby`:''}</small></div><div class="bar"><i style="width:${x.pct}%"></i></div><a href="#${x.c.id}">${x.pct} % →</a></div>`).join('')}</div>
  </div>`;
  $('home').innerHTML=h;renderSide();
- $('pLvl').onclick=openLvl;$('pTitle').onclick=()=>{const f=$('titleForm');f.hidden=!f.hidden;if(!f.hidden)$('titleIn').focus();};
+ $('pLvl').onclick=openLvl;$('pLb').onchange=e=>{store.hideLb=!e.target.checked;save();};$('pTitle').onclick=()=>{const f=$('titleForm');f.hidden=!f.hidden;if(!f.hidden)$('titleIn').focus();};
  $('titleForm').onsubmit=e=>{e.preventDefault();const v=$('titleIn').value.trim().slice(0,40);if(v)store.lvlTitle=v;else delete store.lvlTitle;save();renderLvl();renderProfile();};
  $('titleClear').onclick=()=>{delete store.lvlTitle;save();renderLvl();renderProfile();};const po=document.getElementById('pOut');if(po)po.onclick=async()=>{await supaLogout();};}
 /* ---------- vývojářská stránka (jen účty s is_admin v Supabase; data hlídá server) ---------- */
@@ -1030,9 +1049,9 @@ function sortedLines(ch){return store.sort==='pop'?byPop(ch.lines):ch.lines;}
 function ORDER(){return store.sort==='pop'?byPop(LINES()):LINES();}
 /* ---------- stránky: #  = přehled kurzů, #<id kurzu> = kurz, #profil = profil hráče ---------- */
 let page='all';
-function parseRoute(){const h=decodeURIComponent(location.hash.slice(1));if(h==='profil'){page='profile';return;}if(h==='hledat'){page='explore';return;}const c=COURSES.find(x=>x.id===h);if(c){if(c!==course){course=c;cur=pickStart();flipped=course.side==='b';}page='course';return;}if(h!=='dev')page='all';}
+function parseRoute(){const h=decodeURIComponent(location.hash.slice(1));if(h==='profil'){page='profile';return;}if(h==='hledat'){page='explore';return;}if(h==='zebricek'){page='board';return;}const c=COURSES.find(x=>x.id===h);if(c){if(c!==course){course=c;cur=pickStart();flipped=course.side==='b';}page='course';return;}if(h!=='dev')page='all';}
 function route(){if(location.hash==='#dev'){openDev();return;}parseRoute();showHome();}
-function pageHash(){return page==='course'?'#'+course.id:page==='profile'?'#profil':page==='explore'?'#hledat':'';}
+function pageHash(){return page==='course'?'#'+course.id:page==='profile'?'#profil':page==='explore'?'#hledat':page==='board'?'#zebricek':'';}
 function go(hash){if(hash==='#')hash='';if(location.hash===hash||(hash===''&&!location.hash))route();else location.hash=hash;}
 function stateIn(c,l){const p=(store.prog[c.id]||{})[l.id];if(!p)return'new';if((p.box||0)<2)return'learning';return p.due<=Date.now()?'due':'done';}
 const t1chip=()=>store.t1?' <button class="t1chip" id="t1off" title="Vypnout T1 mód">T1 MÓD ✕</button>':'';
@@ -1044,10 +1063,10 @@ function wireSync(){
 function renderOverview(){document.body.classList.add('homeMode');const L=lvlOf(store.xp);
  const sec=(side,label)=>{const cs=COURSES.filter(c=>c.side===side);return cs.length?`<section class="sideSec"><h2 class="secT"><span class="kd ${side}"></span>${label} <small>· ${cs.length} ${cs.length===1?'kurz':cs.length<5?'kurzy':'kurzů'}</small></h2><div class="courseCards">${cs.map(cardHTML).join('')}</div></section>`:'';};
  let h=`<div class="homeHead"><div class="kicker">Šachový trenažér${t1chip()}</div><h1>Nauč se repertoár tah po tahu</h1><p>Vyber si kurz. Každý má vlastní stránku s kapitolami a variantami ověřenými enginem.</p>
- <button class="profStrip" id="toProf"><span class="n">${L.n}</span><span><b>${SYNC.user?escH(SYNC.user):'Můj profil'}</b> · ${myLvl(L)} · ${store.xp||0} XP</span><span class="go">Profil a statistiky →</span></button><button class="profStrip exStrip" id="toEx"><span class="n">🔍</span><span><b>Najít variantu</b> · zahraj tahy na šachovnici a uvidíš, které varianty k nim patří</span><span class="go">Otevřít →</span></button></div>`;
+ <button class="profStrip" id="toProf"><span class="n">${L.n}</span><span><b>${SYNC.user?escH(SYNC.user):'Můj profil'}</b> · ${myLvl(L)} · ${store.xp||0} XP</span><span class="go">Profil a statistiky →</span></button><button class="profStrip exStrip" id="toEx"><span class="n">🔍</span><span><b>Najít variantu</b> · zahraj tahy na šachovnici a uvidíš, které varianty k nim patří</span><span class="go">Otevřít →</span></button><button class="profStrip exStrip" id="toLb"><span class="n">🏆</span><span><b>Žebříček</b> · kdo nasbíral nejvíc XP tento týden</span><span class="go">Otevřít →</span></button></div>`;
  h+=sec('w','Za bílé')+sec('b','Za černé')+syncHTML();
- $('home').innerHTML=h;renderSide();wireSync();$('toProf').onclick=()=>go('#profil');$('toEx').onclick=()=>go('#hledat');}
-function renderHome(){if(page==='all')return renderOverview();if(page==='profile')return renderProfile();if(page==='explore')return renderExplore();
+ $('home').innerHTML=h;renderSide();wireSync();$('toProf').onclick=()=>go('#profil');$('toEx').onclick=()=>go('#hledat');$('toLb').onclick=()=>go('#zebricek');}
+function renderHome(){if(page==='all')return renderOverview();if(page==='profile')return renderProfile();if(page==='explore')return renderExplore();if(page==='board')return renderBoardPage();
  document.body.classList.add('homeMode');const L=LINES();const rec=recommend();const cp=courseProg(course);
  let h=`<div class="homeHead"><a class="backAll" href="#">← Všechny kurzy</a><div class="kicker">${course.side==='w'?'Za bílé':'Za černé'}${t1chip()}</div>
  <div class="crsTop"><span class="pic crsIcon ${course.side==='b'?'b':''}" data-c="${course.id}">${courseIcon(course)}</span><div><h1>${course.title}</h1><div class="crsEn">${course.en&&course.en.toLowerCase()!==course.title.toLowerCase()?course.en:''}</div><p>${course.sub.replace(/^Repertoár za (bílé|černé) · /,'')} · ${course.chapters.length} kapitol · ${L.length} variant</p></div><span class="miniRing">${ringSVG(cp,22,6)}<span>${cp}%</span></span></div></div>`;
