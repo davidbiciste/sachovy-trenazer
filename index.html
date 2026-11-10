@@ -680,9 +680,9 @@ function openAccount(gate){if(gate!==true)gate=false;if(!gate&&needGate())return
   try{const r=await rpc(tab==='up'?'trener_register':'trener_login',{p_user:user,p_pass:pass});if(r&&r.error)throw new Error(r.error);await onLogin(r.token,true);
   }catch(err){msg.textContent=AUTH_ERR(err&&err.message||String(err));go.disabled=false;}};}
 /* ---------- levely podle XP ---------- */
-const LVL_NAMES=['Začátečník','Pěšák','Jezdec','Střelec','Věž','Dáma','Král','Velmistr'];
+const LVL_NAMES=['Začátečník','Pěšák','Jezdec','Střelec','Věž','Dáma','Král','Klubový hráč','Turnajový hráč','Krajský přeborník','Kandidát mistra','Národní mistr','FIDE mistr','Mezinárodní mistr','Velmistr','Supervelmistr','Kandidát na titul','Mistr světa','Legenda','Šachový bůh'];
 const lvlXp=n=>50*n*(n-1);/* XP potřebné na level n: 1→0, 2→100, 3→300, 4→600, 5→1000 … */
-const lvlName=n=>LVL_NAMES[Math.min(n,LVL_NAMES.length)-1]+(n>LVL_NAMES.length?' '+(n-LVL_NAMES.length+1):'');
+const lvlName=n=>LVL_NAMES[Math.min(n,LVL_NAMES.length)-1];/* za posledním levelem už název zůstává */
 const myLvl=L=>store.lvlTitle?escH(store.lvlTitle):L.name;/* vlastní název levelu – vidí ho jen majitel účtu */
 function lvlOf(xp){xp=xp||0;let n=1;while(xp>=lvlXp(n+1))n++;const a=lvlXp(n),b=lvlXp(n+1);return{n,name:lvlName(n),from:a,to:b,left:b-xp,pct:Math.round((xp-a)/(b-a)*100)};}
 function renderLvl(){const el=document.getElementById('sLvl');if(!el)return;const L=lvlOf(store.xp);
@@ -691,9 +691,9 @@ function addXp(gain){const before=lvlOf(store.xp).n;store.xp=(store.xp||0)+gain;
 function levelUp(L){if(store.sound)try{[523,659,784,1047,1319].forEach((f,i)=>tone(i*.1,f,.4,.11));tone(.55,1568,.6,.09,'triangle');}catch(e){}
  const d=document.createElement('div');d.className='lvlUp';d.setAttribute('role','status');d.innerHTML=`<div class="k">LEVEL UP!</div><div class="big">${L.n}</div><div class="nm">${myLvl(L)}</div><small>Další level za ${L.left} XP</small>`;document.body.appendChild(d);
  setTimeout(()=>d.classList.add('out'),2600);setTimeout(()=>d.remove(),3100);}
-function openLvl(){const pk=$('picker'),L=lvlOf(store.xp);let rows='';const max=Math.max(LVL_NAMES.length,L.n+1);
- for(let n=1;n<=max;n++)rows+=`<div class="${n===L.n?'me':n>L.n?'no':''}"><span>${n}. ${lvlName(n)}</span><span>${lvlXp(n)} XP</span></div>`;
- pk.innerHTML=`<div class="pkCard lvlInfo"><h2>Level ${L.n} – ${myLvl(L)}</h2><p>Máš <b>${store.xp||0} XP</b>. Do dalšího levelu chybí <b>${L.left} XP</b>. XP dostaneš za každou variantu zahranou zpaměti – bez chyby víc.</p><div class="lvlList">${rows}</div><div class="row"><button class="btn" id="lvlClose">Zavřít</button></div></div>`;
+function openLvl(){const pk=$('picker'),L=lvlOf(store.xp);let rows='';const max=LVL_NAMES.length,top=L.n>=max;
+ for(let n=1;n<=max;n++){const me=n===Math.min(L.n,max);rows+=`<div class="${me?'me':n>L.n?'no':''}"><span>${n}. ${lvlName(n)}${me&&top&&L.n>max?` <small>(level ${L.n})</small>`:''}</span><span>${lvlXp(n)} XP</span></div>`;}
+ pk.innerHTML=`<div class="pkCard lvlInfo"><h2>Level ${L.n} – ${myLvl(L)}</h2><p>Máš <b>${store.xp||0} XP</b>. ${top?'Máš nejvyšší titul – gratuluju! 👑':`Do dalšího levelu chybí <b>${L.left} XP</b>.`} XP dostaneš za každou variantu zahranou zpaměti – bez chyby víc.</p><div class="lvlList">${rows}</div><div class="row"><button class="btn" id="lvlClose">Zavřít</button></div></div>`;
  pk.hidden=false;pk.onchange=null;pk.onclick=e=>{if(e.target===pk||e.target.id==='lvlClose')pk.hidden=true;};
  const me=pk.querySelector('.lvlList .me');if(me){const lst=me.parentElement;lst.scrollTop=me.offsetTop-lst.offsetTop-lst.clientHeight/2+me.clientHeight/2;}}
 /* ---------- Najít variantu (#hledat): hraješ tahy, stránka ukáže varianty, které k nim vedou ---------- */
