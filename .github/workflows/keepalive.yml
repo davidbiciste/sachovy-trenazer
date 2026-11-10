@@ -1,0 +1,19 @@
+# Free Supabase projekt se po týdnu bez aktivity uspí. Tahle úloha ho každé 2 dny "šťouchne".
+name: Supabase keep-alive
+on:
+  schedule:
+    - cron: "17 5 */2 * *"
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Ping Supabase
+        run: |
+          URL=$(grep -o 'supabaseUrl: *"[^"]*"' config.js | grep -o 'https://[^"]*')
+          KEY=$(grep -o 'supabaseKey: *"[^"]*"' config.js | sed 's/.*"\(.*\)"/\1/')
+          code=$(curl -sS -o resp.txt -w "%{http_code}" -X POST "$URL/rest/v1/rpc/trener_ping" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -d '{}')
+          echo "HTTP $code: $(cat resp.txt)"
+          test "$code" = "200"

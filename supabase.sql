@@ -157,6 +157,12 @@ revoke all on function public.trener_admin_players(text), public.trener_admin_se
 grant execute on function public.trener_admin_players(text), public.trener_admin_set_password(text, text, text),
   public.trener_admin_delete(text, text) to anon, authenticated;
 
+-- ===== Udržování databáze vzhůru (volá ji automatická úloha na GitHubu každé 2 dny) =====
+create or replace function public.trener_ping()
+returns timestamptz language sql security definer set search_path = public as $$ select now() $$;
+revoke all on function public.trener_ping() from public;
+grant execute on function public.trener_ping() to anon, authenticated;
+
 revoke all on function public.trener_register(text, text), public.trener_login(text, text),
   public.trener_load(text), public.trener_save(text, jsonb), public.trener_logout(text) from public;
 grant execute on function public.trener_register(text, text), public.trener_login(text, text),
