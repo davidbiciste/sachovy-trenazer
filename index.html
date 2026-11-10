@@ -328,7 +328,7 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
 .t1toast{position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:99;background:#14110e;border:2px solid #ff4b3a;color:#fff;border-radius:16px;padding:14px 20px;text-align:center;box-shadow:0 18px 50px rgba(0,0,0,.5);animation:t1in .3s ease;max-width:calc(100vw - 32px)}
 .t1toast b{display:block;font-size:26px;letter-spacing:.08em;color:#ff4b3a}.t1toast span{font-size:14px;color:#ddd}
 @keyframes t1in{from{opacity:0;transform:translate(-50%,-12px) scale(.9)}}
-.syncBtns{display:flex;gap:14px}.pkCard.acc{max-width:420px}.acc form{display:grid;gap:10px;margin-top:12px}.pkCard.acc label small{font-weight:400;opacity:.8}.pkCard.acc label{display:grid!important;align-items:stretch;gap:4px;font-size:13px;font-weight:700;color:var(--muted,#a99f8f)}.acc label[hidden]{display:none}
+.syncBtns{display:flex;gap:14px}.pkCard.acc{max-width:420px}.acc form{display:grid;gap:10px;margin-top:12px}.pkCard.acc label small{font-weight:400;opacity:.8}.pkCard.acc label{display:grid!important;align-items:stretch;gap:4px;font-size:13px;font-weight:700;color:var(--muted,#a99f8f)}.pkCard.acc label[hidden]{display:none!important}
 .pkCard.acc input{width:100%;box-sizing:border-box;min-height:44px;display:block;font:inherit;font-size:16px;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.25);color:var(--fg,#fff)}.acc input:focus{outline:2px solid var(--accent);outline-offset:1px}
 .accTop{font:inherit;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:#fff;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}
 .accTop.in{background:var(--bg-2);color:var(--fg);border-color:var(--line)}.accTop.in::before{content:"";width:8px;height:8px;border-radius:50%;background:#4caf50;flex:none}.accTop:hover{filter:brightness(1.08)}
@@ -337,6 +337,18 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
 .devGrid div{background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--muted)}.devGrid b{display:block;font-size:18px;color:var(--fg)}
 .devTbl{width:100%;border-collapse:collapse;font-size:13px}.devTbl th,.devTbl td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}.devTbl th{color:var(--muted);font-weight:700;font-size:12px}
 .devTbl td.a{white-space:nowrap}.devTbl .lnk{padding:2px 4px;font-size:12px}.devWrap{overflow-x:auto}.devMsg{min-height:1.2em;margin:0;font-size:14px;color:var(--brass)}.devTbl small{color:var(--muted)}
+.lvl{font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 12px 0 6px;border-radius:999px;border:1px solid var(--line);background:var(--bg-2);color:var(--fg);font-size:13px;font-weight:700;white-space:nowrap}
+.lvl .n{display:grid;place-items:center;min-width:26px;height:26px;border-radius:50%;background:var(--gold);color:#1a1510;font-weight:900;font-size:13px;padding:0 3px;box-sizing:border-box}
+.lvl .lb{display:grid;gap:3px;text-align:left;line-height:1}.lvl .lb small{font-size:10px;color:var(--muted);font-weight:600}.lvl .lbar{display:block;width:70px;height:4px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}.lvl .lbar i{display:block;height:100%;background:var(--gold);transition:width .6s ease}
+.lvlUp{position:fixed;left:50%;top:22%;transform:translateX(-50%);z-index:99;background:var(--bg-2);border:2px solid var(--gold);border-radius:20px;padding:20px 30px;text-align:center;box-shadow:0 0 0 6px rgba(0,0,0,.25),0 24px 60px rgba(0,0,0,.6);animation:lvlIn .5s cubic-bezier(.2,1.6,.4,1);max-width:calc(100vw - 32px);pointer-events:none}
+.lvlUp .k{font-size:12px;letter-spacing:.2em;font-weight:900;color:var(--gold)}.lvlUp .big{font-size:44px;font-weight:900;line-height:1.1;margin:4px 0}.lvlUp .nm{font-size:18px;font-weight:700}.lvlUp small{display:block;margin-top:6px;color:var(--muted);font-size:13px}
+.lvlUp.out{transition:opacity .4s,transform .4s;opacity:0;transform:translate(-50%,-10px)}
+@keyframes lvlIn{from{opacity:0;transform:translate(-50%,10px) scale(.6)}}
+.pkCard.lvlInfo{max-width:440px}.lvlList{display:grid;gap:6px;margin:4px 0}.lvlList div{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.2);border:1px solid var(--line);font-size:14px}.lvlList div.me{border-color:var(--gold);color:var(--gold);font-weight:700}.lvlList div.no{opacity:.55}
+@media (prefers-reduced-motion:reduce){.lvlUp{animation:none}}
+@media (max-width:560px){.lvl .lb small{display:none}.lvl .lbar{width:44px}.accTop{padding:0 11px}}
+.gate{z-index:60;background:rgba(10,10,9,.92);backdrop-filter:blur(4px)}.gate .pkCard{max-height:calc(100vh - 32px);overflow:auto}
+.cCard,.courseBtn,.cCard .pic{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .accTabs{margin-top:4px}.pkCard.acc .accHint{margin:0;font-size:12.5px;color:var(--muted,#a99f8f)}.pkCard.acc .accHint[hidden]{display:none}.accMsg{min-height:1.2em;margin:2px 0 0;font-size:14px;color:var(--brass)}
 </style>
 
@@ -347,6 +359,7 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
       <span class="stat" title="Varianty zahrané zpaměti bez chyby"><svg viewBox="0 0 24 24" fill="var(--accent)"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z"/></svg><b id="sLearned">0</b>/<span id="sTotal">0</span>&nbsp;hotovo</span>
       <span class="stat" title="K opakování"><svg viewBox="0 0 24 24" fill="var(--gold)"><path d="M12 4V1L8 5l4 4V6a6 6 0 1 1-6 6H4a8 8 0 1 0 8-8z"/></svg><b id="sDue">0</b> k opakování</span>
       <span class="stat" title="Body"><svg viewBox="0 0 24 24" fill="var(--gold)"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><b id="sXp">0</b> XP</span>
+      <button class="lvl" id="sLvl" title="Tvůj level"></button>
       <div class="themes" id="themes" role="group" aria-label="Barva šachovnice"></div>
       <button class="iconBtn" id="sound"></button>
       <button class="accTop" id="devTop" hidden>Vývojář</button>
@@ -411,6 +424,7 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
     </aside>
   </div>
   <div class="picker" id="picker" hidden></div>
+  <div class="picker gate" id="gate" hidden></div>
   <p class="foot">Varianty sestavil Claude a každý tah, který hraješ ty, ověřil proti vyhodnocení enginu Stockfish z databáze Lichess. Tahy soupeře jsou nejčastěji nejlepší odpovědi enginu. Výjimkou je Kráva: je to vtipné zahájení, které je objektivně o kousek horší, a její varianty jsou sestavené ručně bez kontroly enginem. Figury jsou kreslené ve stylu sady Colina M. L. Burnetta (CC BY-SA 3.0). Šipkami ← → procházíš tahy.</p>
 </div>
 
@@ -528,7 +542,7 @@ function mergeStores(a,b){/* a=local, b=remote; keeps the better progress of bot
   new Set([...Object.keys(pa),...Object.keys(pb)]).forEach(id=>{const x=pa[id],y=pb[id];if(!x||!y){r[id]=x||y;return;}r[id]=((y.box||0)>(x.box||0)||((y.box||0)===(x.box||0)&&(y.due||0)>(x.due||0)))?y:x;});o.prog[c]=r;});
  return o;}
 function applyMerged(m){const before=JSON.stringify(store);store=m;COURSES.forEach(c=>{store.prog[c.id]=store.prog[c.id]||{};});store.mastered=store.mastered||{};saveLocal();
- if(JSON.stringify(store)!==before){applyTheme();if(typeof applyT1==='function')applyT1();renderSound();if(!$('home').hidden){renderCourses();renderHome();}}}
+ if(JSON.stringify(store)!==before){applyTheme();if(typeof applyT1==='function')applyT1();renderSound();renderLvl();if(!$('home').hidden){renderCourses();renderHome();}}}
 function queueCloud(){if(!SYNC.be)return;SYNC.dirty=true;clearTimeout(SYNC.t);SYNC.t=setTimeout(pushCloud,1200);}
 async function pushCloud(){if(!SYNC.be||SYNC.busy||!SYNC.dirty)return;SYNC.busy=true;SYNC.dirty=false;const be=SYNC.be;
  try{await be.save(store);if(SYNC.be===be)setSync('cloud');}catch(e){if(SYNC.be===be){setSync('err');SYNC.dirty=true;}}
@@ -536,9 +550,12 @@ async function pushCloud(){if(!SYNC.be||SYNC.busy||!SYNC.dirty)return;SYNC.busy=
 async function attachBackend(be,remote){SYNC.be=be;if(remote)applyMerged(mergeStores(store,remote));
  if(!remote||JSON.stringify(remote)!==JSON.stringify(store)){SYNC.dirty=true;await pushCloud();}else setSync('cloud');}
 function setSync(st){SYNC.state=st;const el=document.getElementById('syncInfo');if(el)el.innerHTML=syncLabel();const ab=document.getElementById('accBtn');if(ab)ab.textContent=accBtnText();renderAccTop();}
+function needGate(){return HAS_SUPA&&SYNC.ready&&!(SYNC.be&&SYNC.be.kind==='supa')&&SYNC.state!=='wait';}
+function updateGate(){const g=document.getElementById('gate');if(!g)return;const need=needGate();
+ if(need&&g.hidden){const pk=$('picker');pk.hidden=true;pk.innerHTML='';openAccount(true);}else if(!need&&!g.hidden){g.hidden=true;g.innerHTML='';}}
 function renderAccTop(){const b=document.getElementById('accTop'),d=document.getElementById('devTop');if(!b)return;const logged=SYNC.be&&SYNC.be.kind==='supa';
  b.hidden=!HAS_SUPA;b.classList.toggle('in',!!logged);b.textContent=logged?SYNC.user:SYNC.state==='wait'&&getTok()?'Přihlašuji…':'Přihlásit se';b.title=logged?'Tvůj účet':'Přihlásit se nebo vytvořit účet';
- if(d)d.hidden=!(logged&&SYNC.admin);}
+ if(d)d.hidden=!(logged&&SYNC.admin);updateGate();}
 const escH=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function syncLabel(){const k=SYNC.be&&SYNC.be.kind;
  if(SYNC.state==='cloud')return k==='supa'?`<i class="dot ok"></i>Přihlášen jako <b>${escH(SYNC.user)}</b> – postup se ukládá do účtu`:'<i class="dot ok"></i>Postup se ukládá do tvého účtu Claude – uvidíš ho na všech zařízeních';
@@ -563,8 +580,8 @@ const getTok=()=>{try{return localStorage.getItem(TOK_KEY)}catch(e){return null}
 async function rpc(fn,args){const {data,error}=await SB.rpc(fn,args);if(error)throw error;return data;}
 async function initSupa(){try{if(!window.supabase)await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js');
   SB=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
-  const t=getTok();if(t)await onLogin(t);else setSync('local');
- }catch(e){SB=null;setSync('local');}}
+  const t=getTok();if(t)await onLogin(t);SYNC.ready=true;if(!t)setSync('local');else renderAccTop();
+ }catch(e){SB=null;SYNC.ready=true;setSync('local');}}
 async function onLogin(token,known){setSync('wait');
  try{const r=await rpc('trener_load',{p_token:token});setTok(token);SYNC.user=r.username;SYNC.uid=r.username;SYNC.admin=!!r.is_admin;
   await attachBackend({kind:'supa',save:s=>rpc('trener_save',{p_token:token,p_data:s})},r.data||null);
@@ -572,26 +589,41 @@ async function onLogin(token,known){setSync('wait');
  }catch(e){if(/bad_token/.test(e.message||''))setTok(null);SYNC.be=null;SYNC.uid=null;setSync(/bad_token/.test(e.message||'')?'local':'err');if(known)throw e;return false;}}
 async function supaLogout(){const t=getTok();try{if(SYNC.dirty){clearTimeout(SYNC.t);await pushCloud();}if(t)await rpc('trener_logout',{p_token:t});}catch(e){}setTok(null);SYNC.be=null;SYNC.user=null;SYNC.uid=null;SYNC.admin=false;setSync('local');}
 const AUTH_ERR=m=>/taken/.test(m)?'Tohle jméno už někdo má. Vyber si jiné, nebo se přihlas.':/bad_login/.test(m)?'Špatné jméno nebo heslo.':/bad_username/.test(m)?'Jméno: 3–20 znaků, jen písmena bez diakritiky, čísla, tečka, pomlčka nebo podtržítko.':/short_password/.test(m)?'Heslo musí mít aspoň 6 znaků.':/too_many/.test(m)?'Moc pokusů. Zkus to za pár minut.':/Failed to fetch|NetworkError|Load failed/i.test(m)?'Nejde se spojit se serverem. Jsi online? (Free Supabase projekt se mohl uspat.)':/Invalid API key|No API key|JWT|Unauthorized/i.test(m)?'Špatný klíč v config.js. Zkus místo publishable klíče starší „anon“ klíč (viz návod).':/no_user/.test(m)?'Takový hráč neexistuje.':/forbidden/.test(m)?'Na tohle nemáš oprávnění.':/function .* does not exist|Could not find the function/i.test(m)?'V Supabase chybí funkce – spusť soubor supabase.sql (viz návod).':'Nepovedlo se: '+m;
-function openAccount(){const pk=$('picker');const logged=SYNC.be&&SYNC.be.kind==='supa';
+function openAccount(gate){if(gate!==true)gate=false;if(!gate&&needGate())return;const pk=gate?$('gate'):$('picker');const logged=SYNC.be&&SYNC.be.kind==='supa';
  pk.innerHTML=logged?`<div class="pkCard acc"><h2>Tvůj účet</h2><p>Přihlášen jako <b>${escH(SYNC.user)}</b>. Postup se ukládá do účtu. Na jiném zařízení se přihlas stejným jménem a heslem a uvidíš ho tam taky.</p><div class="row"><button class="btn" id="accClose">Zavřít</button><button class="btn" id="accOut">Odhlásit</button></div></div>`
- :`<div class="pkCard acc"><h2>Účet</h2><p>S účtem se ti postup uloží a uvidíš ho na mobilu i na počítači. Co už máš v tomhle prohlížeči, se po přihlášení přidá do účtu.</p>
+ :`<div class="pkCard acc">${gate?'<h2>Přihlas se a hraj</h2><p>Na hraní potřebuješ účet. Nemáš ho? Klikni na <b>Registrovat</b>, stačí jméno a heslo. Postup se ti uloží a uvidíš ho na mobilu i na počítači.</p>':'<h2>Účet</h2><p>S účtem se ti postup uloží a uvidíš ho na mobilu i na počítači.</p>'}${gate&&SYNC.state==='err'?'<p class="accMsg">Nepodařilo se načíst účet. Zkus se přihlásit znovu.</p>':''}
   <div class="accTabs chip2" role="group"><button type="button" data-at="in" aria-pressed="true">Přihlásit</button><button type="button" data-at="up" aria-pressed="false">Registrovat</button></div>
   <form id="accForm" autocomplete="on" novalidate><label>Přihlašovací jméno<input id="accUser" name="username" maxlength="20" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
   <label>Heslo<input id="accPass" name="password" type="password" autocomplete="current-password"></label>
   <label class="accRep" hidden>Heslo znovu<input id="accPass2" type="password" autocomplete="new-password"></label>
   <p class="accHint" hidden>Jméno: 3–20 znaků (a–z, 0–9, tečka, pomlčka, podtržítko). Heslo aspoň 6 znaků. Heslo si zapamatuj – obnovit ho jde jen ručně přes správce webu.</p>
-  <p id="accMsg" class="accMsg" role="status"></p><div class="row"><button type="button" class="btn" id="accClose">Zavřít</button><button type="submit" class="btn primary" id="accGo">Přihlásit</button></div></form></div>`;
+  <p id="accMsg" class="accMsg" role="status"></p><div class="row">${gate?'':'<button type="button" class="btn" id="accClose">Zavřít</button>'}<button type="submit" class="btn primary" id="accGo">Přihlásit</button></div></form></div>`;
  pk.hidden=false;let tab='in';
- pk.onclick=async e=>{if(e.target===pk||e.target.id==='accClose'){pk.hidden=true;return;}if(e.target.id==='accOut'){await supaLogout();pk.hidden=true;if(!$('home').hidden)renderHome();return;}
+ pk.onclick=async e=>{if((e.target===pk&&!gate)||e.target.id==='accClose'){pk.hidden=true;return;}if(e.target.id==='accOut'){await supaLogout();pk.hidden=true;if(!$('home').hidden)renderHome();return;}
   const t=e.target.closest('[data-at]');if(t){tab=t.dataset.at;const up=tab==='up';pk.querySelectorAll('[data-at]').forEach(b=>b.setAttribute('aria-pressed',b===t));pk.querySelector('.accRep').hidden=!up;pk.querySelector('.accHint').hidden=!up;$('accGo').textContent=up?'Vytvořit účet':'Přihlásit';$('accPass').autocomplete=up?'new-password':'current-password';$('accMsg').textContent='';}};
  pk.onchange=null;const f=document.getElementById('accForm');if(!f)return;
- f.onsubmit=async e=>{e.preventDefault();const msg=$('accMsg');if(!SB){msg.textContent='Připojení k účtům teď nefunguje. Zkus to později.';return;}
+ f.onsubmit=async e=>{e.preventDefault();const msg=$('accMsg');if(!SB){msg.textContent='Připojení k účtům teď nefunguje. Obnov stránku, nebo to zkus za chvíli.';return;}
   const user=$('accUser').value.trim().toLowerCase(),pass=$('accPass').value;
   if(!/^[a-z0-9_.-]{3,20}$/.test(user)){msg.textContent=AUTH_ERR('bad_username');return;}if(pass.length<6){msg.textContent=AUTH_ERR('short_password');return;}
   if(tab==='up'&&pass!==$('accPass2').value){msg.textContent='Hesla se neshodují.';return;}
   const go=$('accGo');go.disabled=true;msg.textContent=tab==='up'?'Vytvářím účet…':'Přihlašuji…';
   try{const r=await rpc(tab==='up'?'trener_register':'trener_login',{p_user:user,p_pass:pass});if(r&&r.error)throw new Error(r.error);await onLogin(r.token,true);
   }catch(err){msg.textContent=AUTH_ERR(err&&err.message||String(err));go.disabled=false;}};}
+/* ---------- levely podle XP ---------- */
+const LVL_NAMES=['Začátečník','Pěšák','Jezdec','Střelec','Věž','Dáma','Král','Velmistr'];
+const lvlXp=n=>50*n*(n-1);/* XP potřebné na level n: 1→0, 2→100, 3→300, 4→600, 5→1000 … */
+const lvlName=n=>LVL_NAMES[Math.min(n,LVL_NAMES.length)-1]+(n>LVL_NAMES.length?' '+(n-LVL_NAMES.length+1):'');
+function lvlOf(xp){xp=xp||0;let n=1;while(xp>=lvlXp(n+1))n++;const a=lvlXp(n),b=lvlXp(n+1);return{n,name:lvlName(n),from:a,to:b,left:b-xp,pct:Math.round((xp-a)/(b-a)*100)};}
+function renderLvl(){const el=document.getElementById('sLvl');if(!el)return;const L=lvlOf(store.xp);
+ el.innerHTML=`<span class="n">${L.n}</span><span class="lb">${L.name}<span class="lbar"><i style="width:${L.pct}%"></i></span><small>${store.xp||0} / ${L.to} XP</small></span>`;el.title=`Level ${L.n} – ${L.name}. Do dalšího levelu chybí ${L.left} XP.`;}
+function addXp(gain){const before=lvlOf(store.xp).n;store.xp=(store.xp||0)+gain;const L=lvlOf(store.xp);renderLvl();if(L.n>before)setTimeout(()=>levelUp(L),700);}
+function levelUp(L){if(store.sound)try{[523,659,784,1047,1319].forEach((f,i)=>tone(i*.1,f,.4,.11));tone(.55,1568,.6,.09,'triangle');}catch(e){}
+ const d=document.createElement('div');d.className='lvlUp';d.setAttribute('role','status');d.innerHTML=`<div class="k">LEVEL UP!</div><div class="big">${L.n}</div><div class="nm">${L.name}</div><small>Další level za ${L.left} XP</small>`;document.body.appendChild(d);
+ setTimeout(()=>d.classList.add('out'),2600);setTimeout(()=>d.remove(),3100);}
+function openLvl(){const pk=$('picker'),L=lvlOf(store.xp);let rows='';const max=Math.max(LVL_NAMES.length,L.n+1);
+ for(let n=1;n<=max;n++)rows+=`<div class="${n===L.n?'me':n>L.n?'no':''}"><span>${n}. ${lvlName(n)}</span><span>${lvlXp(n)} XP</span></div>`;
+ pk.innerHTML=`<div class="pkCard lvlInfo"><h2>Level ${L.n} – ${L.name}</h2><p>Máš <b>${store.xp||0} XP</b>. Do dalšího levelu chybí <b>${L.left} XP</b>. XP dostaneš za každou variantu zahranou zpaměti – bez chyby víc.</p><div class="lvlList">${rows}</div><div class="row"><button class="btn" id="lvlClose">Zavřít</button></div></div>`;
+ pk.hidden=false;pk.onchange=null;pk.onclick=e=>{if(e.target===pk||e.target.id==='lvlClose')pk.hidden=true;};}
 /* ---------- vývojářská stránka (jen účty s is_admin v Supabase; data hlídá server) ---------- */
 const fmtD=t=>t?new Date(t).toLocaleString('cs-CZ',{day:'numeric',month:'numeric',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'–';
 function progSummary(d){if(!d||!d.prog)return{xp:0,per:[],done:0};let done=0;const per=COURSES.map(c=>{const p=d.prog[c.id]||{};const ids=new Set(c.chapters.flatMap(ch=>ch.lines.map(l=>l.id)));
@@ -603,11 +635,11 @@ async function openDev(){const pk=$('picker');if(!(SYNC.admin&&getTok())){if(loc
  let list=[];try{list=await rpc('trener_admin_players',{p_token:getTok()})||[];}catch(e){pk.innerHTML=`<div class="pkCard dev"><h2>Vývojářská stránka</h2><p>${/forbidden/.test(e.message||'')?'Tenhle účet nemá přístup.':escH(AUTH_ERR(e.message||String(e)))}</p><div class="row"><button class="btn" id="devClose">Zavřít</button></div></div>`;pk.onclick=ev=>{if(ev.target===pk||ev.target.id==='devClose')close();};return;}
  const now=Date.now(),wk=list.filter(p=>p.updated_at&&now-new Date(p.updated_at)<7*864e5).length;
  let tot=0;COURSES.forEach(c=>c.chapters.forEach(ch=>tot+=ch.lines.length));
- const rows=list.map(p=>{const s=progSummary(p.data);return `<tr><td><b>${escH(p.username)}</b>${p.is_admin?' <small>(správce)</small>':''}<br><small>od ${fmtD(p.created_at)}</small></td><td>${s.xp}</td><td>${s.done}/${tot}<br><small>${s.per.filter(x=>x.n).map(x=>`${escH(x.t)} ${x.n}/${x.of}`).join(' · ')||'–'}</small></td><td>${fmtD(p.updated_at)}</td><td>${fmtD(p.last_login)}</td>
+ const rows=list.map(p=>{const s=progSummary(p.data);return `<tr><td><b>${escH(p.username)}</b>${p.is_admin?' <small>(správce)</small>':''}<br><small>od ${fmtD(p.created_at)}</small></td><td>${s.xp}<br><small>Lv ${lvlOf(s.xp).n} ${lvlOf(s.xp).name}</small></td><td>${s.done}/${tot}<br><small>${s.per.filter(x=>x.n).map(x=>`${escH(x.t)} ${x.n}/${x.of}`).join(' · ')||'–'}</small></td><td>${fmtD(p.updated_at)}</td><td>${fmtD(p.last_login)}</td>
   <td class="a"><button class="lnk" data-pw="${escH(p.username)}">Nové heslo</button>${p.username===SYNC.user?'':` <button class="lnk" data-del="${escH(p.username)}">Smazat</button>`}</td></tr>`;}).join('');
  pk.innerHTML=`<div class="pkCard dev"><h2>Vývojářská stránka</h2>
   <div class="devGrid"><div><b>${list.length}</b>hráčů</div><div><b>${wk}</b>aktivních za 7 dní</div><div><b>${tot}</b>variant celkem</div><div><b>${COURSES.length}</b>kurzů</div></div>
-  <h3>Hráči</h3><div class="devWrap"><table class="devTbl"><thead><tr><th>Hráč</th><th>XP</th><th>Hotovo</th><th>Poslední uložení</th><th>Poslední přihlášení</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="6">Zatím nikdo.</td></tr>'}</tbody></table></div>
+  <h3>Hráči</h3><div class="devWrap"><table class="devTbl"><thead><tr><th>Hráč</th><th>XP / level</th><th>Hotovo</th><th>Poslední uložení</th><th>Poslední přihlášení</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="6">Zatím nikdo.</td></tr>'}</tbody></table></div>
   <p class="devMsg" id="devMsg" role="status"></p>
   <h3>Tento prohlížeč</h3><div class="devGrid"><div><b>${escH(SYNC.state)}</b>stav ukládání</div><div><b>${store.xp||0}</b>moje XP</div><div><b>${(JSON.stringify(store).length/1024).toFixed(1)} kB</b>velikost postupu</div></div>
   <div class="row"><button class="btn" id="devReload">Obnovit</button><button class="btn" id="devClose">Zavřít</button></div></div>`;
@@ -638,7 +670,7 @@ function t1Toast(on){const d=document.createElement('div');d.className='t1toast'
 function applyT1(){document.body.classList.toggle('t1',!!store.t1);}
 function toggleT1(){store.t1=!store.t1;save();applyT1();t1Toast(store.t1);if(store.t1){t1Moo();t1Shake();if(typeof confetti==='function'&&!$('trainer').hidden)confetti();}if(!$('home').hidden)renderHome();}
 let t1buf='';document.addEventListener('keydown',e=>{if(e.target&&/input|textarea/i.test(e.target.tagName))return;if(e.key&&e.key.length===1){t1buf=(t1buf+e.key.toLowerCase()).slice(-6);if(t1buf==='tyler1'){t1buf='';toggleT1();}}});
-let t1taps=[];document.addEventListener('click',e=>{const pic=e.target.closest&&e.target.closest('.cCard[data-c="cow"] .pic');if(!pic)return;const now=Date.now();t1taps=t1taps.filter(t=>now-t<2500);t1taps.push(now);if(t1taps.length>=5){t1taps=[];toggleT1();}},true);
+let t1taps=[];document.addEventListener('pointerdown',e=>{const pic=e.target.closest&&e.target.closest('.cCard[data-c="cow"] .pic, .courseBtn[data-c="cow"] .ic');if(!pic)return;const now=Date.now();t1taps=t1taps.filter(t=>now-t<2500);t1taps.push(now);if(t1taps.length>=5){t1taps=[];toggleT1();}},true);
 /* ---------- Sound ---------- */
 let AC=null;
 function ac(){if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();}if(AC.state==='suspended')AC.resume();return AC;}
@@ -769,7 +801,7 @@ function renderSide(){const side=$('side');const sc=side.scrollTop;const oc=open
   h+=(complete&&!mast?`<button class="testBtn" data-test="${ci}">${STI.due} Závěrečný test kapitoly · dokončí ji na 100 %</button>`:mast?`<button class="testBtn again" data-test="${ci}">Zopakovat test kapitoly</button>`:'')+'</div></details>';});
  side.innerHTML=`<button class="btn customBtn" id="customBtn">Vlastní drill: vyber varianty</button><div class="legend">${['new','learning','done','due'].map(s=>`<span><span class="st s-${s}">${STI[s]}</span>${ST[s][0]}</span>`).join('')}</div>`+h;side.scrollTop=sc;renderCourses();
  side.querySelectorAll('details').forEach(d=>d.addEventListener('toggle',()=>{const ci=+d.dataset.ci;d.open?oc.add(ci):oc.delete(ci);}));
- const L=LINES();$('sLearned').textContent=L.filter(isDone).length;$('sTotal').textContent=L.length;$('sDue').textContent=L.filter(l=>stateOf(l)==='due').length;$('sXp').textContent=store.xp;}
+ const L=LINES();$('sLearned').textContent=L.filter(isDone).length;$('sTotal').textContent=L.length;$('sDue').textContent=L.filter(l=>stateOf(l)==='due').length;$('sXp').textContent=store.xp;renderLvl();}
 $('side').addEventListener('click',e=>{if(e.target.closest('#customBtn')){openPicker();return;}const tb=e.target.closest('.testBtn');if(tb){const ch=course.chapters[+tb.dataset.test];startSession(ch.lines,`Test kapitoly: ${ch.t}`,ch);return;}
  const b=e.target.closest('.lineBtn');if(!b)return;endSession(true);cur=LINES().find(l=>l.id===b.dataset.id);start();});
 /* ---------- Home menu ---------- */
@@ -793,7 +825,7 @@ function ORDER(){return store.sort==='pop'?byPop(LINES()):LINES();}
 function renderHome(){document.body.classList.add('homeMode');const L=LINES();const rec=recommend();
  let h=`<div class="homeHead"><div class="kicker">Šachový trenažér zahájení${store.t1?' <button class="t1chip" id="t1off" title="Vypnout T1 mód">T1 MÓD ✕</button>':''}</div><h1>Nauč se repertoár tah po tahu</h1><p>Vyber si kurz a kapitolu. Každá varianta je ověřená enginem a seřazená podle toho, jak se hraje na Lichess.</p>
  <div class="courseCards">${COURSES.map(c=>{const p=courseProg(c);return `<button class="cCard" data-c="${c.id}" aria-pressed="${c===course}"><span class="pic ${c.side==='b'?'b':''}">${c.id==='cow'?COW_SVG:PIECE_SVG(c.side==='w'?(c.id==='italian'?'wB':'wN'):'bN')}</span><span><b>${c.title}</b><small>${c.sub.replace('Repertoár ','')}</small></span><span class="miniRing">${ringSVG(p,18,5)}<span>${p}%</span></span></button>`;}).join('')}</div></div>`;
- h+=`<div class="panelBar"><div class="sum"><span><b>${courseProg(course)} %</b>${course.title}</span><span><b>${L.filter(isDone).length}/${L.length}</b>variant hotovo</span><span><b>${course.chapters.filter(isMastered).length}/${course.chapters.length}</b>kapitol na 100 %</span><span><b>${L.filter(l=>stateOf(l)==='due').length}</b>k opakování</span><span><b>${store.xp}</b>XP</span></div>
+ h+=`<div class="panelBar"><div class="sum"><span><b>${courseProg(course)} %</b>${course.title}</span><span><b>${L.filter(isDone).length}/${L.length}</b>variant hotovo</span><span><b>${course.chapters.filter(isMastered).length}/${course.chapters.length}</b>kapitol na 100 %</span><span><b>${L.filter(l=>stateOf(l)==='due').length}</b>k opakování</span><span><b>Level ${lvlOf(store.xp).n}</b>${lvlOf(store.xp).name} · ${store.xp} XP</span></div>
  <div class="acts"><button class="btn" id="hCustom">Vlastní drill</button><button class="btn primary" id="hGo">${rec.t}<small>${rec.s}</small></button></div></div>`;
  h+=`<div class="toolsRow"><div class="chip2" role="group" aria-label="Řazení variant"><button data-sort="tree" aria-pressed="${store.sort!=='pop'}">Podle podobnosti</button><button data-sort="pop" aria-pressed="${store.sort==='pop'}">Nejhranější</button></div>
  <label class="death" title="V drillu: jedna chyba a celý drill začíná znovu"><input type="checkbox" id="deathToggle" ${store.death?'checked':''}> <span>Mód smrti${store.death?' <b>zapnutý</b>':''}</span></label>
@@ -927,7 +959,7 @@ function finish(){finished=true;arrow(null);const perfect=mistakes===0;const pr=
  if(mode==='learn'){if(!pr[cur.id]){p.box=1;p.due=Date.now();}gain=5;text='Teď ji zkus zahrát zpaměti v režimu Procvičit.';}
  else if(perfect){p.box=Math.min(Math.max(p.box+1,2),5);p.due=Date.now()+INTERVALS[p.box]*DAY;gain=10+p.box*2;text='Varianta se ti vrátí za '+days(INTERVALS[p.box])+'.';}
  else{p.box=Math.min(p.box||1,1);p.due=Date.now();gain=2;text='S chybou. Zahraj ji ještě jednou bez chyby a bude hotová.';}
- pr[cur.id]=p;store.xp+=gain;save();
+ pr[cur.id]=p;addXp(gain);save();
  const nw=nextNew();
  if(session&&session.kind==='learn'){afterAction='session';const left=session.queue.length;
   if(mode==='learn'){session.phase='drill';text='Teď ji zahraj zpaměti.';$('doneNext').textContent='Zahrát zpaměti';}
@@ -1004,7 +1036,7 @@ const SND_OFF='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12A4.
 function renderSound(){$('sound').innerHTML=store.sound?SND_ON:SND_OFF;$('sound').setAttribute('aria-label',store.sound?'Vypnout zvuk':'Zapnout zvuk');}
 $('sound').onclick=()=>{store.sound=!store.sound;save();renderSound();if(store.sound){ac();sfx('move');}};
 applyTheme();applyT1();renderSound();cur=pickStart();flipped=course.side==='b';buildSquares();showHome();
-$('accTop').onclick=openAccount;$('devTop').onclick=openDev;window.addEventListener('hashchange',()=>{if(location.hash==='#dev')openDev();});renderAccTop();
+$('accTop').onclick=openAccount;$('sLvl').onclick=openLvl;renderLvl();$('devTop').onclick=openDev;window.addEventListener('hashchange',()=>{if(location.hash==='#dev')openDev();});renderAccTop();
 initCloud();window.addEventListener('pagehide',()=>{if(SYNC.dirty){clearTimeout(SYNC.t);pushCloud();}});
 </script>
 
