@@ -347,7 +347,7 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
 .lvlUp .k{font-size:12px;letter-spacing:.2em;font-weight:900;color:var(--gold)}.lvlUp .big{font-size:44px;font-weight:900;line-height:1.1;margin:4px 0}.lvlUp .nm{font-size:18px;font-weight:700}.lvlUp small{display:block;margin-top:6px;color:var(--muted);font-size:13px}
 .lvlUp.out{transition:opacity .4s,transform .4s;opacity:0;transform:translate(-50%,-10px)}
 @keyframes lvlIn{from{opacity:0;transform:translate(-50%,10px) scale(.6)}}
-.pkCard.lvlInfo{max-width:440px}.lvlList{display:grid;gap:6px;margin:4px 0}.lvlList div{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.2);border:1px solid var(--line);font-size:14px}.lvlList div.me{border-color:var(--gold);color:var(--gold);font-weight:700}.lvlList div.no{opacity:.55}
+.pkCard.lvlInfo{max-width:440px;overflow:hidden}.pkCard.lvlInfo .lvlList{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:4px;margin-right:-4px}.lvlList{display:grid;gap:6px;margin:4px 0}.lvlList div{display:flex;justify-content:space-between;gap:10px;padding:8px 12px;border-radius:10px;background:rgba(0,0,0,.2);border:1px solid var(--line);font-size:14px}.lvlList div.me{border-color:var(--gold);color:var(--gold);font-weight:700}.lvlList div.no{opacity:.55}
 @media (prefers-reduced-motion:reduce){.lvlUp{animation:none}}
 @media (max-width:560px){.lvl .lb small{display:none}.lvl .lbar{width:44px}.accTop{padding:0 11px}}
 .gate{z-index:60;background:rgba(10,10,9,.92);backdrop-filter:blur(4px)}.gate .pkCard{max-height:calc(100vh - 32px);overflow:auto}
@@ -694,7 +694,8 @@ function levelUp(L){if(store.sound)try{[523,659,784,1047,1319].forEach((f,i)=>to
 function openLvl(){const pk=$('picker'),L=lvlOf(store.xp);let rows='';const max=Math.max(LVL_NAMES.length,L.n+1);
  for(let n=1;n<=max;n++)rows+=`<div class="${n===L.n?'me':n>L.n?'no':''}"><span>${n}. ${lvlName(n)}</span><span>${lvlXp(n)} XP</span></div>`;
  pk.innerHTML=`<div class="pkCard lvlInfo"><h2>Level ${L.n} – ${myLvl(L)}</h2><p>Máš <b>${store.xp||0} XP</b>. Do dalšího levelu chybí <b>${L.left} XP</b>. XP dostaneš za každou variantu zahranou zpaměti – bez chyby víc.</p><div class="lvlList">${rows}</div><div class="row"><button class="btn" id="lvlClose">Zavřít</button></div></div>`;
- pk.hidden=false;pk.onchange=null;pk.onclick=e=>{if(e.target===pk||e.target.id==='lvlClose')pk.hidden=true;};}
+ pk.hidden=false;pk.onchange=null;pk.onclick=e=>{if(e.target===pk||e.target.id==='lvlClose')pk.hidden=true;};
+ const me=pk.querySelector('.lvlList .me');if(me){const lst=me.parentElement;lst.scrollTop=me.offsetTop-lst.offsetTop-lst.clientHeight/2+me.clientHeight/2;}}
 /* ---------- Najít variantu (#hledat): hraješ tahy, stránka ukáže varianty, které k nim vedou ---------- */
 let EX={moves:[],flip:false,showBest:false},EXI=null;
 const sanK=m=>m.replace(/[+#!?]/g,'');const fenK=f=>f.split(' ').slice(0,4).join(' ');
