@@ -1108,7 +1108,9 @@ function syncPicker(){const pk=$('picker');pk.querySelectorAll('.pkCh').forEach(
 function pickStart(){const L=ORDER();return L.find(l=>stateOf(l)==='due')||L.find(l=>stateOf(l)==='learning')||L.find(l=>stateOf(l)==='new')||L[0];}
 function nextNew(){const L=ORDER();if(store.sort==='pop')return L.find(l=>stateOf(l)==='new');const i=L.indexOf(cur);const order=L.slice(i+1).concat(L.slice(0,i));return order.find(l=>stateOf(l)==='new');}
 function switchCourse(){flipped=course.side==='b';buildSquares();renderCourses();start();}
-function boardIntoView(){if($('trainer').hidden)return;const el=document.querySelector('.progTop');const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;const beh=reduce?'auto':'smooth';
+function boardIntoView(){if($('trainer').hidden)return;const el=document.querySelector('.progTop');
+ /* na počítači se stránka nehýbe; na mobilu jen když šachovnice není celá vidět */
+ if(!matchMedia('(max-width:820px)').matches)return;{const bd=$('board').getBoundingClientRect();if(el.getBoundingClientRect().top>=0&&bd.bottom<=innerHeight)return;}const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;const beh=reduce?'auto':'smooth';
  /* works both for a normal page and inside a host frame that scrolls the page from outside */
  try{el.scrollIntoView({behavior:beh,block:'start'});}catch(e){el.scrollIntoView(true);}
  if(scrollY>0)window.scrollTo({top:0,behavior:beh});
