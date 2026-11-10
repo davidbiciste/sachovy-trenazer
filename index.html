@@ -654,10 +654,14 @@ async function initSupa(){try{if(!window.supabase)await loadScript('https://cdn.
  }catch(e){SB=null;SYNC.ready=true;setSync('local');}}
 async function onLogin(token,known){setSync('wait');
  try{const r=await rpc('trener_load',{p_token:token});setTok(token);SYNC.user=r.username;SYNC.uid=r.username;SYNC.admin=!!r.is_admin;
-  await attachBackend({kind:'supa',save:s=>rpc('trener_save',{p_token:token,p_data:s})},r.data||null);
+  if(store.owner!==r.username)resetLocal();/* postup jiného účtu (nebo bez účtu) se do tohohle účtu nepřimíchá */
+  await attachBackend({kind:'supa',save:s=>rpc('trener_save',{p_token:token,p_data:s})},r.data||null);store.owner=r.username;saveLocal();
   const pk=$('picker');if(!pk.hidden&&pk.querySelector('.acc'))pk.hidden=true;if(!$('home').hidden)renderHome();renderAccTop();if(SYNC.admin&&location.hash==='#dev')openDev();return true;
  }catch(e){if(/bad_token/.test(e.message||''))setTok(null);SYNC.be=null;SYNC.uid=null;setSync(/bad_token/.test(e.message||'')?'local':'err');if(known)throw e;return false;}}
-async function supaLogout(){const t=getTok();try{if(SYNC.dirty){clearTimeout(SYNC.t);await pushCloud();}if(t)await rpc('trener_logout',{p_token:t});}catch(e){}setTok(null);SYNC.be=null;SYNC.user=null;SYNC.uid=null;SYNC.admin=false;setSync('local');}
+async function supaLogout(){const t=getTok();try{if(SYNC.dirty){clearTimeout(SYNC.t);await pushCloud();}if(t)await rpc('trener_logout',{p_token:t});}catch(e){}setTok(null);SYNC.be=null;SYNC.user=null;SYNC.uid=null;SYNC.admin=false;resetLocal();setSync('local');}
+/* smaže postup z tohoto prohlížeče (zůstane jen motiv a zvuk) */
+function resetLocal(){store={xp:0,sound:store.sound!==false,theme:store.theme||'green',prog:{},mastered:{}};COURSES.forEach(c=>{store.prog[c.id]={};});saveLocal();
+ try{applyTheme();renderSound();renderLvl();if(!$('home').hidden)renderHome();}catch(e){}}
 const AUTH_ERR=m=>/taken/.test(m)?'Tohle jméno už někdo má. Vyber si jiné, nebo se přihlas.':/bad_login/.test(m)?'Špatné jméno nebo heslo.':/bad_username/.test(m)?'Jméno: 3–20 znaků, jen písmena bez diakritiky, čísla, tečka, pomlčka nebo podtržítko.':/short_password/.test(m)?'Heslo musí mít aspoň 6 znaků.':/too_many/.test(m)?'Moc pokusů. Zkus to za pár minut.':/Failed to fetch|NetworkError|Load failed/i.test(m)?'Nejde se spojit se serverem. Jsi online? (Free Supabase projekt se mohl uspat.)':/Invalid API key|No API key|JWT|Unauthorized/i.test(m)?'Špatný klíč v config.js. Zkus místo publishable klíče starší „anon“ klíč (viz návod).':/no_user/.test(m)?'Takový hráč neexistuje.':/forbidden/.test(m)?'Na tohle nemáš oprávnění.':/function .* does not exist|Could not find the function/i.test(m)?'V Supabase chybí funkce – spusť soubor supabase.sql (viz návod).':'Nepovedlo se: '+m;
 function openAccount(gate){if(gate!==true)gate=false;if(!gate&&needGate())return;const pk=gate?$('gate'):$('picker');const logged=SYNC.be&&SYNC.be.kind==='supa';
  pk.innerHTML=logged?`<div class="pkCard acc"><h2>Tvůj účet</h2><p>Přihlášen jako <b>${escH(SYNC.user)}</b>. Postup se ukládá do účtu. Na jiném zařízení se přihlas stejným jménem a heslem a uvidíš ho tam taky.</p><div class="row"><button class="btn" id="accClose">Zavřít</button><button class="btn" id="accOut">Odhlásit</button></div></div>`
