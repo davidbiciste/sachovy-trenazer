@@ -959,6 +959,7 @@ $('backBtn').onclick=showHome;$('miniBack').onclick=showHome;
 /* ---------- Drill sessions (random order, failed lines come back until all are clean) ---------- */
 let session=null;
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+function halfDue(ch){const t=ch.lines.length,d=ch.lines.filter(isDone).length;store.half=store.half||{};return t>=4&&d>=Math.ceil(t/2)&&d<t&&!store.half[mKey(ch)];}
 function startSession(lines,label,ch){if(!lines.length)return;session={label,all:lines.map(l=>l.id),queue:shuffle(lines.map(l=>l.id)),total:lines.length,clean:0,fails:0,ch:ch||null};$('picker').hidden=true;nextInSession();}
 function startLearnGroup(lines){if(!lines.length)return;const ids=lines.map(l=>l.id);session={kind:'learn',label:'Učení skupiny',all:ids,queue:ids.slice(),total:ids.length,clean:0,fails:0,phase:'learn',curId:null,ch:null};$('picker').hidden=true;nextInSession();}
 function nextInSession(){if(!session)return;
@@ -966,6 +967,9 @@ function nextInSession(){if(!session)return;
   if(!session.queue.length){completeSession();return;}session.curId=session.queue.shift();session.phase='learn';cur=LINES().find(l=>l.id===session.curId);setMode('learn');start();return;}if(!session.queue.length){completeSession();return;}const id=session.queue.shift();cur=LINES().find(l=>l.id===id);setMode('drill');start();}
 function endSession(quiet){session=null;renderSession();}
 function completeSession(){const s=session;session=null;
+ if(s.parent||s.half){if(s.parent)session=s.parent;renderSession();renderSide();$('doneSum').innerHTML='';$('doneXp').textContent='';$('doneTitle').textContent='Půlka drží!';
+  $('doneText').textContent=`Všech ${s.total} naučených variant máš zpaměti bez chyby${s.fails?` (opakovat jsi musel ${s.fails}×)`:''}. Pokračuj druhou polovinou.`;
+  afterAction=s.parent?'session':'new';$('doneNext').textContent=s.parent?`Další varianta (${session.clean}/${session.total})`:'Naučit další variantu';$('done').classList.add('show');sfx('win');confetti();return;}
  if(s.kind==='learn'){groupIds=s.all;renderSession();renderSide();$('doneSum').innerHTML='';$('doneXp').textContent='';$('doneTitle').textContent='Skupina naučená!';
   $('doneText').textContent=`Prošel jsi všech ${s.total} variant: naučit a pak zpaměti. Teď si je otestuj v náhodném pořadí, ať víš, že drží.`;afterAction='groupTest';$('doneNext').textContent='Test skupiny (náhodně)';$('done').classList.add('show');sfx('win');confetti();return;}let title='Drill hotový!',text=`Všech ${s.total} variant máš zahraných bez chyby.${s.fails?` Opakovat jsi musel ${s.fails}×.`:''}`;
  if(s.ch){store.mastered[mKey(s.ch)]=true;save();title='Kapitola na 100 %!';text=`${s.ch.t}: všechny varianty v náhodném pořadí bez chyby.`;}
@@ -1064,7 +1068,8 @@ function finish(){finished=true;arrow(null);const perfect=mistakes===0;const pr=
  const nw=nextNew();
  if(session&&session.kind==='learn'){afterAction='session';const left=session.queue.length;
   if(mode==='learn'){session.phase='drill';text='Teď ji zahraj zpaměti.';$('doneNext').textContent='Zahrát zpaměti';}
-  else if(perfect){session.clean++;session.phase='learn';session.curId=null;const nx=left&&LINES().find(l=>l.id===session.queue[0]);text=nx?`Správně, bez chyby. Další na řadě: ${nx.name}.`:'Správně, bez chyby. To byla poslední varianta skupiny.';$('doneNext').textContent=nx?`Další varianta (${session.clean}/${session.total})`:'Dokončit';}
+  else if(perfect){session.clean++;session.phase='learn';session.curId=null;const nx=left&&LINES().find(l=>l.id===session.queue[0]);text=nx?`Správně, bez chyby. Další na řadě: ${nx.name}.`:'Správně, bez chyby. To byla poslední varianta skupiny.';$('doneNext').textContent=nx?`Další varianta (${session.clean}/${session.total})`:'Dokončit';
+   if(nx&&session.total>=4&&!session.halfDone&&session.clean===Math.ceil(session.total/2)){session.halfDone=true;afterAction='halfGroup';text=`Správně! Máš naučenou polovinu skupiny (${session.clean} variant). Než půjdeš dál, zahraj si je zpaměti v náhodném pořadí.`;$('doneNext').textContent=`Drill naučené půlky (${session.clean} variant)`;}}
   else{session.fails++;text='S chybou. Zahraj ji zpaměti ještě jednou, než půjdeš dál.';$('doneNext').textContent='Zkusit znovu zpaměti';}
   renderSession();}
  else if(session){if(perfect)session.clean++;else if(store.death){session.deaths=(session.deaths||0)+1;session.queue=shuffle(session.all);session.clean=0;}else{session.queue.push(cur.id);session.fails++;}renderSession();afterAction='session';
@@ -1072,6 +1077,7 @@ function finish(){finished=true;arrow(null);const perfect=mistakes===0;const pr=
  else if(mode==='learn'){afterAction='drill';$('doneNext').textContent='Procvičit zpaměti';}
  else if(!perfect){afterAction='retry';$('doneNext').textContent='Zkusit znovu';}
  else if(cur.ch.lines.every(isDone)&&!isMastered(cur.ch)){afterAction='chapterTest';$('doneNext').textContent='Spustit test kapitoly';text+=` Celou kapitolu máš naučenou. Teď ji dokonči testem: všechny varianty náhodně.`;}
+ else if(halfDue(cur.ch)){afterAction='halfDrill';const hl=cur.ch.lines.filter(isDone);$('doneNext').textContent=`Drill naučené půlky (${hl.length} variant)`;text+=` Máš naučenou polovinu kapitoly. Než půjdeš dál, zahraj si naučené varianty zpaměti v náhodném pořadí.`;}
  else if(nw){afterAction='new';$('doneNext').textContent='Naučit novou variantu';text+=` Další na řadě: ${nw.name}.`;}
  else{afterAction='review';$('doneNext').textContent=LINES().some(l=>!isDone(l))?'Další varianta':'Opakovat';if(LINES().every(isDone))text+=' Celý kurz máš hotový!';}
  $('doneXp').textContent='+'+gain+' XP';$('doneTitle').textContent=mode==='learn'?'Varianta prošlá':perfect?'Bez chyby!':'Skoro!';
@@ -1202,7 +1208,9 @@ $('hintBtn').onclick=()=>{if(mode==='free'){FREE.showBest=true;if(FREE.lastR)fre
 function nextDue(){const L=ORDER();const due=L.find(l=>stateOf(l)==='due'),lr=L.find(l=>stateOf(l)==='learning'),nw=nextNew();
  if(due){cur=due;setMode('drill');}else if(lr){cur=lr;setMode('drill');}else if(nw){cur=nw;setMode('learn');}else{cur=L.slice().sort((a,b)=>P()[a.id].due-P()[b.id].due)[0];setMode('drill');}start();}
 $('next').onclick=nextDue;let afterAction='review',groupIds=[];
-$('doneNext').onclick=()=>{if(afterAction==='groupTest'){startSession(LINES().filter(l=>groupIds.includes(l.id)),'Test skupiny',null);return;}if(afterAction==='session'){nextInSession();return;}if(afterAction==='chapterTest'){startSession(cur.ch.lines,`Test kapitoly: ${cur.ch.t}`,cur.ch);return;}if(afterAction==='drill'){setMode('drill');start();}else if(afterAction==='retry'){start();}else if(afterAction==='new'){const n=nextNew();if(n){cur=n;setMode('learn');start();}else nextDue();}else nextDue();};
+$('doneNext').onclick=()=>{if(afterAction==='halfDrill'){const ch=cur.ch;store.half=store.half||{};store.half[mKey(ch)]=true;save();startSession(ch.lines.filter(isDone),`Drill naučené půlky: ${ch.t}`,null);session.half=true;renderSession();return;}
+ if(afterAction==='halfGroup'){const parent=session;const ids=parent.all.filter(id=>!parent.queue.includes(id));session={label:'Drill naučené půlky',all:ids,queue:shuffle(ids),total:ids.length,clean:0,fails:0,ch:null,parent};nextInSession();return;}
+ if(afterAction==='groupTest'){startSession(LINES().filter(l=>groupIds.includes(l.id)),'Test skupiny',null);return;}if(afterAction==='session'){nextInSession();return;}if(afterAction==='chapterTest'){startSession(cur.ch.lines,`Test kapitoly: ${cur.ch.t}`,cur.ch);return;}if(afterAction==='drill'){setMode('drill');start();}else if(afterAction==='retry'){start();}else if(afterAction==='new'){const n=nextNew();if(n){cur=n;setMode('learn');start();}else nextDue();}else nextDue();};
 $('nFirst').onclick=()=>goView(0);$('nPrev').onclick=()=>goView(view-1);$('nNext').onclick=()=>goView(view+1);$('nLast').onclick=()=>goView(ply);
 document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'){goView(view-1);e.preventDefault();}if(e.key==='ArrowRight'){goView(view+1);e.preventDefault();}});
 const SND_ON='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>';
