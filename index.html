@@ -379,6 +379,7 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
  .doneX{display:grid;place-items:center;position:absolute;top:8px;right:8px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.08);color:var(--fg);font-size:16px;cursor:pointer}
 }
 @keyframes doneFade{from{opacity:0}}
+.popHelp{margin:10px 2px 0;font-size:13px;line-height:1.45;color:var(--muted);background:rgba(47,143,232,.08);border:1px solid rgba(47,143,232,.25);border-radius:10px;padding:8px 12px}.popHelp b{color:var(--fg)}
 .accTabs{margin-top:4px}.pkCard.acc .accHint{margin:0;font-size:12.5px;color:var(--muted,#a99f8f)}.pkCard.acc .accHint[hidden]{display:none}.accMsg{min-height:1.2em;margin:2px 0 0;font-size:14px;color:var(--brass)}
 </style>
 
@@ -886,8 +887,8 @@ $('side').addEventListener('click',e=>{if(e.target.closest('#customBtn')){openPi
 /* ---------- Home menu ---------- */
 const fmtN=n=>n>=1e6?(n/1e6).toFixed(1).replace('.',',')+' mil.':n>=1e3?Math.round(n/1e3)+' tis.':String(n);
 function popHTML(l,full){if(!l.pop)return'';const [s,g,r,mv,mine]=l.pop;
- if(full)return `<div class="popNote"><b>Lichess:</b> ${mine?'tah':'soupeř hraje'} <b>${mv}</b> v ${String(s).replace('.',',')} % partií${r===1?' (nejčastější volba)':r>1?` (${r}. nejčastější)`:''}, ${fmtN(g)} partií. Hráči s ratingem 1400–2200+.</div>`;
- return `<span class="pop${r===1?' top':''}" title="Lichess: ${mv} hraje ${s} % hráčů (${fmtN(g)} partií)">${String(Math.round(s))} %<i><b style="width:${Math.min(100,s)}%"></b></i></span>`;}
+ if(full)return `<div class="popNote"><b>Lichess:</b> ${mine?'tah':'soupeř hraje'} <b>${mv}</b> v ${String(s).replace('.',',')} % partií${r===1?' (nejčastější volba)':r>1?` (${r}. nejčastější)`:''}, ${fmtN(g)} partií – tak často tuhle variantu ve hře potkáš. Hráči s ratingem 1400–2500.</div>`;
+ return `<span class="pop${r===1?' top':''}" title="Jak často to potkáš: soupeř tu na Lichess hraje ${mv} v ${s} % partií (${fmtN(g)} partií). Není to tvůj postup.">${String(Math.round(s))} %<i><b style="width:${Math.min(100,s)}%"></b></i></span>`;}
 function recommend(){const L=ORDER();const due=L.find(l=>stateOf(l)==='due'),lr=L.find(l=>stateOf(l)==='learning'),nw=L.find(l=>stateOf(l)==='new');
  if(due)return{l:due,m:'drill',t:'Zopakovat',s:due.name};if(lr)return{l:lr,m:'drill',t:'Procvičit zpaměti',s:lr.name};if(nw)return{l:nw,m:'learn',t:'Naučit se novou variantu',s:nw.name};
  const ch=course.chapters.find(c=>!isMastered(c));if(ch)return{ch,t:'Test kapitoly',s:ch.t};return{l:L[0],m:'drill',t:'Opakovat',s:'všechno máš hotové'};}
@@ -911,12 +912,8 @@ function stateIn(c,l){const p=(store.prog[c.id]||{})[l.id];if(!p)return'new';if(
 const t1chip=()=>store.t1?' <button class="t1chip" id="t1off" title="Vypnout T1 mód">T1 MÓD ✕</button>':'';
 function cardHTML(c){const p=courseProg(c),L=c.chapters.flatMap(ch=>ch.lines),d=L.filter(l=>{const s=stateIn(c,l);return s==='done'||s==='due';}).length,due=L.filter(l=>stateIn(c,l)==='due').length;
  return `<button class="cCard" data-c="${c.id}"><span class="pic ${c.side==='b'?'b':''}">${courseIcon(c)}</span><span><b>${c.title}</b><small>${c.sub.replace(/^Repertoár za (bílé|černé) · /,'')}</small><span class="cMeta">${d}/${L.length} variant${due?` · <b>${due} k opakování</b>`:''}</span></span><span class="miniRing">${ringSVG(p,18,5)}<span>${p}%</span></span></button>`;}
-function syncHTML(){return `<div class="syncRow"><span id="syncInfo">${syncLabel()}</span><span class="syncBtns"><button class="lnk" id="bkBtn">Záloha postupu</button></span></div>
- <div class="bkPanel" id="bkPanel"${BK.open?'':' hidden'}><p>Zkopíruj si kód a ulož ho (třeba do poznámek). Na jiném zařízení nebo po smazání dat ho vlož sem a postup se obnoví – nic se nepřepíše, vezme se lepší výsledek z obou.</p>
- <textarea id="bkText" rows="3" spellcheck="false" placeholder="Sem vlož kód zálohy…"></textarea><div class="bkActs"><button class="btn" id="bkCopy">Zkopírovat můj kód</button><button class="btn primary" id="bkLoad">Načíst kód</button><span id="bkMsg">${BK.msg}</span></div></div>`;}
-function wireSync(){$('bkBtn').onclick=()=>{const p=$('bkPanel');p.hidden=!p.hidden;BK.open=!p.hidden;BK.msg='';$('bkMsg').textContent='';};
- $('bkCopy').onclick=async()=>{const c=backupCode();$('bkText').value=c;$('bkText').select();let ok=false;try{await navigator.clipboard.writeText(c);ok=true;}catch(e){try{ok=document.execCommand('copy');}catch(_){}}BK.msg=$('bkMsg').textContent=ok?'Zkopírováno ✓':'Kód je v poli – zkopíruj ho ručně';};
- $('bkLoad').onclick=()=>{let m;try{importCode($('bkText').value);m='Postup obnoven ✓';}catch(e){m='Tohle není platný kód zálohy';}BK.msg=m;const el=document.getElementById('bkMsg');if(el)el.textContent=m;};
+function syncHTML(){return `<div class="syncRow"><span id="syncInfo">${syncLabel()}</span></div>`;}
+function wireSync(){
  const t1o=document.getElementById('t1off');if(t1o)t1o.onclick=toggleT1;}
 function renderOverview(){document.body.classList.add('homeMode');const L=lvlOf(store.xp);
  const sec=(side,label)=>{const cs=COURSES.filter(c=>c.side===side);return cs.length?`<section class="sideSec"><h2 class="secT"><span class="kd ${side}"></span>${label} <small>· ${cs.length} ${cs.length===1?'kurz':cs.length<5?'kurzy':'kurzů'}</small></h2><div class="courseCards">${cs.map(cardHTML).join('')}</div></section>`:'';};
@@ -932,7 +929,7 @@ function renderHome(){if(page==='all')return renderOverview();if(page==='profile
  <div class="acts"><button class="btn" id="hCustom">Vlastní drill</button><button class="btn primary" id="hGo">${rec.t}<small>${rec.s}</small></button></div></div>`;
  h+=`<div class="toolsRow"><div class="chip2" role="group" aria-label="Řazení variant"><button data-sort="tree" aria-pressed="${store.sort!=='pop'}">Podle podobnosti</button><button data-sort="pop" aria-pressed="${store.sort==='pop'}">Nejhranější</button></div>
  <label class="death" title="V drillu: jedna chyba a celý drill začíná znovu"><input type="checkbox" id="deathToggle" ${store.death?'checked':''}> <span>Mód smrti${store.death?' <b>zapnutý</b>':''}</span></label>
- <div class="legendRow">${['new','learning','done','due'].map(s=>`<span><span class="st s-${s}">${STI[s]}</span>${ST[s][0]}</span>`).join('')}<span><i style="display:inline-block;width:22px;height:5px;border-radius:3px;background:var(--best)"></i>Lichess %</span></div></div><div class="chList">`;
+ <div class="legendRow">${['new','learning','done','due'].map(s=>`<span><span class="st s-${s}">${STI[s]}</span>${ST[s][0]}</span>`).join('')}<span><i style="display:inline-block;width:22px;height:5px;border-radius:3px;background:var(--best)"></i>Jak často to potkáš (Lichess)</span></div></div><p class="popHelp">ⓘ <b>Modrá procenta u variant nejsou tvůj postup.</b> Ukazují, jak často na Lichess soupeř zahraje tah, kterým varianta začíná – tedy jak pravděpodobně ji ve hře potkáš. Tvůj postup ukazují kroužky, zelené pruhy a ikonky u variant.</p><div class="chList">`;
  const oc=openCh['home-'+course.id]=openCh['home-'+course.id]||new Set();
  course.chapters.forEach((ch,ci)=>{const mast=isMastered(ch),p=chPct(ch),allDone=ch.lines.every(isDone),nn=ch.lines.find(l=>stateOf(l)==='new');const d=ch.lines.filter(isDone).length;
   h+=`<details class="chRow${mast?' mast':''}" data-ci="${ci}"${oc.has(ci)?' open':''}><summary><span class="chNum">${mast?'✓':ci+1}</span><span class="chT"><b>${ch.t}</b><small>${ch.s} · ${ch.lines.length} variant</small></span><span class="chP"><div class="bar"><i style="width:${p}%"></i></div><span>${d}/${ch.lines.length} · ${p} %</span></span>
