@@ -413,6 +413,7 @@ i.en{font-style:normal;font-weight:500;color:var(--muted);font-size:.86em}i.en::
 .homeBtn{font:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 16px 0 12px;border-radius:12px;border:1px solid var(--brass);background:rgba(217,179,108,.14);color:var(--brass);font-weight:800;font-size:14px;flex:none}
 .homeBtn svg{width:20px;height:20px}.homeBtn:hover{background:rgba(217,179,108,.26)}@media (max-width:560px){.homeBtn{height:36px;padding:0 10px}.homeBtn span{display:none}}
 .exCtl .btn{font-size:16px}#xBoard{box-shadow:0 10px 30px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.35)}
+.xRow{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}@media (max-width:560px){.xRow{grid-template-columns:14px minmax(0,1fr);gap:6px}}
 .accTabs{margin-top:4px}.pkCard.acc .accHint{margin:0;font-size:12.5px;color:var(--muted,#a99f8f)}.pkCard.acc .accHint[hidden]{display:none}.accMsg{min-height:1.2em;margin:2px 0 0;font-size:14px;color:var(--brass)}
 </style>
 
@@ -693,7 +694,7 @@ function openLvl(){const pk=$('picker'),L=lvlOf(store.xp);let rows='';const max=
  pk.innerHTML=`<div class="pkCard lvlInfo"><h2>Level ${L.n} – ${L.name}</h2><p>Máš <b>${store.xp||0} XP</b>. Do dalšího levelu chybí <b>${L.left} XP</b>. XP dostaneš za každou variantu zahranou zpaměti – bez chyby víc.</p><div class="lvlList">${rows}</div><div class="row"><button class="btn" id="lvlClose">Zavřít</button></div></div>`;
  pk.hidden=false;pk.onchange=null;pk.onclick=e=>{if(e.target===pk||e.target.id==='lvlClose')pk.hidden=true;};}
 /* ---------- Najít variantu (#hledat): hraješ tahy, stránka ukáže varianty, které k nim vedou ---------- */
-let EX={moves:[],flip:false},EXI=null;
+let EX={moves:[],flip:false,showBest:false},EXI=null;
 const sanK=m=>m.replace(/[+#!?]/g,'');const fenK=f=>f.split(' ').slice(0,4).join(' ');
 function exIndex(){if(EXI)return EXI;EXI=[];COURSES.forEach(c=>c.chapters.forEach(ch=>ch.lines.forEach(l=>{const g=new CHESS();const fens=[fenK(g.fen())];const sans=[];
  for(const m of l.m.split(' ')){let mv;try{mv=g.move(m,{strict:false});}catch(e){break;}sans.push(sanK(mv.san));fens.push(fenK(g.fen()));}EXI.push({c,ch,l,sans,fens});})));return EXI;}
@@ -702,18 +703,32 @@ async function renderExplore(){document.body.classList.add('homeMode');
  if(!CHESS){$('home').innerHTML='<a class="backAll" href="#">← Všechny kurzy</a><p class="profEmpty">Načítám…</p>';try{await chessLib();}catch(e){$('home').innerHTML='<a class="backAll" href="#">← Všechny kurzy</a><p class="profEmpty">Nepodařilo se načíst pravidla šachu. Obnov stránku.</p>';return;}if(page!=='explore')return;}
  exIndex();
  $('home').innerHTML=`<a class="backAll" href="#">← Všechny kurzy</a><div class="exWrap"><div class="exLeft"><div class="profCard"><h2>Najít variantu</h2><p class="profEmpty" style="margin-bottom:10px">Táhni za bílého i černého (klikni nebo přetáhni figuru). Hned uvidíš, které varianty z tvých kurzů k téhle pozici vedou.</p>
- <div class="boardWrap"><div class="board" id="xBoard"><div class="sqs" id="xSqs"></div><div class="pcs" id="xPcs"></div></div></div>
+ <div class="xRow"><div class="evalBar" id="xEval" title="Hodnocení podle Stockfishe"><div class="w" id="xEvalW"></div><span class="top" id="xEvalTop"></span><span class="bot" id="xEvalBot"></span></div><div class="boardWrap"><div class="board" id="xBoard"><div class="sqs" id="xSqs"></div><svg class="arrows" id="xArrows" viewBox="0 0 8 8" aria-hidden="true"></svg><div class="pcs" id="xPcs"></div></div></div></div>
  <div class="exCtl"><button class="btn" id="exStart" title="Na začátek">⏮</button><button class="btn" id="exBack" title="Tah zpět">◀</button><button class="btn" id="exFwd" title="Tah vpřed">▶</button><button class="btn" id="exFlip" title="Otočit šachovnici">⇅</button></div>
  <div class="exMoves" id="exMoves"></div></div></div><div class="exRight" id="exRight"></div></div>`;
  renderSide();XB.redo=[];xBuild();xSet();exPanels();
  $('exStart').onclick=()=>{if(!EX.moves.length)return;XB.redo=EX.moves.slice().reverse().concat(XB.redo);EX.moves=[];xJump();};
  $('exBack').onclick=()=>{if(!EX.moves.length)return;XB.redo.unshift(EX.moves.pop());xJump();};
  $('exFwd').onclick=()=>{if(!XB.redo.length)return;exPlay(XB.redo.shift(),true);};
- $('exFlip').onclick=()=>{EX.flip=!EX.flip;xBuild();xSet();};
+ $('exFlip').onclick=()=>{EX.flip=!EX.flip;xBuild();xSet();$('xEval').classList.toggle('flip',EX.flip);if(XE.last)xEvalShow(XE.last);};
  $('exMoves').onclick=e=>{const bt=e.target.closest('.exMv');if(!bt)return;const k=+bt.dataset.to;XB.redo=EX.moves.slice(k).concat(XB.redo);EX.moves=EX.moves.slice(0,k);xJump();};
  $('exRight').onclick=e=>{const ch=e.target.closest('.exChip');if(ch){exPlay(ch.dataset.play);return;}
   const ln=e.target.closest('.exLine');if(ln){const [cid,lid]=ln.dataset.open.split('|');const c=COURSES.find(x=>x.id===cid);course=c;page='course';history.pushState(null,'','#'+c.id);openLine(LINES().find(l=>l.id===lid));}};
  xInput();}
+/* Stockfish na stránce hledání */
+const XE={t:null,fen:null,last:null};
+function xBar(cp){const el=$('xEval');if(!el)return;const c=Math.max(-800,Math.min(800,cp));const wPct=50+50*(2/(1+Math.exp(-0.004*c))-1);el.classList.toggle('flip',EX.flip);$('xEvalW').style.height=wPct+'%';
+ const txt=(Math.abs(cp)>=2900?'M':(Math.abs(cp)/100).toFixed(1));const fl=EX.flip;$('xEvalTop').textContent=(fl?cp>0:cp<0)?txt:'';$('xEvalBot').textContent=(fl?cp<=0:cp>=0)?txt:'';$('xEvalTop').style.color=fl?'#3c3a37':'#f3f3f1';$('xEvalBot').style.color=fl?'#f3f3f1':'#3c3a37';}
+function xArrow(u){const svg=$('xArrows');if(!svg)return;if(!u){svg.innerHTML='';return;}const f=sqOf(u.slice(0,2)),t=sqOf(u.slice(2,4));const cx=i=>xCol(i)+.5,cy=i=>xRow(i)+.5;let x1=cx(f),y1=cy(f),x2=cx(t),y2=cy(t);
+ const dx=x2-x1,dy=y2-y1,len=Math.hypot(dx,dy),ux=dx/len,uy=dy/len;x1+=ux*.3;y1+=uy*.3;const hx=x2-ux*.44,hy=y2-uy*.44,w=.17,hw=.38,px=-uy,py=ux;
+ svg.innerHTML=`<polygon fill="#2f8fe8" opacity=".85" points="${x1+px*w/2},${y1+py*w/2} ${hx+px*w/2},${hy+py*w/2} ${hx+px*hw},${hy+py*hw} ${x2},${y2} ${hx-px*hw},${hy-py*hw} ${hx-px*w/2},${hy-py*w/2} ${x1-px*w/2},${y1-py*w/2}"/>`;}
+function xEvalShow(r){const el=$('xEng');const l=r&&r.lines[0];if(!el||!l)return;xBar(l.cp);
+ const lab=l.cp>150?'bílý stojí lépe':l.cp>40?'bílý má malou výhodu':l.cp<-150?'černý stojí lépe':l.cp<-40?'černý má malou výhodu':'vyrovnaná pozice';
+ el.innerHTML=`<b>Hodnocení:</b> ${fmtCp(l.cp)} <small>(${lab} · hloubka ${r.depth||l.depth})</small><br><b>Nejlepší pokračování:</b> ${pvSan(r.fen,l.pv,6)}`;
+ xArrow(EX.showBest&&l.pv[0]?l.pv[0]:null);}
+function exEval(){clearTimeout(XE.t);if(SF.dead){const el=$('xEng');if(el)el.textContent='Engine se nepodařilo načíst.';return;}XE.t=setTimeout(async()=>{const fen=exGame().fen();XE.fen=fen;XE.last=null;
+ const g=exGame();if(g.isGameOver()){const el=$('xEng');if(el)el.innerHTML=g.isCheckmate()?`<b>Mat!</b> Vyhrál ${g.turn()==='w'?'černý':'bílý'}.`:'<b>Remíza.</b>';return;}
+ try{const r=await sfAnalyse(fen,{movetime:IS_MOBILE?1500:2500,onInfo:j=>{if(j.depth>=6&&XE.fen===fen&&page==='explore')xEvalShow(j);}});if(r&&XE.fen===fen&&page==='explore'){XE.last=r;xEvalShow(r);}}catch(e){const el=$('xEng');if(el)el.textContent='Engine se nepodařilo načíst.';}},120);}
 /* šachovnice stránky hledání – stejné prvky a styl jako v trenažéru */
 const XB={sq:[],pcs:{},sel:null,drag:null,redo:[]};
 const xCol=i=>EX.flip?7-(i&7):(i&7),xRow=i=>EX.flip?(i>>3):7-(i>>3);
@@ -754,9 +769,10 @@ function exPanels(){const I=exIndex(),g=exGame(),n=EX.moves.length,key=fenK(g.fe
  $('exMoves').innerHTML=EX.moves.map((m,i)=>(i%2===0?`<b>${i/2+1}.</b>`:'')+`<button class="exMv${i===n-1?' cur':''}" data-to="${i+1}">${m}</button>`).join(' ')||'<span class="profEmpty">Zatím žádný tah. Zahraj první tah za bílého.</span>';
  const row=(x,tr)=>{const st=stateIn(x.c,x.l);return `<button class="exLine" data-open="${x.c.id}|${x.l.id}"><span class="exIc ${x.c.side==='b'?'b':''}">${courseIcon(x.c)}</span><span class="exTx"><b>${x.l.name}${enH(x.l)}</b><small>${x.c.title} · ${x.ch.t}${tr?' · jiné pořadí tahů':''}</small><small class="exFull">${x.l.full}</small></span><span class="st s-${st}" title="${ST[st][0]}">${STI[st]}</span></button>`;};
  const LIM=60;
- $('exRight').innerHTML=`<div class="profCard"><h2>Jak repertoár pokračuje</h2>${nxtS.length?`<div class="exNext">${nxtS.map(([m,k])=>`<button class="exChip" data-play="${m}">${m}<small>${k} ${k===1?'varianta':k<5?'varianty':'variant'}</small></button>`).join('')}</div>`:`<p class="profEmpty">${n?'Tady už žádná varianta z kurzů nepokračuje.':'—'}</p>`}</div>
+ $('exRight').innerHTML=`<div class="profCard"><h2>Stockfish</h2><div class="engBox" id="xEng"><span class="spin"></span> Engine počítá…</div><div class="freeBtns"><button class="btn" id="xBestBtn">${EX.showBest?'Skrýt nejlepší tah':'Ukázat nejlepší tah'}</button></div></div><div class="profCard"><h2>Jak repertoár pokračuje</h2>${nxtS.length?`<div class="exNext">${nxtS.map(([m,k])=>`<button class="exChip" data-play="${m}">${m}<small>${k} ${k===1?'varianta':k<5?'varianty':'variant'}</small></button>`).join('')}</div>`:`<p class="profEmpty">${n?'Tady už žádná varianta z kurzů nepokračuje.':'—'}</p>`}</div>
  <div class="profCard"><h2>Varianty, které k tomu vedou <small class="exCnt">${exact.length}</small></h2>${exact.length?`<div class="exList">${exact.slice(0,LIM).map(x=>row(x,false)).join('')}</div>${exact.length>LIM?`<p class="profEmpty">…a dalších ${exact.length-LIM}. Zahraj další tah a seznam se zúží.</p>`:''}`:'<p class="profEmpty">Žádná varianta z kurzů nejde přesně tímhle pořadím tahů.</p>'}</div>
- ${trans.length?`<div class="profCard"><h2>Stejná pozice jiným pořadím tahů <small class="exCnt">${trans.length}</small></h2><div class="exList">${trans.slice(0,LIM).map(x=>row(x,true)).join('')}</div></div>`:''}`;}
+ ${trans.length?`<div class="profCard"><h2>Stejná pozice jiným pořadím tahů <small class="exCnt">${trans.length}</small></h2><div class="exList">${trans.slice(0,LIM).map(x=>row(x,true)).join('')}</div></div>`:''}`;
+ $('xBestBtn').onclick=()=>{EX.showBest=!EX.showBest;$('xBestBtn').textContent=EX.showBest?'Skrýt nejlepší tah':'Ukázat nejlepší tah';if(XE.last)xEvalShow(XE.last);else xArrow(null);};xArrow(null);exEval();}
 /* ---------- profil hráče (#profil) ---------- */
 function courseStats(c){const pr=store.prog[c.id]||{};const L=c.chapters.flatMap(ch=>ch.lines.map(l=>({l,ch})));const o={c,total:L.length,done:0,due:0,learning:0,neu:0,n:0,ok:0,err:0,lines:[]};
  L.forEach(({l,ch})=>{const st=stateIn(c,l);o[st==='new'?'neu':st==='done'?'done':st]++;if(st==='due')o.done++;const p=pr[l.id];if(p){o.n+=p.n||0;o.ok+=p.ok||0;o.err+=p.err||0;o.lines.push({c,l,ch,p,st});}});
