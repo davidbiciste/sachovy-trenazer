@@ -11,6 +11,14 @@
 <meta property="og:description" content="Nauč se šachová zahájení tah po tahu.">
 <meta name="description" content="Nauč se šachová zahájení tah po tahu.">
 <meta name="claude:viewport-fit-sides" content="cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1c1b19">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Šach trenér">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap">
 <style>
@@ -421,6 +429,10 @@ i.en{font-style:normal;font-weight:500;color:var(--muted);font-size:.86em}i.en::
 .pzChips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.pzChips button{all:unset;cursor:pointer;padding:6px 10px;border-radius:999px;border:1px solid var(--line);font-size:13px;font-weight:700}.pzChips button small{color:var(--muted);font-weight:600}.pzChips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}.pzChips button[aria-pressed="true"] small{color:#eef}
 .pzList{display:grid;gap:6px;max-height:420px;overflow:auto}.pzItem{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:36px minmax(0,1fr) 20px;gap:10px;align-items:center;padding:7px 10px;border-radius:10px;background:rgba(0,0,0,.2);border:1px solid var(--line)}.pzItem.cur{border-color:var(--brass)}.pzItem.ok span:last-child{color:var(--accent);font-weight:900}
 .sq.hintsq{box-shadow:inset 0 0 0 4px #f0a24a}
+.instCard{display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;gap:12px;align-items:center;margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--bg-2);border:1px solid var(--line)}
+.instIc img{width:44px;height:44px;border-radius:10px;display:block}.instTx b{display:block;font-size:14px}.instTx small{display:block;color:var(--muted);font-size:12.5px;line-height:1.4;margin-top:2px}.instTx small b{display:inline;font-size:inherit;color:var(--fg)}
+.instX{all:unset;cursor:pointer;width:30px;height:30px;display:grid;place-items:center;border-radius:50%;color:var(--muted)}.instX:hover{background:var(--panel)}
+@media (max-width:560px){.instCard{grid-template-columns:40px minmax(0,1fr) auto}.instCard .btn{grid-column:1/-1;grid-row:2}.instIc img{width:40px;height:40px}}
 .accTabs{margin-top:4px}.pkCard.acc .accHint{margin:0;font-size:12.5px;color:var(--muted,#a99f8f)}.pkCard.acc .accHint[hidden]{display:none}.accMsg{min-height:1.2em;margin:2px 0 0;font-size:14px;color:var(--brass)}
 </style>
 
@@ -638,6 +650,7 @@ function renderAccTop(){const b=document.getElementById('accTop'),d=document.get
  if(d)d.hidden=!(logged&&SYNC.admin);updateGate();}
 const escH=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function syncLabel(){const k=SYNC.be&&SYNC.be.kind;
+ if(!navigator.onLine)return'<i class="dot"></i>Offline – postup se uloží, až budeš online';
  if(SYNC.state==='cloud')return k==='supa'?`<i class="dot ok"></i>Přihlášen jako <b>${escH(SYNC.user)}</b> – postup se ukládá do účtu`:'<i class="dot ok"></i>Postup se ukládá do tvého účtu Claude – uvidíš ho na všech zařízeních';
  if(SYNC.state==='err')return'<i class="dot warn"></i>Teď nejde uložit do účtu, postup je zatím v tomto prohlížeči';
  if(SYNC.state==='wait')return'<i class="dot"></i>Načítám uložený postup…';
@@ -658,16 +671,21 @@ function loadScript(src){return new Promise((ok,ko)=>{const s=document.createEle
 const TOK_KEY='trener-token';
 const getTok=()=>{try{return localStorage.getItem(TOK_KEY)}catch(e){return null}};const setTok=t=>{try{t?localStorage.setItem(TOK_KEY,t):localStorage.removeItem(TOK_KEY)}catch(e){}};
 async function rpc(fn,args){const {data,error}=await SB.rpc(fn,args);if(error)throw error;return data;}
-async function initSupa(){try{if(!window.supabase)await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js');
-  SB=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+async function loadSB(){if(!window.supabase)await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js');
+  SB=window.supabase.createClient(CFG.supabaseUrl,CFG.supabaseKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});}
+async function initSupa(){try{await loadSB();
   const t=getTok();if(t)await onLogin(t);SYNC.ready=true;if(!t)setSync('local');else renderAccTop();
- }catch(e){SB=null;SYNC.ready=true;setSync('local');}}
+ }catch(e){SB=null;if(getTok()&&store.owner){offlineMode(getTok());return;}SYNC.ready=true;setSync('local');}}
+/* bez signálu: hraje se s postupem uloženým v prohlížeči (patří tomuto účtu); po návratu signálu se nejdřív spojí s účtem, pak uloží */
+function offlineMode(token){SYNC.user=store.owner;SYNC.uid=store.owner;
+ const be={kind:'supa',offline:true,save:async()=>{if(!SB)await loadSB();if(be.offline){const r=await rpc('trener_load',{p_token:token});if(r&&r.data)applyMerged(mergeStores(store,r.data));SYNC.admin=!!(r&&r.is_admin);be.offline=false;}return rpc('trener_save',{p_token:token,p_data:store});}};
+ SYNC.be=be;SYNC.ready=true;setSync('err');renderAccTop();}
 async function onLogin(token,known){setSync('wait');
  try{const r=await rpc('trener_load',{p_token:token});setTok(token);SYNC.user=r.username;SYNC.uid=r.username;SYNC.admin=!!r.is_admin;
   if(store.owner!==r.username)resetLocal();/* postup jiného účtu (nebo bez účtu) se do tohohle účtu nepřimíchá */
   await attachBackend({kind:'supa',save:s=>rpc('trener_save',{p_token:token,p_data:s})},r.data||null);store.owner=r.username;saveLocal();
   const pk=$('picker');if(!pk.hidden&&pk.querySelector('.acc'))pk.hidden=true;if(!$('home').hidden)renderHome();renderAccTop();if(SYNC.admin&&location.hash==='#dev')openDev();return true;
- }catch(e){if(/bad_token/.test(e.message||''))setTok(null);SYNC.be=null;SYNC.uid=null;setSync(/bad_token/.test(e.message||'')?'local':'err');if(known)throw e;return false;}}
+ }catch(e){if(!known&&!/bad_token/.test(e.message||'')&&store.owner){offlineMode(token);return true;}if(/bad_token/.test(e.message||''))setTok(null);SYNC.be=null;SYNC.uid=null;setSync(/bad_token/.test(e.message||'')?'local':'err');if(known)throw e;return false;}}
 async function supaLogout(){const t=getTok();try{if(SYNC.dirty){clearTimeout(SYNC.t);await pushCloud();}if(t)await rpc('trener_logout',{p_token:t});}catch(e){}setTok(null);SYNC.be=null;SYNC.user=null;SYNC.uid=null;SYNC.admin=false;resetLocal();setSync('local');}
 /* smaže postup z tohoto prohlížeče (zůstane jen motiv a zvuk) */
 function resetLocal(){store={xp:0,sound:store.sound!==false,theme:store.theme||'green',prog:{},mastered:{}};COURSES.forEach(c=>{store.prog[c.id]={};});saveLocal();
@@ -1099,12 +1117,25 @@ function cardHTML(c){const p=courseProg(c),L=c.chapters.flatMap(ch=>ch.lines),d=
 function syncHTML(){return `<div class="syncRow"><span id="syncInfo">${syncLabel()}</span></div>`;}
 function wireSync(){
  const t1o=document.getElementById('t1off');if(t1o)t1o.onclick=toggleT1;}
+/* ---------- Přidat na plochu (PWA) ---------- */
+let INSTALL_EVT=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();INSTALL_EVT=e;if(page==='all'&&!$('home').hidden)renderOverview();});
+window.addEventListener('appinstalled',()=>{INSTALL_EVT=null;try{localStorage.setItem('trener-install-x','1')}catch(e){}if(page==='all'&&!$('home').hidden)renderOverview();});
+const isStandalone=()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;}catch(e){return false;}};
+const isIOS=()=>/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+function installCardHTML(){let x=false;try{x=localStorage.getItem('trener-install-x')==='1';}catch(e){}
+ if(x||isStandalone()||window.top!==window)return'';
+ if(INSTALL_EVT)return `<div class="instCard" id="instCard"><span class="instIc"><img src="icons/icon-192.png" alt=""></span><span class="instTx"><b>Trenažér jako aplikace</b><small>Nainstaluj si ho na plochu – otevře se přes celou obrazovku a funguje i bez internetu.</small></span><button class="btn primary" id="instGo">Nainstalovat aplikaci</button><button class="instX" id="instX" aria-label="Zavřít">✕</button></div>`;
+ if(isIOS())return `<div class="instCard" id="instCard"><span class="instIc"><img src="icons/icon-192.png" alt=""></span><span class="instTx"><b>Trenažér jako aplikace na iPhonu</b><small>V Safari klepni na <b>Sdílet ⬆︎</b> a vyber <b>Přidat na plochu</b>. Pak se otevře přes celou obrazovku a funguje i bez internetu.</small></span><button class="instX" id="instX" aria-label="Zavřít">✕</button></div>`;
+ return'';}
+function wireInstall(){const x=document.getElementById('instX');if(x)x.onclick=()=>{try{localStorage.setItem('trener-install-x','1')}catch(e){}const c=$('instCard');if(c)c.remove();};
+ const g=document.getElementById('instGo');if(g)g.onclick=async()=>{const e=INSTALL_EVT;if(!e)return;INSTALL_EVT=null;try{e.prompt();await e.userChoice;}catch(err){}renderOverview();};}
 function renderOverview(){document.body.classList.add('homeMode');const L=lvlOf(store.xp);
  const sec=(side,label)=>{const cs=COURSES.filter(c=>c.side===side);return cs.length?`<section class="sideSec"><h2 class="secT"><span class="kd ${side}"></span>${label} <small>· ${cs.length} ${cs.length===1?'kurz':cs.length<5?'kurzy':'kurzů'}</small></h2><div class="courseCards">${cs.map(cardHTML).join('')}</div></section>`:'';};
  let h=`<div class="homeHead"><div class="kicker">Šachový trenažér${t1chip()}</div><h1>Nauč se repertoár tah po tahu</h1><p>Vyber si kurz. Každý má vlastní stránku s kapitolami a variantami ověřenými enginem.</p>
  <button class="profStrip" id="toProf"><span class="n">${L.n}</span><span><b>${SYNC.user?escH(SYNC.user):'Můj profil'}</b> · ${myLvl(L)} · ${store.xp||0} XP</span><span class="go">Profil a statistiky →</span></button><button class="profStrip exStrip" id="toEx"><span class="n">🔍</span><span><b>Najít variantu</b> · zahraj tahy na šachovnici a uvidíš, které varianty k nim patří</span><span class="go">Otevřít →</span></button>${PUZZLES.length?'<button class="profStrip exStrip" id="toPz"><span class="n">🪤</span><span><b>Pasti a triky</b> · potrestej časté chyby soupeřů z tvých kurzů</span><span class="go">Otevřít →</span></button>':''}<button class="profStrip exStrip" id="toLb"><span class="n">🏆</span><span><b>Žebříček</b> · kdo nasbíral nejvíc XP tento týden</span><span class="go">Otevřít →</span></button></div>`;
- h+=sec('w','Za bílé')+sec('b','Za černé')+syncHTML();
- $('home').innerHTML=h;renderSide();wireSync();$('toProf').onclick=()=>go('#profil');$('toEx').onclick=()=>go('#hledat');$('toLb').onclick=()=>go('#zebricek');const tp=document.getElementById('toPz');if(tp)tp.onclick=()=>go('#pasti');}
+ h+=installCardHTML()+sec('w','Za bílé')+sec('b','Za černé')+syncHTML();
+ $('home').innerHTML=h;renderSide();wireSync();wireInstall();$('toProf').onclick=()=>go('#profil');$('toEx').onclick=()=>go('#hledat');$('toLb').onclick=()=>go('#zebricek');const tp=document.getElementById('toPz');if(tp)tp.onclick=()=>go('#pasti');}
 function renderHome(){if(page==='all')return renderOverview();if(page==='profile')return renderProfile();if(page==='explore')return renderExplore();if(page==='board')return renderBoardPage();if(page==='puzzles')return renderPuzzles();
  document.body.classList.add('homeMode');const L=LINES();const rec=recommend();const cp=courseProg(course);
  let h=`<div class="homeHead"><a class="backAll" href="#">← Všechny kurzy</a><div class="kicker">${course.side==='w'?'Za bílé':'Za černé'}${t1chip()}</div>
@@ -1403,6 +1434,12 @@ $('sound').onclick=()=>{store.sound=!store.sound;save();renderSound();if(store.s
 applyTheme();applyT1();renderSound();parseRoute();cur=pickStart();flipped=course.side==='b';buildSquares();showHome();
 $('homeTop').onclick=()=>go('');$('accTop').onclick=()=>{if(SYNC.be&&SYNC.be.kind==='supa')go('#profil');else openAccount();};$('sLvl').onclick=openLvl;renderLvl();$('devTop').onclick=openDev;window.addEventListener('hashchange',route);renderAccTop();
 initCloud();window.addEventListener('pagehide',()=>{if(SYNC.dirty){clearTimeout(SYNC.t);pushCloud();}});
+/* aplikace v mobilu (PWA): service worker jen na https/localhost a mimo frame (v Claude artifactu se nic nemění) */
+try{if('serviceWorker' in navigator&&(location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname))&&window.top===window)
+ window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));}catch(e){}
+/* po návratu signálu hned poslat neuložený postup do účtu */
+window.addEventListener('online',()=>{setSync(SYNC.state);if(SYNC.be&&(SYNC.dirty||SYNC.be.offline)){SYNC.dirty=true;clearTimeout(SYNC.t);pushCloud();}});
+window.addEventListener('offline',()=>setSync(SYNC.state));
 </script>
 
 </html>

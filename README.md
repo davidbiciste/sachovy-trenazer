@@ -128,6 +128,17 @@ Uvidíš tam seznam hráčů, jejich XP a postup, kdy naposledy hráli, a může
 nastavit nové heslo nebo je smazat. Ostatní hráči tlačítko nevidí, a i kdyby
 stránku nějak otevřeli, databáze jim data nedá. Ověřuje se to v Supabase podle účtu.
 
+## Aplikace v mobilu
+
+Trenažér si můžeš nainstalovat na plochu telefonu jako aplikaci. Otevře se přes celou
+obrazovku a funguje i bez internetu (postup se pak uloží do účtu, až budeš zase online).
+
+- **iPhone:** otevři web v **Safari** → klepni na **Sdílet ⬆︎** → **Přidat na plochu**.
+- **Android:** v Chrome klepni na kartě na **Nainstalovat aplikaci** (nebo menu **⋮ → Instalovat aplikaci**).
+
+Aplikace se aktualizuje sama: po nahrání nové verze na GitHub (a nasazení na Renderu)
+se při dalším otevření načte nová verze.
+
 ## Správa hráčů (v Supabase)
 
 - **Seznam hráčů:** levé menu **Table Editor** → tabulka `players`.
