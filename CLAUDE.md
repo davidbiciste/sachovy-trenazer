@@ -11,6 +11,7 @@ Odpovídej česky, jednoduše (majitel není programátor).
 - Databáze se mění jen přes `supabase.sql` (spustit se dá opakovaně, nic nemaže).
 
 ## Pravidla
+- Při každé změně webu zvyš `APP_VERSION` v `index.html` (ukazuje se v patičce) a při změně `sw.js` i `VERSION` v něm.
 - Změny commitni a **pushni rovnou do `main`** (majitel to tak chce), pokud neřekne jinak.
 - Před pushem zkontroluj, že se `index.html` načte bez chyb v konzoli (Playwright/Chromium je k dispozici).
 - Když měníš databázi, uprav `supabase.sql` a spusť ho přes Supabase Management API:

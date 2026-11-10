@@ -1,7 +1,7 @@
 /* Service worker Šachového trenažéru: aplikace v mobilu + práce bez internetu.
    Pravidla: index.html/config.js/navigace = nejdřív síť (nová verze hned), ostatní = cache a obnova na pozadí.
    Supabase (účty) se NIKDY neukládá do cache. Při změně pravidel zvyš VERSION. */
-const VERSION = 'trener-v2';
+const VERSION = 'trener-v3';
 const PRECACHE = ['./', 'index.html', 'config.js', 'manifest.webmanifest',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png', 'icons/apple-touch-icon.png'];
 const SWR_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'];
@@ -17,7 +17,7 @@ self.addEventListener('activate', e => {
 async function networkFirst(req) {
   const cache = await caches.open(VERSION);
   try {
-    const res = await fetch(req);
+    const res = await fetch(req, { cache: 'no-cache' }); // vždy ověřit u serveru, ne brát z paměti prohlížeče
     if (res && res.ok) cache.put(req, res.clone());
     return res;
   } catch (err) {
