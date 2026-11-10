@@ -380,6 +380,16 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
 }
 @keyframes doneFade{from{opacity:0}}
 .popHelp{margin:10px 2px 0;font-size:13px;line-height:1.45;color:var(--muted);background:rgba(47,143,232,.08);border:1px solid rgba(47,143,232,.25);border-radius:10px;padding:8px 12px}.popHelp b{color:var(--fg)}
+.courses{gap:4px;align-items:center;width:fit-content;max-width:100%}
+.courseBtn{display:grid;gap:4px;justify-items:center;padding:5px;border-radius:10px}
+.courseBtn .ic{width:38px;height:38px;border-radius:9px;background:linear-gradient(145deg,var(--sq-l),#cfd2b0);opacity:.75;transition:opacity .15s,transform .15s}
+.courseBtn .ic.b{background:linear-gradient(145deg,var(--sq-d),#5d7b41)}
+.courseBtn .ic svg{width:30px;height:30px}
+.courseBtn:hover .ic{opacity:1;transform:translateY(-1px)}
+.courseBtn[aria-pressed="true"] .ic{opacity:1;background:linear-gradient(145deg,var(--sq-l),#cfd2b0);box-shadow:0 0 0 2px var(--accent)}
+.courseBtn[aria-pressed="true"] .ic.b{background:linear-gradient(145deg,var(--sq-d),#5d7b41)}
+.courseBtn .cbar{display:block;width:30px;height:3px;border-radius:2px;background:rgba(255,255,255,.12);overflow:hidden}.courseBtn .cbar i{display:block;height:100%;background:var(--accent)}
+.cSep{width:1px;align-self:stretch;margin:6px 4px;background:var(--line)}
 .accTabs{margin-top:4px}.pkCard.acc .accHint{margin:0;font-size:12.5px;color:var(--muted,#a99f8f)}.pkCard.acc .accHint[hidden]{display:none}.accMsg{min-height:1.2em;margin:2px 0 0;font-size:14px;color:var(--brass)}
 </style>
 
@@ -871,7 +881,8 @@ let openCh={};
 function courseProg(c){const pcts=c.chapters.map(ch=>chPct(ch,c));return Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length);}
 const ALIEN_SVG='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 6C18 6 10 16 10 28c0 14 12 28 22 30 10-2 22-16 22-30C54 16 46 6 32 6z" fill="#8fd16a" stroke="#2b2620" stroke-width="2.6" stroke-linejoin="round"/><path d="M14 28c4-6 12-6 15 2-2 6-12 7-15-2zM50 28c-4-6-12-6-15 2 2 6 12 7 15-2z" fill="#14110e"/><ellipse cx="22" cy="28" rx="2.4" ry="1.6" fill="#fff" opacity=".8"/><ellipse cx="42" cy="28" rx="2.4" ry="1.6" fill="#fff" opacity=".8"/><path d="M27 46q5 3 10 0" fill="none" stroke="#2b2620" stroke-width="2.4" stroke-linecap="round"/></svg>';
 function courseIcon(c){return c.id==='cow'?COW_SVG:c.id==='alien'?ALIEN_SVG:PIECE_SVG(c.icon||(c.side==='w'?(c.id==='italian'?'wB':'wN'):'bN'));}
-function renderCourses(){$('courses').innerHTML=COURSES.map(c=>{const pct=courseProg(c);const d=pct,n=100;return `<button class="courseBtn" data-c="${c.id}" aria-pressed="${c===course}"><span class="ic">${PIECE_SVG(c.side==='w'?'wN':'bN')}</span><span><b>${c.title}</b><small>${c.sub}</small><span class="cp"><span class="bar"><i style="width:${pct}%"></i></span><em class="${pct===100?'ok':''}">${pct===100?'Hotovo 100 % ✓':`${pct} %`}</em></span></span></button>`;}).join('');}
+function renderCourses(){const btn=c=>{const pct=courseProg(c);return `<button class="courseBtn" data-c="${c.id}" aria-pressed="${c===course}" title="${c.title} · ${c.side==='w'?'za bílé':'za černé'} · ${pct} %" aria-label="${c.title}"><span class="ic ${c.side==='b'?'b':''}">${courseIcon(c)}</span><span class="cbar"><i style="width:${pct}%"></i></span></button>`;};
+ $('courses').innerHTML=COURSES.filter(c=>c.side==='w').map(btn).join('')+'<span class="cSep" aria-hidden="true"></span>'+COURSES.filter(c=>c.side==='b').map(btn).join('');}
 $('courses').addEventListener('click',e=>{const b=e.target.closest('.courseBtn');if(!b)return;go('#'+b.dataset.c);});
 function renderSide(){const side=$('side');const sc=side.scrollTop;const oc=openCh[course.id]=openCh[course.id]||new Set([0]);let h='';
  course.chapters.forEach((ch,ci)=>{const learned=ch.lines.filter(isDone).length;if(ch.lines.includes(cur))oc.add(ci);
