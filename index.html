@@ -330,6 +330,13 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
 @keyframes t1in{from{opacity:0;transform:translate(-50%,-12px) scale(.9)}}
 .syncBtns{display:flex;gap:14px}.pkCard.acc{max-width:420px}.acc form{display:grid;gap:10px;margin-top:12px}.pkCard.acc label small{font-weight:400;opacity:.8}.pkCard.acc label{display:grid!important;align-items:stretch;gap:4px;font-size:13px;font-weight:700;color:var(--muted,#a99f8f)}.acc label[hidden]{display:none}
 .pkCard.acc input{width:100%;box-sizing:border-box;min-height:44px;display:block;font:inherit;font-size:16px;padding:11px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.25);color:var(--fg,#fff)}.acc input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.accTop{font:inherit;font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;border:1px solid var(--accent);background:var(--accent);color:#fff;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis}
+.accTop.in{background:var(--bg-2);color:var(--fg);border-color:var(--line)}.accTop.in::before{content:"";width:8px;height:8px;border-radius:50%;background:#4caf50;flex:none}.accTop:hover{filter:brightness(1.08)}
+#devTop{background:var(--bg-2);color:var(--brass);border-color:var(--brass)}.accTop[hidden]{display:none}
+.pkCard.dev{width:min(100%,960px);overflow:auto}.dev h3{margin:8px 0 0;font-size:15px}.devGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.devGrid div{background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:12px;color:var(--muted)}.devGrid b{display:block;font-size:18px;color:var(--fg)}
+.devTbl{width:100%;border-collapse:collapse;font-size:13px}.devTbl th,.devTbl td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}.devTbl th{color:var(--muted);font-weight:700;font-size:12px}
+.devTbl td.a{white-space:nowrap}.devTbl .lnk{padding:2px 4px;font-size:12px}.devWrap{overflow-x:auto}.devMsg{min-height:1.2em;margin:0;font-size:14px;color:var(--brass)}.devTbl small{color:var(--muted)}
 .accTabs{margin-top:4px}.pkCard.acc .accHint{margin:0;font-size:12.5px;color:var(--muted,#a99f8f)}.pkCard.acc .accHint[hidden]{display:none}.accMsg{min-height:1.2em;margin:2px 0 0;font-size:14px;color:var(--brass)}
 </style>
 
@@ -342,6 +349,8 @@ body.t1shake .wrap,body.t1shake main,body.t1shake #trainer,body.t1shake #home{an
       <span class="stat" title="Body"><svg viewBox="0 0 24 24" fill="var(--gold)"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg><b id="sXp">0</b> XP</span>
       <div class="themes" id="themes" role="group" aria-label="Barva šachovnice"></div>
       <button class="iconBtn" id="sound"></button>
+      <button class="accTop" id="devTop" hidden>Vývojář</button>
+      <button class="accTop" id="accTop" hidden></button>
     </div>
   </div>
 
@@ -526,7 +535,10 @@ async function pushCloud(){if(!SYNC.be||SYNC.busy||!SYNC.dirty)return;SYNC.busy=
  SYNC.busy=false;if(SYNC.dirty&&SYNC.be){clearTimeout(SYNC.t);SYNC.t=setTimeout(pushCloud,4000);}}
 async function attachBackend(be,remote){SYNC.be=be;if(remote)applyMerged(mergeStores(store,remote));
  if(!remote||JSON.stringify(remote)!==JSON.stringify(store)){SYNC.dirty=true;await pushCloud();}else setSync('cloud');}
-function setSync(st){SYNC.state=st;const el=document.getElementById('syncInfo');if(el)el.innerHTML=syncLabel();const ab=document.getElementById('accBtn');if(ab)ab.textContent=accBtnText();}
+function setSync(st){SYNC.state=st;const el=document.getElementById('syncInfo');if(el)el.innerHTML=syncLabel();const ab=document.getElementById('accBtn');if(ab)ab.textContent=accBtnText();renderAccTop();}
+function renderAccTop(){const b=document.getElementById('accTop'),d=document.getElementById('devTop');if(!b)return;const logged=SYNC.be&&SYNC.be.kind==='supa';
+ b.hidden=!HAS_SUPA;b.classList.toggle('in',!!logged);b.textContent=logged?SYNC.user:SYNC.state==='wait'&&getTok()?'Přihlašuji…':'Přihlásit se';b.title=logged?'Tvůj účet':'Přihlásit se nebo vytvořit účet';
+ if(d)d.hidden=!(logged&&SYNC.admin);}
 const escH=s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function syncLabel(){const k=SYNC.be&&SYNC.be.kind;
  if(SYNC.state==='cloud')return k==='supa'?`<i class="dot ok"></i>Přihlášen jako <b>${escH(SYNC.user)}</b> – postup se ukládá do účtu`:'<i class="dot ok"></i>Postup se ukládá do tvého účtu Claude – uvidíš ho na všech zařízeních';
@@ -554,12 +566,12 @@ async function initSupa(){try{if(!window.supabase)await loadScript('https://cdn.
   const t=getTok();if(t)await onLogin(t);else setSync('local');
  }catch(e){SB=null;setSync('local');}}
 async function onLogin(token,known){setSync('wait');
- try{const r=await rpc('trener_load',{p_token:token});setTok(token);SYNC.user=r.username;SYNC.uid=r.username;
+ try{const r=await rpc('trener_load',{p_token:token});setTok(token);SYNC.user=r.username;SYNC.uid=r.username;SYNC.admin=!!r.is_admin;
   await attachBackend({kind:'supa',save:s=>rpc('trener_save',{p_token:token,p_data:s})},r.data||null);
-  const pk=$('picker');if(!pk.hidden&&pk.querySelector('.acc'))pk.hidden=true;if(!$('home').hidden)renderHome();return true;
+  const pk=$('picker');if(!pk.hidden&&pk.querySelector('.acc'))pk.hidden=true;if(!$('home').hidden)renderHome();renderAccTop();if(SYNC.admin&&location.hash==='#dev')openDev();return true;
  }catch(e){if(/bad_token/.test(e.message||''))setTok(null);SYNC.be=null;SYNC.uid=null;setSync(/bad_token/.test(e.message||'')?'local':'err');if(known)throw e;return false;}}
-async function supaLogout(){const t=getTok();try{if(SYNC.dirty){clearTimeout(SYNC.t);await pushCloud();}if(t)await rpc('trener_logout',{p_token:t});}catch(e){}setTok(null);SYNC.be=null;SYNC.user=null;SYNC.uid=null;setSync('local');}
-const AUTH_ERR=m=>/taken/.test(m)?'Tohle jméno už někdo má. Vyber si jiné, nebo se přihlas.':/bad_login/.test(m)?'Špatné jméno nebo heslo.':/bad_username/.test(m)?'Jméno: 3–20 znaků, jen písmena bez diakritiky, čísla, tečka, pomlčka nebo podtržítko.':/short_password/.test(m)?'Heslo musí mít aspoň 6 znaků.':/too_many/.test(m)?'Moc pokusů. Zkus to za pár minut.':/Failed to fetch|NetworkError|Load failed/i.test(m)?'Nejde se spojit se serverem. Jsi online? (Free Supabase projekt se mohl uspat.)':/Invalid API key|No API key|JWT|Unauthorized/i.test(m)?'Špatný klíč v config.js. Zkus místo publishable klíče starší „anon“ klíč (viz návod).':/function .* does not exist|Could not find the function/i.test(m)?'V Supabase chybí funkce – spusť soubor supabase.sql (viz návod).':'Nepovedlo se: '+m;
+async function supaLogout(){const t=getTok();try{if(SYNC.dirty){clearTimeout(SYNC.t);await pushCloud();}if(t)await rpc('trener_logout',{p_token:t});}catch(e){}setTok(null);SYNC.be=null;SYNC.user=null;SYNC.uid=null;SYNC.admin=false;setSync('local');}
+const AUTH_ERR=m=>/taken/.test(m)?'Tohle jméno už někdo má. Vyber si jiné, nebo se přihlas.':/bad_login/.test(m)?'Špatné jméno nebo heslo.':/bad_username/.test(m)?'Jméno: 3–20 znaků, jen písmena bez diakritiky, čísla, tečka, pomlčka nebo podtržítko.':/short_password/.test(m)?'Heslo musí mít aspoň 6 znaků.':/too_many/.test(m)?'Moc pokusů. Zkus to za pár minut.':/Failed to fetch|NetworkError|Load failed/i.test(m)?'Nejde se spojit se serverem. Jsi online? (Free Supabase projekt se mohl uspat.)':/Invalid API key|No API key|JWT|Unauthorized/i.test(m)?'Špatný klíč v config.js. Zkus místo publishable klíče starší „anon“ klíč (viz návod).':/no_user/.test(m)?'Takový hráč neexistuje.':/forbidden/.test(m)?'Na tohle nemáš oprávnění.':/function .* does not exist|Could not find the function/i.test(m)?'V Supabase chybí funkce – spusť soubor supabase.sql (viz návod).':'Nepovedlo se: '+m;
 function openAccount(){const pk=$('picker');const logged=SYNC.be&&SYNC.be.kind==='supa';
  pk.innerHTML=logged?`<div class="pkCard acc"><h2>Tvůj účet</h2><p>Přihlášen jako <b>${escH(SYNC.user)}</b>. Postup se ukládá do účtu. Na jiném zařízení se přihlas stejným jménem a heslem a uvidíš ho tam taky.</p><div class="row"><button class="btn" id="accClose">Zavřít</button><button class="btn" id="accOut">Odhlásit</button></div></div>`
  :`<div class="pkCard acc"><h2>Účet</h2><p>S účtem se ti postup uloží a uvidíš ho na mobilu i na počítači. Co už máš v tomhle prohlížeči, se po přihlášení přidá do účtu.</p>
@@ -580,6 +592,29 @@ function openAccount(){const pk=$('picker');const logged=SYNC.be&&SYNC.be.kind==
   const go=$('accGo');go.disabled=true;msg.textContent=tab==='up'?'Vytvářím účet…':'Přihlašuji…';
   try{const r=await rpc(tab==='up'?'trener_register':'trener_login',{p_user:user,p_pass:pass});if(r&&r.error)throw new Error(r.error);await onLogin(r.token,true);
   }catch(err){msg.textContent=AUTH_ERR(err&&err.message||String(err));go.disabled=false;}};}
+/* ---------- vývojářská stránka (jen účty s is_admin v Supabase; data hlídá server) ---------- */
+const fmtD=t=>t?new Date(t).toLocaleString('cs-CZ',{day:'numeric',month:'numeric',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'–';
+function progSummary(d){if(!d||!d.prog)return{xp:0,per:[],done:0};let done=0;const per=COURSES.map(c=>{const p=d.prog[c.id]||{};const ids=new Set(c.chapters.flatMap(ch=>ch.lines.map(l=>l.id)));
+  let n=0;for(const id in p)if(ids.has(id)&&(p[id].box||0)>=2)n++;done+=n;return{t:c.title,n,of:ids.size};});return{xp:d.xp||0,per,done};}
+async function openDev(){const pk=$('picker');if(!(SYNC.admin&&getTok())){if(location.hash==='#dev')history.replaceState(null,'',location.pathname+location.search);return;}
+ if(location.hash!=='#dev')history.replaceState(null,'',location.pathname+location.search+'#dev');
+ const close=()=>{pk.hidden=true;history.replaceState(null,'',location.pathname+location.search);};
+ pk.innerHTML='<div class="pkCard dev"><h2>Vývojářská stránka</h2><p>Načítám…</p></div>';pk.hidden=false;
+ let list=[];try{list=await rpc('trener_admin_players',{p_token:getTok()})||[];}catch(e){pk.innerHTML=`<div class="pkCard dev"><h2>Vývojářská stránka</h2><p>${/forbidden/.test(e.message||'')?'Tenhle účet nemá přístup.':escH(AUTH_ERR(e.message||String(e)))}</p><div class="row"><button class="btn" id="devClose">Zavřít</button></div></div>`;pk.onclick=ev=>{if(ev.target===pk||ev.target.id==='devClose')close();};return;}
+ const now=Date.now(),wk=list.filter(p=>p.updated_at&&now-new Date(p.updated_at)<7*864e5).length;
+ let tot=0;COURSES.forEach(c=>c.chapters.forEach(ch=>tot+=ch.lines.length));
+ const rows=list.map(p=>{const s=progSummary(p.data);return `<tr><td><b>${escH(p.username)}</b>${p.is_admin?' <small>(správce)</small>':''}<br><small>od ${fmtD(p.created_at)}</small></td><td>${s.xp}</td><td>${s.done}/${tot}<br><small>${s.per.filter(x=>x.n).map(x=>`${escH(x.t)} ${x.n}/${x.of}`).join(' · ')||'–'}</small></td><td>${fmtD(p.updated_at)}</td><td>${fmtD(p.last_login)}</td>
+  <td class="a"><button class="lnk" data-pw="${escH(p.username)}">Nové heslo</button>${p.username===SYNC.user?'':` <button class="lnk" data-del="${escH(p.username)}">Smazat</button>`}</td></tr>`;}).join('');
+ pk.innerHTML=`<div class="pkCard dev"><h2>Vývojářská stránka</h2>
+  <div class="devGrid"><div><b>${list.length}</b>hráčů</div><div><b>${wk}</b>aktivních za 7 dní</div><div><b>${tot}</b>variant celkem</div><div><b>${COURSES.length}</b>kurzů</div></div>
+  <h3>Hráči</h3><div class="devWrap"><table class="devTbl"><thead><tr><th>Hráč</th><th>XP</th><th>Hotovo</th><th>Poslední uložení</th><th>Poslední přihlášení</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="6">Zatím nikdo.</td></tr>'}</tbody></table></div>
+  <p class="devMsg" id="devMsg" role="status"></p>
+  <h3>Tento prohlížeč</h3><div class="devGrid"><div><b>${escH(SYNC.state)}</b>stav ukládání</div><div><b>${store.xp||0}</b>moje XP</div><div><b>${(JSON.stringify(store).length/1024).toFixed(1)} kB</b>velikost postupu</div></div>
+  <div class="row"><button class="btn" id="devReload">Obnovit</button><button class="btn" id="devClose">Zavřít</button></div></div>`;
+ pk.onclick=async ev=>{const t=ev.target,msg=document.getElementById('devMsg');if(t===pk||t.id==='devClose'){close();return;}if(t.id==='devReload'){openDev();return;}
+  try{if(t.dataset.pw){const np=prompt(`Nové heslo pro „${t.dataset.pw}“ (aspoň 6 znaků):`);if(!np)return;await rpc('trener_admin_set_password',{p_token:getTok(),p_user:t.dataset.pw,p_pass:np});msg.textContent=`Heslo pro ${t.dataset.pw} změněno ✓`;}
+   if(t.dataset.del){if(!confirm(`Opravdu smazat hráče „${t.dataset.del}“ i s celým postupem? Nejde to vrátit.`))return;await rpc('trener_admin_delete',{p_token:getTok(),p_user:t.dataset.del});openDev();}
+  }catch(e){if(msg)msg.textContent=AUTH_ERR(e.message||String(e));}};}
 const b64e=s=>btoa(unescape(encodeURIComponent(s))),b64d=s=>decodeURIComponent(escape(atob(s)));
 function backupCode(){return 'SACH1.'+b64e(JSON.stringify({xp:store.xp,prog:store.prog,mastered:store.mastered,upd:store.upd}));}
 function importCode(c){c=(c||'').trim();if(!c.startsWith('SACH1.'))throw 0;const r=JSON.parse(b64d(c.slice(6)));if(!r||typeof r.prog!=='object')throw 0;
@@ -770,7 +805,7 @@ function renderHome(){document.body.classList.add('homeMode');const L=LINES();co
   <div class="chBody"><div class="chPlan2"><b>Plán:</b> ${ch.plan}</div><div class="lineTable">`;
   sortedLines(ch).forEach(l=>{const st=stateOf(l);h+=`<button class="hLine" data-id="${l.id}" title="${ST[st][0]}"><span class="st s-${st}">${STI[st]}</span><span>${l.name}<span class="full">${l.full}</span></span>${popHTML(l)||'<span></span>'}<span class="act">${st==='new'?'Učit se →':'Procvičit →'}</span></button>`;});
   h+=`</div></div></details>`;});
- h+=`</div><div class="syncRow"><span id="syncInfo">${syncLabel()}</span><span class="syncBtns">${HAS_SUPA?`<button class="lnk" id="accBtn">${accBtnText()}</button>`:''}<button class="lnk" id="bkBtn">Záloha postupu</button></span></div>
+ h+=`</div><div class="syncRow"><span id="syncInfo">${syncLabel()}</span><span class="syncBtns"><button class="lnk" id="bkBtn">Záloha postupu</button></span></div>
  <div class="bkPanel" id="bkPanel"${BK.open?'':' hidden'}><p>Zkopíruj si kód a ulož ho (třeba do poznámek). Na jiném zařízení nebo po smazání dat ho vlož sem a postup se obnoví – nic se nepřepíše, vezme se lepší výsledek z obou.</p>
  <textarea id="bkText" rows="3" spellcheck="false" placeholder="Sem vlož kód zálohy…"></textarea><div class="bkActs"><button class="btn" id="bkCopy">Zkopírovat můj kód</button><button class="btn primary" id="bkLoad">Načíst kód</button><span id="bkMsg">${BK.msg}</span></div></div>`;
  $('home').innerHTML=h;renderSide();
@@ -969,6 +1004,7 @@ const SND_OFF='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 12A4.
 function renderSound(){$('sound').innerHTML=store.sound?SND_ON:SND_OFF;$('sound').setAttribute('aria-label',store.sound?'Vypnout zvuk':'Zapnout zvuk');}
 $('sound').onclick=()=>{store.sound=!store.sound;save();renderSound();if(store.sound){ac();sfx('move');}};
 applyTheme();applyT1();renderSound();cur=pickStart();flipped=course.side==='b';buildSquares();showHome();
+$('accTop').onclick=openAccount;$('devTop').onclick=openDev;window.addEventListener('hashchange',()=>{if(location.hash==='#dev')openDev();});renderAccTop();
 initCloud();window.addEventListener('pagehide',()=>{if(SYNC.dirty){clearTimeout(SYNC.t);pushCloud();}});
 </script>
 

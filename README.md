@@ -93,11 +93,9 @@ Kontrola: v repozitáři vidíš seznam 4 souborů a `index.html` je mezi nimi.
 ## Krok 4: Vyzkoušej to
 
 1. Otevři adresu z Renderu.
-2. Úplně dole na úvodní stránce má být řádek
-   *„Nejsi přihlášený – postup se ukládá jen v tomto prohlížeči“* a vedle něj
-   **Přihlásit / registrovat**. Pokud tam tlačítko chybí, viz *Časté problémy*.
+2. Vpravo nahoře má být zelené tlačítko **Přihlásit se**. Pokud chybí, viz *Časté problémy*.
 3. Klikni na něj → **Registrovat** → zadej jméno, heslo a heslo znovu → **Vytvořit účet**.
-4. Dole se má ukázat *„Přihlášen jako …“*. Zahraj jednu variantu.
+4. Nahoře se místo tlačítka ukáže tvoje jméno se zelenou tečkou. Zahraj jednu variantu.
 5. Otevři stejnou adresu na mobilu a přihlas se stejným jménem a heslem.
    Postup tam bude taky.
 6. Pošli adresu kamarádům. Každý si udělá vlastní účet.
@@ -112,6 +110,23 @@ Když ti pošlu novou verzi `index.html`:
 
 Render si změnu všimne a za minutu ji nasadí. Odkaz zůstává stejný a postup
 hráčů v Supabase se nesmaže. `config.js` znovu nahrávat nemusíš.
+
+## Vývojářská stránka (jen pro tebe)
+
+1. Zaregistruj se na webu svým jménem.
+2. V Supabase otevři **SQL Editor** a spusť znovu celý `supabase.sql` (přidá funkce pro správce).
+3. Pak spusť tenhle řádek, místo `tvojejmeno` dej svoje přihlašovací jméno:
+
+   ```sql
+   update public.players set is_admin = true where username = 'tvojejmeno';
+   ```
+
+4. Na webu se odhlas a znovu přihlas. Nahoře uvidíš tlačítko **Vývojář**
+   (nebo otevři adresu webu s `#dev` na konci).
+
+Uvidíš tam seznam hráčů, jejich XP a postup, kdy naposledy hráli, a můžeš jim
+nastavit nové heslo nebo je smazat. Ostatní hráči tlačítko nevidí, a i kdyby
+stránku nějak otevřeli, databáze jim data nedá. Ověřuje se to v Supabase podle účtu.
 
 ## Správa hráčů (v Supabase)
 
@@ -139,7 +154,7 @@ Ten nastav u registrátora domény. HTTPS zařídí Render sám.
 
 ## Časté problémy
 
-- **Tlačítko „Přihlásit / registrovat“ chybí:** `config.js` je prázdný, má
+- **Tlačítko „Přihlásit se“ chybí:** `config.js` je prázdný, má
   překlep, nebo není v repozitáři vedle `index.html`. Zkontroluj uvozovky a čárku za URL.
 - **„Špatný klíč v config.js“:** zkontroluj, že je klíč zkopírovaný celý. Když to s klíčem
   `sb_publishable_…` nejde, vezmi v Supabase **Project Settings → API Keys → Legacy API Keys**

@@ -15,6 +15,8 @@ create table if not exists public.players (
   created_at  timestamptz not null default now()
 );
 
+alter table public.players add column if not exists is_admin boolean not null default false;
+
 create table if not exists public.player_sessions (
   token       text primary key,
   player_id   uuid not null references public.players (id) on delete cascade,
@@ -80,7 +82,7 @@ begin
   select s.player_id, p.username into pid, u from player_sessions s join players p on p.id = s.player_id where s.token = p_token;
   if pid is null then raise exception 'bad_token'; end if;
   select data into d from player_progress where player_id = pid;
-  return json_build_object('username', u, 'data', d);
+  return json_build_object('username', u, 'data', d, 'is_admin', (select is_admin from players where id = pid));
 end $$;
 
 -- Uložení postupu
@@ -102,11 +104,66 @@ begin
   delete from player_sessions where token = p_token;
 end $$;
 
+-- ===== Vývojářská stránka (jen pro účty s is_admin = true) =====
+-- Ověří token a vrátí id admina, jinak chyba 'forbidden'.
+create or replace function public.trener_admin_check(p_token text)
+returns uuid language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid;
+begin
+  select p.id into pid from player_sessions s join players p on p.id = s.player_id
+   where s.token = p_token and p.is_admin;
+  if pid is null then raise exception 'forbidden'; end if;
+  return pid;
+end $$;
+
+-- Seznam hráčů s postupem
+create or replace function public.trener_admin_players(p_token text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+begin
+  perform trener_admin_check(p_token);
+  return coalesce((select json_agg(x order by x.updated_at desc nulls last) from (
+    select p.username, p.is_admin, p.created_at, pr.updated_at, pr.data,
+           (select max(s.created_at) from player_sessions s where s.player_id = p.id) as last_login
+      from players p left join player_progress pr on pr.player_id = p.id) x), '[]'::json);
+end $$;
+
+-- Nové heslo pro hráče (odhlásí ho ze všech zařízení)
+create or replace function public.trener_admin_set_password(p_token text, p_user text, p_pass text)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid;
+begin
+  perform trener_admin_check(p_token);
+  if length(coalesce(p_pass,'')) < 6 then raise exception 'short_password'; end if;
+  update players set pass_hash = crypt(p_pass, gen_salt('bf')) where username = lower(trim(p_user)) returning id into pid;
+  if pid is null then raise exception 'no_user'; end if;
+  delete from player_sessions where player_id = pid;
+end $$;
+
+-- Smazání hráče i s postupem (sám sebe smazat nejde)
+create or replace function public.trener_admin_delete(p_token text, p_user text)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+declare me uuid; pid uuid;
+begin
+  me := trener_admin_check(p_token);
+  select id into pid from players where username = lower(trim(p_user));
+  if pid is null then raise exception 'no_user'; end if;
+  if pid = me then raise exception 'self'; end if;
+  delete from players where id = pid;
+end $$;
+
+revoke all on function public.trener_admin_check(text) from public, anon, authenticated;
+revoke all on function public.trener_admin_players(text), public.trener_admin_set_password(text, text, text),
+  public.trener_admin_delete(text, text) from public;
+grant execute on function public.trener_admin_players(text), public.trener_admin_set_password(text, text, text),
+  public.trener_admin_delete(text, text) to anon, authenticated;
+
 revoke all on function public.trener_register(text, text), public.trener_login(text, text),
   public.trener_load(text), public.trener_save(text, jsonb), public.trener_logout(text) from public;
 grant execute on function public.trener_register(text, text), public.trener_login(text, text),
   public.trener_load(text), public.trener_save(text, jsonb), public.trener_logout(text) to anon, authenticated;
 
+-- Udělej ze svého účtu správce (uprav jméno) – pak uvidíš na webu tlačítko „Vývojář“:
+-- update public.players set is_admin = true where username = 'tvojejmeno';
 -- Pro správce: nové heslo pro hráče (spusť ručně, uprav jméno a heslo):
 -- update public.players set pass_hash = extensions.crypt('noveheslo', extensions.gen_salt('bf')) where username = 'jmeno';
 -- Smazání hráče i s postupem:
