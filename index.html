@@ -414,6 +414,7 @@ i.en{font-style:normal;font-weight:500;color:var(--muted);font-size:.86em}i.en::
 .homeBtn svg{width:20px;height:20px}.homeBtn:hover{background:rgba(217,179,108,.26)}@media (max-width:560px){.homeBtn{height:36px;padding:0 10px}.homeBtn span{display:none}}
 .exCtl .btn{font-size:16px}#xBoard{box-shadow:0 10px 30px rgba(0,0,0,.4),0 0 0 1px rgba(0,0,0,.35)}
 .xRow{display:grid;grid-template-columns:22px minmax(0,1fr);gap:8px}@media (max-width:560px){.xRow{grid-template-columns:14px minmax(0,1fr);gap:6px}}
+.titleForm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}.titleForm[hidden]{display:none}.titleForm input{flex:1;min-width:160px;min-height:40px;font:inherit;padding:8px 12px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(0,0,0,.25);color:var(--fg)}.titleForm small{flex-basis:100%;color:var(--muted)}
 .accTabs{margin-top:4px}.pkCard.acc .accHint{margin:0;font-size:12.5px;color:var(--muted,#a99f8f)}.pkCard.acc .accHint[hidden]{display:none}.accMsg{min-height:1.2em;margin:2px 0 0;font-size:14px;color:var(--brass)}
 </style>
 
@@ -604,7 +605,7 @@ let BK={open:false,msg:''};
 let SYNC={be:null,state:'local',busy:false,dirty:false,t:null,user:null,uid:null};
 const CFG=window.TRENER_CONFIG||{};const HAS_SUPA=!!(CFG.supabaseUrl&&CFG.supabaseKey);let SB=null;
 function mergeStores(a,b){/* a=local, b=remote; keeps the better progress of both */
- const newer=(b.upd||0)>(a.upd||0)?b:a;const o=Object.assign({},a,{xp:Math.max(a.xp||0,b.xp||0),sound:newer.sound,theme:newer.theme,sort:newer.sort,death:newer.death,t1:newer.t1,upd:Math.max(a.upd||0,b.upd||0)});
+ const newer=(b.upd||0)>(a.upd||0)?b:a;const o=Object.assign({},a,{xp:Math.max(a.xp||0,b.xp||0),sound:newer.sound,theme:newer.theme,lvlTitle:('lvlTitle' in newer)?newer.lvlTitle:(a.lvlTitle||b.lvlTitle),sort:newer.sort,death:newer.death,t1:newer.t1,upd:Math.max(a.upd||0,b.upd||0)});
  o.mastered=Object.assign({},b.mastered||{},a.mastered||{});o.prog={};
  o.act={};new Set([...Object.keys(a.act||{}),...Object.keys(b.act||{})]).forEach(k=>{o.act[k]=Math.max((a.act||{})[k]||0,(b.act||{})[k]||0);});
  new Set([...Object.keys(a.prog||{}),...Object.keys(b.prog||{})]).forEach(c=>{const pa=(a.prog||{})[c]||{},pb=(b.prog||{})[c]||{};const r={};
@@ -682,16 +683,17 @@ function openAccount(gate){if(gate!==true)gate=false;if(!gate&&needGate())return
 const LVL_NAMES=['Začátečník','Pěšák','Jezdec','Střelec','Věž','Dáma','Král','Velmistr'];
 const lvlXp=n=>50*n*(n-1);/* XP potřebné na level n: 1→0, 2→100, 3→300, 4→600, 5→1000 … */
 const lvlName=n=>LVL_NAMES[Math.min(n,LVL_NAMES.length)-1]+(n>LVL_NAMES.length?' '+(n-LVL_NAMES.length+1):'');
+const myLvl=L=>store.lvlTitle?escH(store.lvlTitle):L.name;/* vlastní název levelu – vidí ho jen majitel účtu */
 function lvlOf(xp){xp=xp||0;let n=1;while(xp>=lvlXp(n+1))n++;const a=lvlXp(n),b=lvlXp(n+1);return{n,name:lvlName(n),from:a,to:b,left:b-xp,pct:Math.round((xp-a)/(b-a)*100)};}
 function renderLvl(){const el=document.getElementById('sLvl');if(!el)return;const L=lvlOf(store.xp);
- el.innerHTML=`<span class="n">${L.n}</span><span class="lb">${L.name}<span class="lbar"><i style="width:${L.pct}%"></i></span><small>${store.xp||0} / ${L.to} XP</small></span>`;el.title=`Level ${L.n} – ${L.name}. Do dalšího levelu chybí ${L.left} XP.`;}
+ el.innerHTML=`<span class="n">${L.n}</span><span class="lb">${myLvl(L)}<span class="lbar"><i style="width:${L.pct}%"></i></span><small>${store.xp||0} / ${L.to} XP</small></span>`;el.title=`Level ${L.n} – ${myLvl(L)}. Do dalšího levelu chybí ${L.left} XP.`;}
 function addXp(gain){const before=lvlOf(store.xp).n;store.xp=(store.xp||0)+gain;const L=lvlOf(store.xp);renderLvl();if(L.n>before)setTimeout(()=>levelUp(L),700);}
 function levelUp(L){if(store.sound)try{[523,659,784,1047,1319].forEach((f,i)=>tone(i*.1,f,.4,.11));tone(.55,1568,.6,.09,'triangle');}catch(e){}
- const d=document.createElement('div');d.className='lvlUp';d.setAttribute('role','status');d.innerHTML=`<div class="k">LEVEL UP!</div><div class="big">${L.n}</div><div class="nm">${L.name}</div><small>Další level za ${L.left} XP</small>`;document.body.appendChild(d);
+ const d=document.createElement('div');d.className='lvlUp';d.setAttribute('role','status');d.innerHTML=`<div class="k">LEVEL UP!</div><div class="big">${L.n}</div><div class="nm">${myLvl(L)}</div><small>Další level za ${L.left} XP</small>`;document.body.appendChild(d);
  setTimeout(()=>d.classList.add('out'),2600);setTimeout(()=>d.remove(),3100);}
 function openLvl(){const pk=$('picker'),L=lvlOf(store.xp);let rows='';const max=Math.max(LVL_NAMES.length,L.n+1);
  for(let n=1;n<=max;n++)rows+=`<div class="${n===L.n?'me':n>L.n?'no':''}"><span>${n}. ${lvlName(n)}</span><span>${lvlXp(n)} XP</span></div>`;
- pk.innerHTML=`<div class="pkCard lvlInfo"><h2>Level ${L.n} – ${L.name}</h2><p>Máš <b>${store.xp||0} XP</b>. Do dalšího levelu chybí <b>${L.left} XP</b>. XP dostaneš za každou variantu zahranou zpaměti – bez chyby víc.</p><div class="lvlList">${rows}</div><div class="row"><button class="btn" id="lvlClose">Zavřít</button></div></div>`;
+ pk.innerHTML=`<div class="pkCard lvlInfo"><h2>Level ${L.n} – ${myLvl(L)}</h2><p>Máš <b>${store.xp||0} XP</b>. Do dalšího levelu chybí <b>${L.left} XP</b>. XP dostaneš za každou variantu zahranou zpaměti – bez chyby víc.</p><div class="lvlList">${rows}</div><div class="row"><button class="btn" id="lvlClose">Zavřít</button></div></div>`;
  pk.hidden=false;pk.onchange=null;pk.onclick=e=>{if(e.target===pk||e.target.id==='lvlClose')pk.hidden=true;};}
 /* ---------- Najít variantu (#hledat): hraješ tahy, stránka ukáže varianty, které k nim vedou ---------- */
 let EX={moves:[],flip:false,showBest:false},EXI=null;
@@ -804,7 +806,7 @@ function renderProfile(){document.body.classList.add('homeMode');const Lv=lvlOf(
  const li=(x,why)=>`<li><b>${x.l.name}</b><small>${x.c.title} · ${x.ch.t}${why?' · '+why:''}</small><button data-play="${x.c.id}|${x.l.id}">Zahrát →</button></li>`;
  const tipLi=([t,h])=>`<li>${t}${h!=null?`<br><button data-goto="${h}">Otevřít →</button>`:''}</li>`;
  let h=`<a class="backAll" href="#">← Všechny kurzy</a><div class="prof">
- <div class="profCard profHead"><span class="big">${Lv.n}</span><div class="lb"><h1>${SYNC.user?escH(SYNC.user):'Můj profil'}</h1><div>Level ${Lv.n} – <b>${Lv.name}</b> · ${store.xp||0} XP</div><div class="bar"><i style="width:${Lv.pct}%"></i></div><small>Do dalšího levelu chybí ${Lv.left} XP · <button class="lnk" id="pLvl" style="padding:0">všechny levely</button></small></div>
+ <div class="profCard profHead"><span class="big">${Lv.n}</span><div class="lb"><h1>${SYNC.user?escH(SYNC.user):'Můj profil'}</h1><div>Level ${Lv.n} – <b>${myLvl(Lv)}</b> · ${store.xp||0} XP</div><div class="bar"><i style="width:${Lv.pct}%"></i></div><small>Do dalšího levelu chybí ${Lv.left} XP · <button class="lnk" id="pLvl" style="padding:0">všechny levely</button> · <button class="lnk" id="pTitle" style="padding:0">vlastní název</button></small><form class="titleForm" id="titleForm" hidden><input id="titleIn" maxlength="40" placeholder="Vlastní název levelu" value="${escH(store.lvlTitle||'')}"><button class="btn" type="submit">Uložit</button><button class="btn" type="button" id="titleClear">Původní</button><small>Uvidíš ho jen ty na svém účtu.</small></form></div>
   ${SYNC.be&&SYNC.be.kind==='supa'?`<button class="btn" id="pOut">Odhlásit</button>`:''}</div>
  <div class="profCard"><h2>Statistiky</h2><div class="tiles"><div><b>${done}/${tot}</b><span>variant naučeno</span></div><div><b>${mast}/${chTot}</b><span>kapitol na 100 %</span></div><div><b>${acc==null?'–':acc+' %'}</b><span>pokusů bez chyby</span></div><div><b>${n}</b><span>zahraných variant zpaměti</span></div><div><b>${err}</b><span>chyb celkem</span></div><div><b>${due}</b><span>k opakování</span></div><div><b>${streak}</b><span>${streak===1?'den':'dní'} v řadě</span></div></div></div>
  <div class="profCard"><h2>Bílé vs. černé</h2><div class="sideCmp"><div class="w"><b>${W.pct} %</b><span>Za bílé · ${W.d}/${W.t} variant${W.acc!=null?` · ${W.acc} % bez chyby`:''}</span></div><div class="b"><b>${B.pct} %</b><span>Za černé · ${B.d}/${B.t} variant${B.acc!=null?` · ${B.acc} % bez chyby`:''}</span></div></div></div>
@@ -815,7 +817,9 @@ function renderProfile(){document.body.classList.add('homeMode');const Lv=lvlOf(
  <div class="profCard"><h2>Kurzy</h2>${S.map(x=>`<div class="crsRow"><div><b>${x.c.title}</b><small>${x.c.side==='w'?'za bílé':'za černé'} · ${x.done}/${x.total} variant${x.due?` · ${x.due} k opakování`:''}${x.acc!=null?` · ${x.acc} % bez chyby`:''}</small></div><div class="bar"><i style="width:${x.pct}%"></i></div><a href="#${x.c.id}">${x.pct} % →</a></div>`).join('')}</div>
  </div>`;
  $('home').innerHTML=h;renderSide();
- $('pLvl').onclick=openLvl;const po=document.getElementById('pOut');if(po)po.onclick=async()=>{await supaLogout();};}
+ $('pLvl').onclick=openLvl;$('pTitle').onclick=()=>{const f=$('titleForm');f.hidden=!f.hidden;if(!f.hidden)$('titleIn').focus();};
+ $('titleForm').onsubmit=e=>{e.preventDefault();const v=$('titleIn').value.trim().slice(0,40);if(v)store.lvlTitle=v;else delete store.lvlTitle;save();renderLvl();renderProfile();};
+ $('titleClear').onclick=()=>{delete store.lvlTitle;save();renderLvl();renderProfile();};const po=document.getElementById('pOut');if(po)po.onclick=async()=>{await supaLogout();};}
 /* ---------- vývojářská stránka (jen účty s is_admin v Supabase; data hlídá server) ---------- */
 const fmtD=t=>t?new Date(t).toLocaleString('cs-CZ',{day:'numeric',month:'numeric',year:'2-digit',hour:'2-digit',minute:'2-digit'}):'–';
 function progSummary(d){if(!d||!d.prog)return{xp:0,per:[],done:0};let done=0;const per=COURSES.map(c=>{const p=d.prog[c.id]||{};const ids=new Set(c.chapters.flatMap(ch=>ch.lines.map(l=>l.id)));
@@ -1035,14 +1039,14 @@ function wireSync(){
 function renderOverview(){document.body.classList.add('homeMode');const L=lvlOf(store.xp);
  const sec=(side,label)=>{const cs=COURSES.filter(c=>c.side===side);return cs.length?`<section class="sideSec"><h2 class="secT"><span class="kd ${side}"></span>${label} <small>· ${cs.length} ${cs.length===1?'kurz':cs.length<5?'kurzy':'kurzů'}</small></h2><div class="courseCards">${cs.map(cardHTML).join('')}</div></section>`:'';};
  let h=`<div class="homeHead"><div class="kicker">Šachový trenažér${t1chip()}</div><h1>Nauč se repertoár tah po tahu</h1><p>Vyber si kurz. Každý má vlastní stránku s kapitolami a variantami ověřenými enginem.</p>
- <button class="profStrip" id="toProf"><span class="n">${L.n}</span><span><b>${SYNC.user?escH(SYNC.user):'Můj profil'}</b> · ${L.name} · ${store.xp||0} XP</span><span class="go">Profil a statistiky →</span></button><button class="profStrip exStrip" id="toEx"><span class="n">🔍</span><span><b>Najít variantu</b> · zahraj tahy na šachovnici a uvidíš, které varianty k nim patří</span><span class="go">Otevřít →</span></button></div>`;
+ <button class="profStrip" id="toProf"><span class="n">${L.n}</span><span><b>${SYNC.user?escH(SYNC.user):'Můj profil'}</b> · ${myLvl(L)} · ${store.xp||0} XP</span><span class="go">Profil a statistiky →</span></button><button class="profStrip exStrip" id="toEx"><span class="n">🔍</span><span><b>Najít variantu</b> · zahraj tahy na šachovnici a uvidíš, které varianty k nim patří</span><span class="go">Otevřít →</span></button></div>`;
  h+=sec('w','Za bílé')+sec('b','Za černé')+syncHTML();
  $('home').innerHTML=h;renderSide();wireSync();$('toProf').onclick=()=>go('#profil');$('toEx').onclick=()=>go('#hledat');}
 function renderHome(){if(page==='all')return renderOverview();if(page==='profile')return renderProfile();if(page==='explore')return renderExplore();
  document.body.classList.add('homeMode');const L=LINES();const rec=recommend();const cp=courseProg(course);
  let h=`<div class="homeHead"><a class="backAll" href="#">← Všechny kurzy</a><div class="kicker">${course.side==='w'?'Za bílé':'Za černé'}${t1chip()}</div>
  <div class="crsTop"><span class="pic crsIcon ${course.side==='b'?'b':''}" data-c="${course.id}">${courseIcon(course)}</span><div><h1>${course.title}</h1><div class="crsEn">${course.en&&course.en.toLowerCase()!==course.title.toLowerCase()?course.en:''}</div><p>${course.sub.replace(/^Repertoár za (bílé|černé) · /,'')} · ${course.chapters.length} kapitol · ${L.length} variant</p></div><span class="miniRing">${ringSVG(cp,22,6)}<span>${cp}%</span></span></div></div>`;
- h+=`<div class="panelBar"><div class="sum"><span><b>${cp} %</b>${course.title}</span><span><b>${L.filter(isDone).length}/${L.length}</b>variant hotovo</span><span><b>${course.chapters.filter(isMastered).length}/${course.chapters.length}</b>kapitol na 100 %</span><span><b>${L.filter(l=>stateOf(l)==='due').length}</b>k opakování</span><span><b>Level ${lvlOf(store.xp).n}</b>${lvlOf(store.xp).name} · ${store.xp} XP</span></div>
+ h+=`<div class="panelBar"><div class="sum"><span><b>${cp} %</b>${course.title}</span><span><b>${L.filter(isDone).length}/${L.length}</b>variant hotovo</span><span><b>${course.chapters.filter(isMastered).length}/${course.chapters.length}</b>kapitol na 100 %</span><span><b>${L.filter(l=>stateOf(l)==='due').length}</b>k opakování</span><span><b>Level ${lvlOf(store.xp).n}</b>${myLvl(lvlOf(store.xp))} · ${store.xp} XP</span></div>
  <div class="acts"><button class="btn" id="hCustom">Vlastní drill</button><button class="btn primary" id="hGo">${rec.t}<small>${rec.s}</small></button></div></div>`;
  h+=`<div class="toolsRow"><div class="chip2" role="group" aria-label="Řazení variant"><button data-sort="tree" aria-pressed="${store.sort!=='pop'}">Podle podobnosti</button><button data-sort="pop" aria-pressed="${store.sort==='pop'}">Nejhranější</button></div>
  <label class="death" title="V drillu: jedna chyba a celý drill začíná znovu"><input type="checkbox" id="deathToggle" ${store.death?'checked':''}> <span>Mód smrti${store.death?' <b>zapnutý</b>':''}</span></label>
