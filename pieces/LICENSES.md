@@ -12,5 +12,9 @@ Stažené z lichess.org (repozitář lila), jen sady s volnou licencí (bez omez
 | pixel | therealqtpi | AGPLv3+ |
 | mpchess | Maxime Chupin | GPLv3+ |
 | rhosgfx | RhosGFX | CC0 1.0 |
+| letter | usolando | AGPLv3+ |
+| kiwen-suwi | neverRare | CC BY 4.0 |
+| papercut | Nikolay Anzarov (nikoichu.itch.io) | CC BY 4.0 |
+| totoy | Kosal Sen | CC BY 4.0 |
 
 Výchozí sada (vložená přímo v index.html) je od Colina M. L. Burnetta, GPLv2+ / CC BY-SA 3.0.
