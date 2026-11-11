@@ -26,3 +26,10 @@ Odpovídej česky, jednoduše (majitel není programátor).
 ## Účty
 - Správce: `davidbiciste` (`players.is_admin = true`). Vývojářská stránka: tlačítko „Vývojář“ nahoře nebo `#dev`.
 - Admin funkce v DB: `trener_admin_players`, `trener_admin_set_password`, `trener_admin_delete` – všechny ověřují token správce.
+
+## Design „Turnajový sál“
+- Barvy jen přes CSS proměnné v `:root` (světlý) a `@media (prefers-color-scheme:dark)` (tmavý). Zeď sálu `--bg`, papír `--bg-2`, grafit `--fg`, zelená hodin `--accent`/`--btn`, červený praporek `--bad`, mosaz `--gold`, ořech `--frame`.
+- Písma: nadpisy a čísla Barlow Semi Condensed, text Source Sans 3. Žádné Inter/Roboto/Open Sans, žádné patkové nadpisy na krémovém pozadí.
+- Odvaha jen na jednom místě: ořechový rám šachovnice. Zbytek tichý: dlaždice bez stínů, žádné versálkové nadpisky, žádné „→“ za tlačítky, žádná emoji, žádné „A · B · C“ na hlavních místech.
+- Stejná akce = stejné jméno (Naučit, Procvičit, Drill, Další past). Po změně vzhledu screenshot mobil + desktop, světlý + tmavý.
+- Zálohy vzhledu: větve `zaloha-pred-designem` (tmavý původní) a `zaloha-sachovy-klub` (krémový).
