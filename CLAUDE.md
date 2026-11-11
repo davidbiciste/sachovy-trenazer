@@ -32,5 +32,5 @@ Odpovídej česky, jednoduše (majitel není programátor).
 - Písma: nadpisy a čísla Barlow Semi Condensed, text Source Sans 3. Žádné Inter/Roboto/Open Sans, žádné patkové nadpisy na krémovém pozadí.
 - Odvaha jen na jednom místě: ořechový rám šachovnice. Zbytek tichý: dlaždice bez stínů, žádné versálkové nadpisky, žádné „→“ za tlačítky, žádná emoji, žádné „A · B · C“ na hlavních místech.
 - Stejná akce = stejné jméno (Naučit, Procvičit, Drill, Další past). Po změně vzhledu screenshot mobil + desktop, světlý + tmavý.
-- Přepínač vzhledu pro správce: tlačítko „Vzhled“ nahoře (nebo `?design=sal|klub|kazeta|orig`). Vzhledy jsou ve třídách na `<html>`: `d-sal` (výchozí, vidí všichni), `d-klub d-klubc`, `d-sal navrh` (kazeta), `d-orig`.
+- Přepínač vzhledu pro všechny hráče: tlačítko „Vzhled“ nahoře (nebo `?design=sal|klub|kazeta|orig`). Vzhledy jsou ve třídách na `<html>`: `d-sal` (výchozí, vidí všichni), `d-klub d-klubc`, `d-sal navrh` (kazeta), `d-orig`.
 - Zálohy vzhledu: větve `zaloha-pred-designem` (tmavý původní) a `zaloha-sachovy-klub` (krémový).
