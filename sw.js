@@ -1,7 +1,7 @@
 /* Service worker Šachového trenažéru: aplikace v mobilu + práce bez internetu.
    Pravidla: index.html/config.js/navigace = nejdřív síť (nová verze hned), ostatní = cache a obnova na pozadí.
-   Supabase (účty) se NIKDY neukládá do cache. Při změně pravidel zvyš VERSION. */
-const VERSION = 'trener-v10';
+   Supabase (účty) a api.chess.com (partie pro Rozbor hráče) se NIKDY neukládají do cache. Při změně pravidel zvyš VERSION. */
+const VERSION = 'trener-v11';
 const PRECACHE = ['./', 'index.html', 'config.js', 'manifest.webmanifest',
   'icons/icon-192.png?v=2', 'icons/icon-512.png?v=2', 'icons/icon-maskable-512.png?v=2', 'icons/apple-touch-icon.png?v=2', 'icons/logo.svg?v=2'];
 const SWR_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'];
@@ -42,6 +42,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;                       // jen GET
   const url = new URL(req.url);
   if (url.hostname.endsWith('supabase.co')) return;        // účty nikdy necachovat
+  if (url.hostname === 'api.chess.com' || url.hostname === 'lichess.org') return; // partie hráčů: vždy čerstvé ze sítě (aplikace si je ukládá sama)
   const same = url.origin === self.location.origin;
   if (same) {
     const p = url.pathname;
