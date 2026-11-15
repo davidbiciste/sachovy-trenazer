@@ -187,6 +187,53 @@ revoke all on function public.trener_register(text, text), public.trener_login(t
 grant execute on function public.trener_register(text, text), public.trener_login(text, text),
   public.trener_load(text), public.trener_save(text, jsonb), public.trener_logout(text) to anon, authenticated;
 
+-- ===== Zprávy od správce hráčům (ukážou se hráči na displeji, dokud je nepotvrdí) =====
+create table if not exists public.player_messages (
+  id          bigserial primary key,
+  player_id   uuid not null references public.players (id) on delete cascade,
+  from_user   text not null,
+  body        text not null,
+  created_at  timestamptz not null default now(),
+  seen_at     timestamptz
+);
+alter table public.player_messages enable row level security;
+
+create or replace function public.trener_admin_message(p_token text, p_user text, p_body text)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+declare me uuid; pid uuid; fu text;
+begin
+  me := trener_admin_check(p_token);
+  if length(trim(coalesce(p_body,''))) = 0 or length(p_body) > 500 then raise exception 'bad_message'; end if;
+  select id into pid from players where username = lower(trim(p_user));
+  if pid is null then raise exception 'no_user'; end if;
+  select username into fu from players where id = me;
+  insert into player_messages (player_id, from_user, body) values (pid, fu, trim(p_body));
+end $$;
+
+create or replace function public.trener_messages(p_token text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid;
+begin
+  select player_id into pid from player_sessions where token = p_token;
+  if pid is null then raise exception 'bad_token'; end if;
+  return coalesce((select json_agg(json_build_object('id', id, 'from', from_user, 'body', body, 'at', created_at) order by id)
+    from player_messages where player_id = pid and seen_at is null), '[]'::json);
+end $$;
+
+create or replace function public.trener_message_seen(p_token text, p_id bigint)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid;
+begin
+  select player_id into pid from player_sessions where token = p_token;
+  if pid is null then raise exception 'bad_token'; end if;
+  update player_messages set seen_at = now() where id = p_id and player_id = pid and seen_at is null;
+end $$;
+
+revoke all on function public.trener_admin_message(text, text, text), public.trener_messages(text),
+  public.trener_message_seen(text, bigint) from public;
+grant execute on function public.trener_admin_message(text, text, text), public.trener_messages(text),
+  public.trener_message_seen(text, bigint) to anon, authenticated;
+
 -- Udělej ze svého účtu správce (uprav jméno) – pak uvidíš na webu tlačítko „Vývojář“:
 -- update public.players set is_admin = true where username = 'tvojejmeno';
 -- Pro správce: nové heslo pro hráče (spusť ručně, uprav jméno a heslo):
