@@ -5,7 +5,7 @@ Odpovídej česky, jednoduše (majitel není programátor).
 ## Jak web funguje
 - Statický web: `index.html` (celá aplikace v jednom souboru), `config.js` (veřejné údaje Supabase).
 - `engine/`: Stockfish 17.1 lite (WASM, běží v prohlížeči hráče) + `chess.js` (pravidla pro volnou hru). Engine se načte až v trenažéru. Lokální test potřebuje HTTP server (`python3 -m http.server`), z `file://` Worker nefunguje.
-- Stránky přes hash: `#` přehled kurzů, `#<id kurzu>` kurz, `#profil`, `#hledat` (najít variantu podle tahů), `#pasti`, `#koncovky`, `#lekce/<id lekce>` (Lekce strategie podle úrovní nováček / začátečník / nad 1000 / nad 1500 a hra proti botům; data v `TU_LESSONS`, skupiny v `TU_GROUPS`; staré `#zaciname` funguje dál), `#rozbor/<jméno z chess.com>` (Rozbor hráče: partie z api.chess.com, ukládá si je do IndexedDB `trener-rozbor`), `#dev`.
+- Stránky přes hash: `#` přehled kurzů, `#<id kurzu>` kurz, `#profil`, `#hledat` (najít variantu podle tahů), `#pasti`, `#koncovky`, `#lekce/<id lekce>` (Lekce strategie podle úrovní nováček / začátečník / nad 1000 / nad 1500 a hra proti botům; data v `TU_LESSONS`, skupiny v `TU_GROUPS`; staré `#zaciname` funguje dál), `#odhad` (Odhad Elo: partie s botem bez nápověd, odhad z přesnosti a průměrné ztráty v setinách pěšce, historie v `store.guess`), `#rozbor/<jméno z chess.com>` (Rozbor hráče: partie z api.chess.com, ukládá si je do IndexedDB `trener-rozbor`), `#dev`.
 - Test Rozboru hráče: `node tests/rozbor.test.js` (s běžícím http.serverem na portu 8765; api.chess.com se nahrazuje soubory z `tests/fixtures/`).
 - Hosting: **Render** (Static Site) staví web automaticky z větve `main`. Push do `main` = za 1–2 min je změna na webu.
 - Účty a postup hráčů: **Supabase**, projekt `ylcybuglsjdcoklnaijl` („ŠACHOVÝ TRENAŽER“).
