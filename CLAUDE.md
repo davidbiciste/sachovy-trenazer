@@ -28,10 +28,16 @@ Odpovídej česky, jednoduše (majitel není programátor).
 - Správce: `davidbiciste` (`players.is_admin = true`). Vývojářská stránka: tlačítko „Vývojář“ nahoře nebo `#dev`.
 - Admin funkce v DB: `trener_admin_players`, `trener_admin_set_password`, `trener_admin_delete` – všechny ověřují token správce.
 
-## Design „Turnajový sál“
+## Výchozí vzhled „Nový trenažér“ (od 16. 11. 2026)
+- Třída `d-neo` na `<html>` (spolu s `d-klub d-sal`), CSS blok „NÁVRH Nový trenažér“, JS blok se stejným názvem (`renderNeoHome`, `nxNav`, `nxCmd`). Písmo Bricolage Grotesque v `fonts/bricolage.woff` (hostované u sebe).
+- Boční menu (počítač) / spodní lišta (mobil), úvod s živou šachovnicí, bento dlaždice, pás kurzů, hledání Ctrl K.
+- Hráč se může vrátit: tlačítko „Starý vzhled“ v menu nebo „Vrátit starý vzhled“ dole na úvodu (uloží `trener-design=sal`). Zpět na nový: Vzhled nahoře → Nový trenažér.
+- Zálohy před novým vzhledem: větev a tag `zaloha-pred-novym-trenazerem`.
+
+## Starý vzhled „Turnajový sál“ (volba sal)
 - Barvy jen přes CSS proměnné v `:root` (světlý) a `@media (prefers-color-scheme:dark)` (tmavý). Zeď sálu `--bg`, papír `--bg-2`, grafit `--fg`, zelená hodin `--accent`/`--btn`, červený praporek `--bad`, mosaz `--gold`, ořech `--frame`.
 - Písma: nadpisy a čísla Barlow Semi Condensed, text Source Sans 3. Žádné Inter/Roboto/Open Sans, žádné patkové nadpisy na krémovém pozadí.
 - Odvaha jen na jednom místě: ořechový rám šachovnice. Zbytek tichý: dlaždice bez stínů, žádné versálkové nadpisky, žádné „→“ za tlačítky, žádná emoji, žádné „A · B · C“ na hlavních místech.
 - Stejná akce = stejné jméno (Naučit, Procvičit, Drill, Další past). Po změně vzhledu screenshot mobil + desktop, světlý + tmavý.
-- Přepínač vzhledu pro všechny hráče: tlačítko „Vzhled“ nahoře (nebo `?design=sal|klub|kazeta|orig`). Vzhledy jsou ve třídách na `<html>`: `d-sal` (výchozí, vidí všichni), `d-klub d-klubc`, `d-sal navrh` (kazeta), `d-orig`.
-- Zálohy vzhledu: větve `zaloha-pred-designem` (tmavý původní) a `zaloha-sachovy-klub` (krémový).
+- Přepínač vzhledu pro všechny hráče: tlačítko „Vzhled“ nahoře (nebo `?design=neo|sal|klub|kazeta|orig`). Vzhledy jsou ve třídách na `<html>`: `d-neo` (výchozí), `d-sal` (starý vzhled), `d-klub d-klubc`, `d-sal navrh` (kazeta), `d-orig`.
+- Zálohy vzhledu: větve `zaloha-pred-designem` (tmavý původní), `zaloha-sachovy-klub` (krémový) a `zaloha-pred-novym-trenazerem` (Turnajový sál jako výchozí, stav před 16. 11. 2026 večer).

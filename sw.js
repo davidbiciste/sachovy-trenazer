@@ -1,9 +1,9 @@
 /* Service worker Šachového trenažéru: aplikace v mobilu + práce bez internetu.
    Pravidla: index.html/config.js/navigace = nejdřív síť (nová verze hned), ostatní = cache a obnova na pozadí.
    Supabase (účty) a api.chess.com (partie pro Rozbor hráče) se NIKDY neukládají do cache. Při změně pravidel zvyš VERSION. */
-const VERSION = 'trener-v11';
+const VERSION = 'trener-v12';
 const PRECACHE = ['./', 'index.html', 'config.js', 'manifest.webmanifest',
-  'icons/icon-192.png?v=2', 'icons/icon-512.png?v=2', 'icons/icon-maskable-512.png?v=2', 'icons/apple-touch-icon.png?v=2', 'icons/logo.svg?v=2'];
+  'icons/icon-192.png?v=2', 'icons/icon-512.png?v=2', 'icons/icon-maskable-512.png?v=2', 'icons/apple-touch-icon.png?v=2', 'icons/logo.svg?v=2', 'fonts/bricolage.woff'];
 const SWR_HOSTS = ['fonts.googleapis.com', 'fonts.gstatic.com', 'cdn.jsdelivr.net'];
 
 self.addEventListener('install', e => {
