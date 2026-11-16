@@ -32,7 +32,7 @@ Odpovídej česky, jednoduše (majitel není programátor).
 - Třída `d-neo` na `<html>` (spolu s `d-klub d-sal`), CSS blok „NÁVRH Nový trenažér“, JS blok se stejným názvem (`renderNeoHome`, `nxNav`, `nxCmd`). Písmo Bricolage Grotesque v `fonts/bricolage.woff` (hostované u sebe).
 - Boční menu (počítač) / spodní lišta (mobil), úvod s živou šachovnicí, bento dlaždice, pás kurzů, hledání Ctrl K.
 - Hráč se může vrátit: tlačítko „Starý vzhled“ v menu nebo „Vrátit starý vzhled“ dole na úvodu (uloží `trener-design=sal`). Zpět na nový: Vzhled nahoře → Nový trenažér.
-- Zálohy před novým vzhledem: větev a tag `zaloha-pred-novym-trenazerem`.
+- Zálohy před novým vzhledem: větev `zaloha-pred-novym-trenazerem`.
 
 ## Starý vzhled „Turnajový sál“ (volba sal)
 - Barvy jen přes CSS proměnné v `:root` (světlý) a `@media (prefers-color-scheme:dark)` (tmavý). Zeď sálu `--bg`, papír `--bg-2`, grafit `--fg`, zelená hodin `--accent`/`--btn`, červený praporek `--bad`, mosaz `--gold`, ořech `--frame`.
