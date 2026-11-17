@@ -197,6 +197,9 @@ create table if not exists public.player_messages (
   seen_at     timestamptz
 );
 alter table public.player_messages enable row level security;
+-- odpovědi hráčů správci: řádek s from_player = true (player_id = kdo píše)
+alter table public.player_messages add column if not exists from_player boolean not null default false;
+alter table public.player_messages add column if not exists reply_to bigint;
 
 create or replace function public.trener_admin_message(p_token text, p_user text, p_body text)
 returns void language plpgsql security definer set search_path = public, extensions as $$
@@ -217,7 +220,7 @@ begin
   select player_id into pid from player_sessions where token = p_token;
   if pid is null then raise exception 'bad_token'; end if;
   return coalesce((select json_agg(json_build_object('id', id, 'from', from_user, 'body', body, 'at', created_at) order by id)
-    from player_messages where player_id = pid and seen_at is null), '[]'::json);
+    from player_messages where player_id = pid and seen_at is null and not from_player), '[]'::json);
 end $$;
 
 create or replace function public.trener_message_seen(p_token text, p_id bigint)
@@ -233,6 +236,41 @@ revoke all on function public.trener_admin_message(text, text, text), public.tre
   public.trener_message_seen(text, bigint) from public;
 grant execute on function public.trener_admin_message(text, text, text), public.trener_messages(text),
   public.trener_message_seen(text, bigint) to anon, authenticated;
+
+-- Hráč odpoví na zprávu (dostane ji správce)
+create or replace function public.trener_reply(p_token text, p_body text, p_reply_to bigint)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid; u text;
+begin
+  select s.player_id, p.username into pid, u from player_sessions s join players p on p.id = s.player_id where s.token = p_token;
+  if pid is null then raise exception 'bad_token'; end if;
+  if length(trim(coalesce(p_body,''))) = 0 or length(p_body) > 500 then raise exception 'bad_message'; end if;
+  if (select count(*) from player_messages where player_id = pid and from_player and created_at > now() - interval '1 hour') >= 30 then raise exception 'too_many'; end if;
+  insert into player_messages (player_id, from_user, body, from_player, reply_to) values (pid, u, trim(p_body), true, p_reply_to);
+end $$;
+
+-- Správce: odpovědi od hráčů (posledních 100)
+create or replace function public.trener_admin_inbox(p_token text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+begin
+  perform trener_admin_check(p_token);
+  return coalesce((select json_agg(x order by x.id desc) from (
+    select m.id, m.from_user as "from", m.body, m.created_at as at, m.seen_at as seen,
+           (select r.body from player_messages r where r.id = m.reply_to) as re
+      from player_messages m where m.from_player order by m.id desc limit 100) x), '[]'::json);
+end $$;
+
+create or replace function public.trener_admin_inbox_seen(p_token text, p_id bigint)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+begin
+  perform trener_admin_check(p_token);
+  update player_messages set seen_at = now() where id = p_id and from_player and seen_at is null;
+end $$;
+
+revoke all on function public.trener_reply(text, text, bigint), public.trener_admin_inbox(text),
+  public.trener_admin_inbox_seen(text, bigint) from public;
+grant execute on function public.trener_reply(text, text, bigint), public.trener_admin_inbox(text),
+  public.trener_admin_inbox_seen(text, bigint) to anon, authenticated;
 
 -- Udělej ze svého účtu správce (uprav jméno) – pak uvidíš na webu tlačítko „Vývojář“:
 -- update public.players set is_admin = true where username = 'tvojejmeno';
