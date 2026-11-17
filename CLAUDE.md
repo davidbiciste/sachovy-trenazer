@@ -14,6 +14,7 @@ Odpovídej česky, jednoduše (majitel není programátor).
 - Test Rozboru hráče: `node tests/rozbor.test.js` (s běžícím http.serverem na portu 8765; api.chess.com se nahrazuje soubory z `tests/fixtures/`).
 - Hosting: **Render** (Static Site) staví web automaticky z větve `main`. Push do `main` = za 1–2 min je změna na webu.
 - Účty a postup hráčů: **Supabase**, projekt `ylcybuglsjdcoklnaijl` („ŠACHOVÝ TRENAŽER“).
+- Slučování postupu ze dvou zařízení: `mergeStores` (+ `mergePq` pro puzzle). Klíče, které má jen účet, se nesmí ztratit (dřív se tak ztrácel postup v puzzle).
 - Databáze se mění jen přes `supabase.sql` (spustit se dá opakovaně, nic nemaže).
 
 ## Pravidla
@@ -28,6 +29,11 @@ Odpovídej česky, jednoduše (majitel není programátor).
   ```
   Token doplňuje síťová proxy prostředí sama (`proxy-injected` je jen zástupná hodnota). Nikdy nežádej token do chatu.
 - Nikdy nepoužívej ani nevkládej `service_role` / secret klíč do webu.
+
+## Testovací funkce (jen účty v `BETA_USERS`, teď `davidbiciste`)
+- `BETA_USERS`, `isBeta()`, `BETA_COURSES` (kurz Dámský gambit `qg`, varianty ověřené chess.js + Stockfishem hl. 16) a `betaApply()` hned pod `COURSES`. Kurz se do `COURSES` přidá až po přihlášení testovacího účtu.
+- JS blok „TESTOVACÍ FUNKCE“: sekce „V testu“ na úvodu (`betaHomeHTML`), karta Nové partie z chess.com (`btGamesCheck`, odbočení z repertoáru od 3. tahu, tlačítko Hotovo uloží `store.bt.gs`), `#souradnice` (trénink souřadnic, rekordy `store.bt.co`), `#vyzva` a `#vyzva/<kód>` (5 puzzle na čas, kód = base64 JSON v odkazu, bez databáze; odkaz otevře každý přihlášený, historie výzev jen u testovacích účtů v `store.bt.ch`). CSS blok „TESTOVACÍ FUNKCE“.
+- Spuštění pro všechny: `isBeta()` vrátit `true` (nebo přesunout kurz do `COURSES`) a upravit nadpis „V testu“.
 
 ## Účty
 - Správce: `davidbiciste` (`players.is_admin = true`). Vývojářská stránka: tlačítko „Vývojář“ nahoře nebo `#dev`.
