@@ -7,3 +7,7 @@
 - `chess.js` – knihovna pravidel šachu, npm `chess.js@1.4.0` (`dist/esm`). Licence BSD-2 (`LICENSE-chess.js.txt`).
 
 Engine běží v prohlížeči hráče (Web Worker), server nic nepočítá.
+
+## Maia (engine/maia.js, engine/maia/)
+Váhy Maia 1100–1900 z https://github.com/CSSLab/maia-chess (GPL-3.0, CSSLab), původní soubory `maia_weights/maia-<elo>.pb.gz`
+přejmenované na `maia-<elo>.bin` (obsah beze změny, gzip). `maia.js` je vlastní výpočet sítě (formát Lc0) v čistém JavaScriptu.
