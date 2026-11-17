@@ -278,3 +278,93 @@ grant execute on function public.trener_reply(text, text, bigint), public.trener
 -- update public.players set pass_hash = extensions.crypt('noveheslo', extensions.gen_salt('bf')) where username = 'jmeno';
 -- Smazání hráče i s postupem:
 -- delete from public.players where username = 'jmeno';
+
+-- ===== Varianty od hráčů (#varianty) =====
+-- Hráč přidá variantu, která v kurzech není. Web ji předem zkontroluje Stockfishem a zařadí
+-- podle názvů zahájení z Lichess. Stejnou variantu může „přidat“ víc hráčů = hlas (popularita).
+create table if not exists public.community_variants (
+  id          bigserial primary key,
+  moves       text not null,                 -- tahy v SAN oddělené mezerou (1. tah bílého první)
+  side        text not null check (side in ('w','b')),
+  eco         text,
+  opening     text,
+  added_by    uuid references public.players (id) on delete set null,
+  created_at  timestamptz not null default now(),
+  sf_bad      int not null default 0,        -- kolik tahů hráče Stockfish označil jako chybu
+  sf_note     text,
+  hidden      boolean not null default false,
+  featured    boolean not null default false,
+  unique (moves, side)                       -- stejné tahy za bílé a za černé jsou dvě různé varianty
+);
+create table if not exists public.community_variant_votes (
+  variant_id  bigint not null references public.community_variants (id) on delete cascade,
+  player_id   uuid not null references public.players (id) on delete cascade,
+  created_at  timestamptz not null default now(),
+  primary key (variant_id, player_id)
+);
+create index if not exists community_variant_votes_at on public.community_variant_votes (created_at);
+alter table public.community_variants      enable row level security;
+alter table public.community_variant_votes enable row level security;
+revoke all on public.community_variants, public.community_variant_votes from anon, authenticated;
+
+-- Přidat variantu (nebo k existující přidat hlas). Vrátí {id, created}
+create or replace function public.trener_cv_add(p_token text, p_moves text, p_side text, p_eco text, p_opening text, p_sf_bad int, p_sf_note text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid; vid bigint; m text; made boolean := false;
+begin
+  select player_id into pid from player_sessions where token = p_token;
+  if pid is null then raise exception 'bad_token'; end if;
+  m := regexp_replace(trim(coalesce(p_moves,'')), '\s+', ' ', 'g');
+  if length(m) < 3 or length(m) > 500 or m !~ '^[a-hKQRBNOx0-9=+#-]+( [a-hKQRBNOx0-9=+#-]+){1,59}$' then raise exception 'bad_moves'; end if;
+  if p_side not in ('w','b') then raise exception 'bad_side'; end if;
+  if (select count(*) from community_variants where added_by = pid and created_at > now() - interval '1 hour') >= 30 then raise exception 'too_many'; end if;
+  select id into vid from community_variants where moves = m and side = p_side;
+  if vid is null then
+    insert into community_variants (moves, side, eco, opening, added_by, sf_bad, sf_note)
+      values (m, p_side, left(p_eco, 8), left(p_opening, 160), pid, greatest(0, least(coalesce(p_sf_bad,0), 60)), left(p_sf_note, 300))
+      returning id into vid;
+    made := true;
+  end if;
+  insert into community_variant_votes (variant_id, player_id) values (vid, pid) on conflict do nothing;
+  return json_build_object('id', vid, 'created', made);
+end $$;
+
+-- „Taky to hraju“ zapnout / vypnout
+create or replace function public.trener_cv_vote(p_token text, p_id bigint, p_on boolean)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid;
+begin
+  select player_id into pid from player_sessions where token = p_token;
+  if pid is null then raise exception 'bad_token'; end if;
+  if p_on then insert into community_variant_votes (variant_id, player_id) select p_id, pid where exists (select 1 from community_variants where id = p_id) on conflict do nothing;
+  else delete from community_variant_votes where variant_id = p_id and player_id = pid; end if;
+end $$;
+
+-- Seznam variant (správce vidí i skryté)
+create or replace function public.trener_cv_list(p_token text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid; adm boolean;
+begin
+  select s.player_id, p.is_admin into pid, adm from player_sessions s join players p on p.id = s.player_id where s.token = p_token;
+  if pid is null then raise exception 'bad_token'; end if;
+  return coalesce((select json_agg(x order by x.id desc) from (
+    select v.id, v.moves, v.side, v.eco, v.opening, v.created_at as at, v.sf_bad, v.sf_note, v.hidden, v.featured,
+           (select username from players where id = v.added_by) as by,
+           (select count(*) from community_variant_votes c where c.variant_id = v.id) as votes,
+           (select count(*) from community_variant_votes c where c.variant_id = v.id and c.created_at > now() - interval '7 days') as votes7,
+           exists (select 1 from community_variant_votes c where c.variant_id = v.id and c.player_id = pid) as mine
+      from community_variants v where adm or not v.hidden order by v.id desc limit 2000) x), '[]'::json);
+end $$;
+
+-- Správce: skrýt / doporučit
+create or replace function public.trener_admin_cv_set(p_token text, p_id bigint, p_hidden boolean, p_featured boolean)
+returns void language plpgsql security definer set search_path = public, extensions as $$
+begin
+  perform trener_admin_check(p_token);
+  update community_variants set hidden = coalesce(p_hidden, hidden), featured = coalesce(p_featured, featured) where id = p_id;
+end $$;
+
+revoke all on function public.trener_cv_add(text, text, text, text, text, int, text), public.trener_cv_vote(text, bigint, boolean),
+  public.trener_cv_list(text), public.trener_admin_cv_set(text, bigint, boolean, boolean) from public;
+grant execute on function public.trener_cv_add(text, text, text, text, text, int, text), public.trener_cv_vote(text, bigint, boolean),
+  public.trener_cv_list(text), public.trener_admin_cv_set(text, bigint, boolean, boolean) to anon, authenticated;
