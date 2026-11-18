@@ -50,6 +50,7 @@ Odpovídej česky, jednoduše (majitel není programátor).
 ## Výchozí vzhled „Nový trenažér“ (od 16. 11. 2026)
 - Třída `d-neo` na `<html>` (spolu s `d-klub d-sal`), CSS blok „NÁVRH Nový trenažér“, JS blok se stejným názvem (`renderNeoHome`, `nxNav`, `nxCmd`). Písmo Bricolage Grotesque v `fonts/bricolage.woff` (hostované u sebe).
 - Boční menu (počítač) / spodní lišta (mobil), úvod s živou šachovnicí, bento dlaždice, pás kurzů, hledání Ctrl K.
+- Úplně noví hráči (žádné XP ani hotová varianta, `fresh` v `renderNeoHome`): místo velké karty výběr „Jak hraješ šachy?“ (`nxStartHTML`, `nxStartWire`, 5 možností, u 1000+ ještě barva) → `store.start={l,s}` → doporučení `nxStartRec` (lekce g0/g1, Odhad Elo, nebo kurz italian/vienna/caro/najdorf) s odkazem „Vybrat znovu“. Noví hráči nevidí čísla se samými nulami, Novinky, Najít variantu, Rozbor partie/hráče ani „Vrátit starý vzhled“; místo Rozboru partie mají dlaždici Souřadnice (`#souradnice` je pro všechny).
 - Hráč se může vrátit: tlačítko „Starý vzhled“ v menu nebo „Vrátit starý vzhled“ dole na úvodu (uloží `trener-design=sal`). Zpět na nový: Vzhled nahoře → Nový trenažér.
 - Zálohy před novým vzhledem: větev `zaloha-pred-novym-trenazerem`.
 
