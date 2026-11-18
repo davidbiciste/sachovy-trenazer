@@ -1,40 +1,40 @@
-# Úlohy z hrubých chyb hráče Gengstrdavca (chess.com), partie 16.–18. 11. 2026. Stockfish 17.1 lite hl. 15, MultiPV 2: jen pozice, kde je jeden tah jasně nejlepší (o 1,5 pěšce a víc).
-g1;3r2k1/p5pp/5p2/4p3/4P3/Pb1n4/1P1NKPPP/7R w - - 0 1;d2b3 d3f4;800;crushing;Nxb2;MMSNAKE01;18. 11. 2026
-g2;3r2k1/p5pp/5p2/4p3/4P3/1Nn5/4KPPP/R7 w - - 0 1;e2f3 d8d3;800;advantage;Nb5;MMSNAKE01;18. 11. 2026
-g4;8/Q6p/3rq1k1/5p2/8/P2B2P1/KPP2P1P/8 w - - 0 1;b2b3 d6d3;800;advantage;Rd7;1MY_YM;18. 11. 2026
-g5;3r3r/pppnkppp/8/3NP3/4P1b1/8/PPP3PP/R3KB1R b KQ - 0 1;e7e6 h2h3;800;crushing;Be2;unknown33r;18. 11. 2026
-g6;r6r/p3b2p/1p2Bp2/2p3Bk/1n5N/6P1/PPP2P1P/2KRR3 b - - 0 1;f6g5 e6f7;800;mate mateIn4;Bg4+;ShefBaga;18. 11. 2026
-g7;r1b1k1nr/pppn4/4p2p/4Ppp1/8/2N1B3/PPP2PPP/R3KB1R b KQkq - 0 1;d7e5 e3d4;800;advantage;O-O-O;patrarindam;18. 11. 2026
-g8;8/p4pp1/5qk1/8/6Q1/6P1/P3rPK1/7R b - - 0 1;f6g5 g4e2;800;crushing;Qxg5+;QFT22;18. 11. 2026
-g9;8/p5R1/6p1/5pk1/8/6PK/r4P2/8 b - - 0 1;a2f2 g7a7;800;advantage;g4;QFT22;18. 11. 2026
-g11;6k1/pp4pp/4N3/4Rn2/8/2P2r2/PP6/4K3 w - - 0 1;e6g5 f3e3;800;advantage;Rf4;Ebalusa777;18. 11. 2026
-g12;rnbbk2r/1p4pp/2p2n2/p5B1/4p1N1/5N2/PPP2PPP/R3KB1R b KQkq - 0 1;e8g8 g4f6;800;advantage;Nfe5;obtainablerko;18. 11. 2026
-g13;r1bb1rk1/1p4pp/2p2n2/p3N1B1/4p3/8/PPP2PPP/2KR1B1R b - - 0 1;c8g4 d1d8;800;advantage;Nxg4;obtainablerko;18. 11. 2026
-g16;2kr3r/pp2n1bp/6p1/5p2/4P1b1/2N2N2/PPPBKPPP/3R3R b - - 0 1;f5e4 c3e4;800;advantage;Bg5;eddieti11;18. 11. 2026
-g17;2k2nr1/2p1p2p/p5p1/Bp6/2BR4/8/1KP2rPP/4R3 b - - 0 1;b5c4 e1e7;800;crushing;Rxc4;KyriehoSyn;18. 11. 2026
-g18;r1bqk2r/pppp1ppp/2n5/2b1p3/2B1PPQ1/2NP4/PPP3PP/R1B1K1NR b KQkq - 0 1;d7d5 g4g7;800;crushing;exd5;badadipudi;18. 11. 2026
-g19;r1bqkb1r/ppp2ppp/8/3np3/2Bn4/3P4/PPP2PPP/RNBQK1NR w KQkq - 0 1;d1h5 d4c2;800;crushing;Nc6;Darthxanderix;18. 11. 2026
-g20;2kr1b1r/1pp2p1p/p1n1b1p1/1B1qp1Q1/P7/B1PP1N2/2P2PPP/R3K2R w KQ - 0 1;b5c6 d5c6;800;advantage;Bxa3;Darthxanderix;18. 11. 2026
-g21;5k1r/5p1p/3p2p1/1ppP4/2PbQ3/1P3P1P/3KN1P1/4r3 b - - 0 1;e1a1 e2d4;800;advantage;Nc3;billysmith6665;18. 11. 2026
-g22;rn3rk1/ppp2pp1/3pb2p/3q4/7Q/2NB4/PPP2PPP/2KRR3 b - - 0 1;d5g2 e1g1;800;crushing;Rf1;Eclipsiser;18. 11. 2026
-g23;rn2kb1r/ppp2ppp/1q2p3/5b2/2PP4/1P3N2/P2BBPPP/R2Q1RK1 b kq - 0 1;b8c6 c4c5;800;crushing;Be3;Alibrando;17. 11. 2026
-g24;2rqr1k1/p2b1ppp/2p2n2/3pB3/3P1Q1P/2N5/PPP2PP1/2KR3R w - - 0 1;g2g4 f6g4;800;advantage;Qb6;Ventilator1016;17. 11. 2026
-g25;r7/5ppk/P4pb1/2Np3p/3P4/7P/P4PP1/2R3K1 b - - 0 1;g6d3 c5d3;800;crushing;Kh2;leonardopach;17. 11. 2026
-g26;rnb1r1k1/p4pp1/2pp1q1p/1pbN4/2BNP3/3Q4/PPP2PPP/2KR3R b - - 0 1;c6d5 c4d5;800;advantage;Bxb5;Nalu_26;17. 11. 2026
-g27;r1b2rk1/ppp2ppp/3q4/1Pb1n3/3N4/P6P/1B2BPP1/R2Q1RK1 w - - 0 1;d4f5 c8f5;800;crushing;Qxd1;ITsS1MP;17. 11. 2026
-g28;6k1/2b2pp1/pp2r2p/2p5/2Pp1P2/1P1Q2PP/P5K1/8 w - - 0 1;d3d4 c5d4;800;crushing;Bd6;NGE4171;17. 11. 2026
-g29;6k1/5pp1/pp1br2p/2p5/2PQ1P2/1P4PP/P5K1/8 w - - 0 1;g2f2 c5d4;800;crushing;Kf8;NGE4171;17. 11. 2026
-g32;1r3rk1/p3qp1p/6p1/2Rp4/3p4/3Pp1P1/P1R1QPKP/8 b - - 0 1;b8c8 c5c8;800;crushing;Rxd5;TheTexasOne;17. 11. 2026
-g33;r1bk3r/4N3/1p1q2p1/7p/B2Pp1n1/P7/1PP1QPPP/2KR3R b - - 0 1;d8e7 e2e4;800;advantage;Bb5;cmurph113;17. 11. 2026
-g34;r1b1kb1r/ppp2ppp/2n5/4p1N1/8/5q2/PPPP1PPP/RNB1K2R w KQkq - 0 1;g5f3 e5e4;800;crushing;Bf5;luis_paulo;17. 11. 2026
-g35;8/8/8/3k1p1p/3P3P/4KP2/8/8 w - - 0 1;f3f4 d5c4;800;advantage;Ke6;luis_paulo;17. 11. 2026
-g37;r1bqkb1r/p1p2ppp/2p5/3pN3/4n3/8/PPPPQPPP/RNB1K2R w KQkq d6 0 1;f2f3 d8h4;800;advantage;Qd6;Reeg0;17. 11. 2026
-g38;r4bnr/4k1pp/1p1pqp2/1Q2P3/8/5B2/PPP2PPP/2KR3R b - - 0 1;a8d8 e5d6;800;crushing;Qxb6;Joker_1st;17. 11. 2026
-g39;r2qk2r/p2n1ppp/2p1bb2/1p1pp3/NQ6/3P2P1/PPP1PPBP/R3K1NR w KQkq b6 0 1;a4c5 f6e7;800;crushing;Nxc5;VosenDosen;17. 11. 2026
-g40;8/8/5kN1/5p2/8/4PK2/8/8 b - - 0 1;f6g5 g6e5;800;crushing;e4;taozhe;17. 11. 2026
-g41;r1bqk1nr/ppp2ppp/2n5/4N3/3P4/2N5/PPP1Q1PP/R3KB1R b KQkq - 0 1;c8e6 d4d5;800;crushing;O-O-O;phetoktenzin;16. 11. 2026
-g42;r2qk1nr/ppp2ppp/4b3/4Q3/3P4/2N5/PPP3PP/2KR1B1R b kq - 0 1;g8f6 d4d5;800;crushing;Bc4;phetoktenzin;16. 11. 2026
-g46;2k5/p7/1pP1Rp2/5P1q/8/2N5/PP4PP/6K1 w - - 0 1;c3d5 h5d1;800;crushing;Qxf5;Nahom_tesfaye;16. 11. 2026
-g47;r1b2rk1/1p1n2pp/2p1B3/p3P3/8/2P1P3/PP4PP/R4RK1 b - - 0 1;g8h8 a1d1;800;advantage;Rxf8+;That_randomnoob;16. 11. 2026
-g48;r1b2rk1/ppp2ppp/5b2/q7/3p4/2NP2PP/PPP2PB1/R2QK2R w KQ - 0 1;b2b4 a5b4;800;crushing;Re8+;Kamilking1987;16. 11. 2026
-g49;r4rk1/pp2b2p/6p1/3Qp3/2P3P1/1q1P4/5PK1/4R2R b - - 0 1;g8g7 d5e5;800;crushing;Rxh7+;mauryaa54;16. 11. 2026
+# Úlohy z hrubých chyb hráče Gengstrdavca (chess.com), partie 16.–18. 11. 2026. Stockfish 17.1 lite: první tah jasně nejlepší (hl. 15, MultiPV 2), dál až 3 tvoje tahy – uznává se každý tah do 0,8 pěšce od nejlepšího (hl. 14, MultiPV 3), varianty oddělené |. Pole 9 = jak by to šlo dál, pole 10 = zisk materiálu (body) nebo mat.
+g1;3r2k1/p5pp/5p2/4p3/4P3/Pb1n4/1P1NKPPP/7R w - - 0 1;d2b3 d3f4 e2e1 f4g2 e1f1 g2f4|d2b3 d3f4 e2e1 f4d3 e1e2 d3f4;800;crushing;Nxb2;MMSNAKE01;18. 11. 2026;Ke1 Rb8 Nd2 Rxb2;2
+g2;3r2k1/p5pp/5p2/4p3/4P3/1Nn5/4KPPP/R7 w - - 0 1;e2f3 d8d3 f3g4 c3d1 g4f5 d1f2|e2f3 d8d3 f3g4 c3e4 f2f3 e4f2|e2f3 d8d3 f3g4 c3e4 f2f3 d3b3;800;advantage;Nb5;MMSNAKE01;18. 11. 2026;Rxa7 Rxb3 Ra8+ Kf7;3
+g4;8/Q6p/3rq1k1/5p2/8/P2B2P1/KPP2P1P/8 w - - 0 1;b2b3 d6d3;800;advantage;Rd7;1MY_YM;18. 11. 2026;cxd3 Qe2+ Kb1 Qd1+;-2
+g5;3r3r/pppnkppp/8/3NP3/4P1b1/8/PPP3PP/R3KB1R b KQ - 0 1;e7e6 h2h3 g4h5 d5f4 e6e5 f4h5;800;crushing;Be2;unknown33r;18. 11. 2026;g6 Ng3 Nc5 h4;2
+g6;r6r/p3b2p/1p2Bp2/2p3Bk/1n5N/6P1/PPP2P1P/2KRR3 b - - 0 1;f6g5 e6f7 h5g4 h2h3 g4h3 f7e6;800;mate;Bg4+;ShefBaga;18. 11. 2026;g4 Rh1#;mat
+g7;r1b1k1nr/pppn4/4p2p/4Ppp1/8/2N1B3/PPP2PPP/R3KB1R b KQkq - 0 1;d7e5 e3d4 e5g6 d4h8 g6h8 h2h4|d7e5 e3d4 e5g6 d4h8 g6h8 c3b5;800;advantage;O-O-O;patrarindam;18. 11. 2026;g4 Nb5 Ke7 Nxc7;3
+g8;8/p4pp1/5qk1/8/6Q1/6P1/P3rPK1/7R b - - 0 1;f6g5 g4e2 g5d5 e2f3 d5e5 f3g4|f6g5 g4e2 g5d5 e2f3 d5e5 h1b1|f6g5 g4e2 g5d5 g2h2 f7f6 e2g4|f6g5 g4e2 g5d5 g2h2 f7f6 h1e1;800;crushing;Qxg5+;QFT22;18. 11. 2026;Kf6 Rd1 g5 Kg1;5
+g9;8/p5R1/6p1/5pk1/8/6PK/r4P2/8 b - - 0 1;a2f2 g7a7;800;advantage;g4;QFT22;18. 11. 2026;Rb2 Ra5 Kh6 Rd5;1
+g11;6k1/pp4pp/4N3/4Rn2/8/2P2r2/PP6/4K3 w - - 0 1;e6g5 f3e3 e5e3 f5e3 b2b3 h7h6|e6g5 f3e3 e5e3 f5e3 b2b3 e3d5;800;advantage;Rf4;Ebalusa777;18. 11. 2026;Ne6 Nd5 c4 Nb4;0
+g12;rnbbk2r/1p4pp/2p2n2/p5B1/4p1N1/5N2/PPP2PPP/R3KB1R b KQkq - 0 1;e8g8 g4f6;800;advantage;Nfe5;obtainablerko;18. 11. 2026;Bxf6 Bxf6 exf3 Be7;0
+g13;r1bb1rk1/1p4pp/2p2n2/p3N1B1/4p3/8/PPP2PPP/2KR1B1R b - - 0 1;c8g4 d1d8 a8d8 f1c4 g8h8 g5f6;800;advantage;Nxg4;obtainablerko;18. 11. 2026;gxf6 Nxg4 Rde8 Ne3;1
+g16;2kr3r/pp2n1bp/6p1/5p2/4P1b1/2N2N2/PPPBKPPP/3R3R b - - 0 1;f5e4 c3e4;800;advantage;Bg5;eddieti11;18. 11. 2026;Bxb2 Bg5 Rxd1 Kxd1;0
+g17;2k2nr1/2p1p2p/p5p1/Bp6/2BR4/8/1KP2rPP/4R3 b - - 0 1;b5c4 e1e7 f8e6 e7e6 f2g2 e6e7|b5c4 e1e7 f8e6 e7e6 f2g2 e6c6;800;crushing;Rxc4;KyriehoSyn;18. 11. 2026;Rxh2 Rxc4 Rh5 Rcxc7+;4
+g18;r1bqk2r/pppp1ppp/2n5/2b1p3/2B1PPQ1/2NP4/PPP3PP/R1B1K1NR b KQkq - 0 1;d7d5 g4g7 c5f8 g7h8 d5c4 c1e3|d7d5 g4g7 c5f8 g7h8 d5c4 g1f3;800;crushing;exd5;badadipudi;18. 11. 2026;Bg4 Nd5 cxd3 cxd3;3
+g19;r1bqkb1r/ppp2ppp/8/3np3/2Bn4/3P4/PPP2PPP/RNBQK1NR w KQkq - 0 1;d1h5 d4c2 e1d1 c2a1 g1f3 c8e6|d1h5 d4c2 e1d1 c2a1 g1f3 d8d6|d1h5 d4c2 e1d1 c8e6 c1g5 d8d7|d1h5 d4c2 e1d1 c8e6 c1g5 d8c8;800;crushing;Nc6;Darthxanderix;18. 11. 2026;Nxe5 Be7 Re1 O-O;5
+g20;2kr1b1r/1pp2p1p/p1n1b1p1/1B1qp1Q1/P7/B1PP1N2/2P2PPP/R3K2R w KQ - 0 1;b5c6 d5c6;800;advantage;Bxa3;Darthxanderix;18. 11. 2026;O-O e4 Bxf8 Rhxf8;3
+g21;5k1r/5p1p/3p2p1/1ppP4/2PbQ3/1P3P1P/3KN1P1/4r3 b - - 0 1;e1a1 e2d4 a1a2 d4c2 b5b4 e4f4|e1a1 e2d4 a1a2 d4c2 b5b4 f3f4|e1a1 e2d4 a1a2 d2c3 b5b4 c3d3;800;advantage;Nc3;billysmith6665;18. 11. 2026;Ke7 Qg5+ Kd7 Qf6;3
+g22;rn3rk1/ppp2pp1/3pb2p/3q4/7Q/2NB4/PPP2PPP/2KRR3 b - - 0 1;d5g2 e1g1 g2g6 d3g6 f7g6 g1g6;800;crushing;Rf1;Eclipsiser;18. 11. 2026;Bf5 Rxh6 Nc6 Rg1;8
+g23;rn2kb1r/ppp2ppp/1q2p3/5b2/2PP4/1P3N2/P2BBPPP/R2Q1RK1 b kq - 0 1;b8c6 c4c5 f8c5 d4c5 b6c5 b3b4|b8c6 c4c5 f8c5 d4c5 b6c5 d1e1;800;crushing;Be3;Alibrando;17. 11. 2026;Nxb4 Qa4+ Nc6 Rac1;0
+g24;2rqr1k1/p2b1ppp/2p2n2/3pB3/3P1Q1P/2N5/PPP2PP1/2KR3R w - - 0 1;g2g4 f6g4;800;advantage;Qb6;Ventilator1016;17. 11. 2026;Rhg1 Nxe5 dxe5 Re6;1
+g25;r7/5ppk/P4pb1/2Np3p/3P4/7P/P4PP1/2R3K1 b - - 0 1;g6d3 c5d3 a8a6 d3b4 a6a4 c1b1|g6d3 c5d3 a8a6 d3b4 a6a4 b4d5|g6d3 c5d3 a8a6 c1a1 a6a4 d3b2|g6d3 c5d3 a8a6 c1a1 a6a4 a2a3;800;crushing;Kh2;leonardopach;17. 11. 2026;f5 Nxd5 Rxa2 Rd1;2
+g26;rnb1r1k1/p4pp1/2pp1q1p/1pbN4/2BNP3/3Q4/PPP2PPP/2KR3R b - - 0 1;c6d5 c4d5;800;advantage;Bxb5;Nalu_26;17. 11. 2026;Nd7 Bxa8 Ne5 Qg3;6
+g27;r1b2rk1/ppp2ppp/3q4/1Pb1n3/3N4/P6P/1B2BPP1/R2Q1RK1 w - - 0 1;d4f5 c8f5 d1c1 a8e8 c1c3 b7b6|d4f5 c8f5 d1c1 a8e8 c1c3 f5e4|d4f5 c8f5 d1c1 f7f6 g1h1 a8d8|d4f5 c8f5 d1c1 f7f6 g1h1 f8d8;800;crushing;Qxd1;ITsS1MP;17. 11. 2026;Rad1 Qg6 Kh2 Be4;3
+g28;6k1/2b2pp1/pp2r2p/2p5/2Pp1P2/1P1Q2PP/P5K1/8 w - - 0 1;d3d4 c5d4 f4f5 e6e8 g3g4 d4d3;800;crushing;Bd6;NGE4171;17. 11. 2026;c5 bxc5 b4 cxb4;11
+g29;6k1/5pp1/pp1br2p/2p5/2PQ1P2/1P4PP/P5K1/8 w - - 0 1;g2f2 c5d4 b3b4 d4d3 c4c5 d3d2|g2f2 c5d4 b3b4 d4d3 c4c5 d6c7;800;crushing;Kf8;NGE4171;17. 11. 2026;Kg2 d1=Q g4 Bc7;17
+g32;1r3rk1/p3qp1p/6p1/2Rp4/3p4/3Pp1P1/P1R1QPKP/8 b - - 0 1;b8c8 c5c8 f8e8 c8e8 e7e8 c2c1|b8c8 c5c8 f8e8 c8e8 e7e8 g2h1|b8c8 c5c8 f8e8 c2c1 f7f5 c8e8|b8c8 c5c8 f8e8 c2c1 f7f5 g2h1;800;crushing;Rxd5;TheTexasOne;17. 11. 2026;h5 Re1 f5 fxe3;6
+g33;r1bk3r/4N3/1p1q2p1/7p/B2Pp1n1/P7/1PP1QPPP/2KR3R b - - 0 1;d8e7 e2e4;800;advantage;Bb5;cmurph113;17. 11. 2026;Be6 Bb3 Kf6 d5;1
+g34;r1b1kb1r/ppp2ppp/2n5/4p1N1/8/5q2/PPPP1PPP/RNB1K2R w KQkq - 0 1;g5f3 e5e4 f3g5 c6d4 b1c3 f7f6|g5f3 e5e4 f3g5 c6d4 b1c3 f8e7;800;crushing;Bf5;luis_paulo;17. 11. 2026;Kd1 fxg5 Nxe4 Be7;2
+g35;8/8/8/3k1p1p/3P3P/4KP2/8/8 w - - 0 1;f3f4 d5c4;800;advantage;Ke6;luis_paulo;17. 11. 2026;d5 Kxd5 Kd3 Kc5;1
+g37;r1bqkb1r/p1p2ppp/2p5/3pN3/4n3/8/PPPPQPPP/RNB1K2R w KQkq d6 0 1;f2f3 d8h4 g2g3 e4g3 e2f2 g3f5;800;advantage;Qd6;Reeg0;17. 11. 2026;Qxh4 Nxh4 Nxc6 Bd7;0
+g38;r4bnr/4k1pp/1p1pqp2/1Q2P3/8/5B2/PPP2PPP/2KR3R b - - 0 1;a8d8 e5d6 d8d6 h1e1 f6f5 e1e6|a8d8 e5d6 d8d6 h1e1 f6f5 f3d5|a8d8 e5d6 d8d6 d1d6 e7d6 b5c6|a8d8 e5d6 d8d6 d1d6 e7d6 b5b6;800;crushing;Qxb6;Joker_1st;17. 11. 2026;Rxe6 Bd5 Rd6 Bb3;4
+g39;r2qk2r/p2n1ppp/2p1bb2/1p1pp3/NQ6/3P2P1/PPP1PPBP/R3K1NR w KQkq b6 0 1;a4c5 f6e7 d3d4 e5d4 b4d4 d7c5;800;crushing;Nxc5;VosenDosen;17. 11. 2026;Nh3 Bxh3 Bxh3 O-O;3
+g40;8/8/5kN1/5p2/8/4PK2/8/8 b - - 0 1;f6g5 g6e5 g5f6 f3f4 f6e6 e5f3|f6g5 g6e5 g5f6 f3f4 f6e6 e5c6|f6g5 g6e5 g5f6 e5c6 f6e6 f3f4|f6g5 g6e5 g5f6 e5c6 f6e6 c6d4;800;crushing;e4;taozhe;17. 11. 2026;Kd5 Kxf5 Kd6 e4;1
+g41;r1bqk1nr/ppp2ppp/2n5/4N3/3P4/2N5/PPP1Q1PP/R3KB1R b KQkq - 0 1;c8e6 d4d5 c6d4 e2f2 d8g5 f2d4|c8e6 d4d5 c6d4 e2d2 d4c2 d2c2;800;crushing;O-O-O;phetoktenzin;16. 11. 2026;O-O-O Nf3 Rxd5 Nxd5;7
+g42;r2qk1nr/ppp2ppp/4b3/4Q3/3P4/2N5/PPP3PP/2KR1B1R b kq - 0 1;g8f6 d4d5 f6d5 c3d5 e8g8 d5c7|g8f6 d4d5 f6d5 c3d5 e8g8 d5f4|g8f6 d4d5 f6d5 f1b5 c7c6 c3d5;800;crushing;Bc4;phetoktenzin;16. 11. 2026;Qb8 Re1 Rd8 Nxe6;6
+g46;2k5/p7/1pP1Rp2/5P1q/8/2N5/PP4PP/6K1 w - - 0 1;c3d5 h5d1 g1f2 d1d2 e6e2 d2d5|c3d5 h5d1 g1f2 d1d5 g2g4 d5a2|c3d5 h5d1 g1f2 d1d5 g2g4 a7a5;800;crushing;Qxf5;Nahom_tesfaye;16. 11. 2026;g4 Qd3 h4 Qh3;3
+g47;r1b2rk1/1p1n2pp/2p1B3/p3P3/8/2P1P3/PP4PP/R4RK1 b - - 0 1;g8h8 a1d1;800;advantage;Rxf8+;That_randomnoob;16. 11. 2026;Rxf1+ Kxf1 Nf8 Rd8;0
+g48;r1b2rk1/ppp2ppp/5b2/q7/3p4/2NP2PP/PPP2PB1/R2QK2R w KQ - 0 1;b2b4 a5b4 e1g1 b4c3 a1b1 a8b8|b2b4 a5b4 e1g1 b4c3 a1b1 c3c5|b2b4 a5b4 e1g1 d4c3 a1b1 b4d6|b2b4 a5b4 e1g1 d4c3 a1b1 b4c5;800;crushing;Re8+;Kamilking1987;16. 11. 2026;h4 g6 Rb5 Kg7;4
+g49;r4rk1/pp2b2p/6p1/3Qp3/2P3P1/1q1P4/5PK1/4R2R b - - 0 1;g8g7 d5e5 g7g8 e5d5 f8f7 h1h7;800;crushing;Rxh7+;mauryaa54;16. 11. 2026;Rf8 Rxf7 Qxd3 Rxf8+;11
