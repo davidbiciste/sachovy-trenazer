@@ -113,7 +113,7 @@ COURSES.forEach(c=>{store.prog[c.id]=store.prog[c.id]||{};});store.mastered=stor
 const mKey=ch=>course.id+'|'+ch.t;const isMastered=ch=>!!store.mastered[mKey(ch)];
 function chPct(ch,co){co=co||course;const pr=store.prog[co.id]||{};const d=ch.lines.filter(l=>pr[l.id]&&(pr[l.id].box||0)>=2).length;return store.mastered[co.id+'|'+ch.t]?100:Math.round(d/ch.lines.length*90);}
 function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}}
-function save(){store.upd=Date.now();saveLocal();queueCloud();}
+function save(){store.upd=Date.now();if(typeof lbTick==='function')try{lbTick();}catch(e){}saveLocal();queueCloud();}
 /* ---- cloud sync (Claude účet) + záloha ---- */
 let BK={open:false,msg:''};
 /* SYNC.be = backend {kind:'claude'|'supa', save(store)} ; state: local|wait|cloud|err|out */
@@ -141,6 +141,7 @@ function mergeStores(a,b){resetStats(a);resetStats(b);/* a=local, b=remote; keep
  o.act={};new Set([...Object.keys(a.act||{}),...Object.keys(b.act||{})]).forEach(k=>{o.act[k]=Math.max((a.act||{})[k]||0,(b.act||{})[k]||0);});
  o.xpDay={};new Set([...Object.keys(a.xpDay||{}),...Object.keys(b.xpDay||{})]).forEach(k=>{o.xpDay[k]=Math.max((a.xpDay||{})[k]||0,(b.xpDay||{})[k]||0);});
  o.pz=Object.assign({},b.pz||{},a.pz||{});o.drillBest=Object.assign({},b.drillBest||{});Object.entries(a.drillBest||{}).forEach(([k,v])=>{if(!o.drillBest[k]||v.ms<o.drillBest[k].ms)o.drillBest[k]=v;});o.eg=Object.assign({},b.eg||{},a.eg||{});
+ o.badges=Object.assign({},b.badges||{},a.badges||{});
  o.hideLb=('hideLb' in newer)?newer.hideLb:(a.hideLb||b.hideLb||false);
  /* puzzle, poloviny kapitol, odhady Elo a testovací funkce: spojit postup z obou zařízení (dřív vyhrálo vždy jen toto zařízení) */
  o.pq=mergePq(a.pq,b.pq);if(!o.pq)delete o.pq;o.half=Object.assign({},b.half||{},a.half||{});

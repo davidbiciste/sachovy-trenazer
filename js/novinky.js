@@ -29,6 +29,7 @@ function betaHomeHTML(neo){if(!isBeta())return'';
  const tile=(go,cls,ic,t,sub)=>neo?`<button class="nxTile ${cls}" data-go="${go}"><span class="nxTIc">${NX_IC[ic]}</span><span class="nxTTx"><b>${t}</b><small>${sub}</small></span><span class="nxTGo">${NX_IC.arrow}</span></button>`
   :`<button class="profStrip exStrip" data-btgo="${go}"><span><b>${t}</b><small class="sub">${sub}</small></span></button>`;
  const body=`${tile('#souradnice','sky','king','Souřadnice',best?`Rekord ${best} polí za 30 s`:'Najdi pole co nejrychleji')}
+  ${tile('#zebricek','violet','bars','Žebříček a odznaky',`Odznaky ${Object.keys(store.badges||{}).length} z ${BADGES.length} a jak trénují kamarádi`)}
   ${tile('#vyzva','coral','trap','Výzva kamarádovi','5 puzzle na čas, pošli odkaz')}
   ${tile('#qg','sun','book','Dámský gambit','Nový kurz za bílé po 1.d4 d5 2.c4')}
   ${tile('#souperi','coral','user','Hraj proti svým soupeřům','Bot hraje jako tvoji soupeři z chess.com')}
