@@ -1440,7 +1440,7 @@ html.d-sal .picker:not([hidden]){animation:tsFade .18s var(--ease-out)}
    Úplně nové menu a úvod: boční lišta (počítač) / spodní lišta (mobil), živá šachovnice, bento dlaždice,
    vodorovný pás kurzů s filtrem, příkazová paleta. Písmo Bricolage Grotesque, barevné dlaždice.
    ZRUŠENÍ: smazat tento blok po „konec návrhu Nový trenažér“, JS blok se stejným názvem a položku neo v DESIGNS. */
-@font-face{font-family:"Bricolage N";src:url("fonts/bricolage.woff") format("woff");font-weight:200 800;font-stretch:75% 100%;font-display:swap}
+@font-face{font-family:"Bricolage N";src:url("../fonts/bricolage.woff") format("woff");font-weight:200 800;font-stretch:75% 100%;font-display:swap}
 html.d-neo.d-sal{color-scheme:light;
  --bg:#f3f2ee;--bg-2:#ffffff;--panel:#f7f6f3;--panel-2:#ebe9e3;--panel-3:#dfddd5;--line:#e4e2dc;--ink:#0f0f10;--surf:#ffffff;
  --fg:#0f0f10;--muted:#6b6a66;--dim:#9a9893;
