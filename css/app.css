@@ -1778,11 +1778,3 @@ html:not(.d-neo) .btCard{border-radius:16px;margin-top:10px}
 .lbBadge.got .lbBIc{background:var(--accent);color:#fff}
 .lbBIc svg{width:18px;height:18px}
 .lbBadge b{font-size:14px}.lbBadge small{font-size:12px;color:var(--fg-2,#777);line-height:1.3}
-.lbScroll{overflow-x:auto;margin:10px 0}
-.lbTbl{width:100%;border-collapse:collapse;font-size:14px;white-space:nowrap}
-.lbTbl th{text-align:left;font-weight:600;font-size:12px;color:var(--fg-2,#777);padding:6px 8px;border-bottom:1px solid var(--line)}
-.lbTbl td{padding:8px;border-bottom:1px solid var(--line)}
-.lbTbl tr.me td{background:color-mix(in srgb,var(--accent) 12%,transparent);font-weight:600}
-.lbPos{width:2em;color:var(--fg-2,#777)}.lbName small{font-weight:400;color:var(--fg-2,#777)}
-.lbActs{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:12px}.lbHide{display:flex;gap:6px;align-items:center;font-size:14px}
-.lbActs .btn{width:auto;flex:0 0 auto;padding-left:22px;padding-right:22px}

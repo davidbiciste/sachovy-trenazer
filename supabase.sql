@@ -369,24 +369,5 @@ revoke all on function public.trener_cv_add(text, text, text, text, text, int, t
 grant execute on function public.trener_cv_add(text, text, text, text, text, int, text), public.trener_cv_vote(text, bigint, boolean),
   public.trener_cv_list(text), public.trener_admin_cv_set(text, bigint, boolean, boolean) to anon, authenticated;
 
--- ===== Žebříček s kamarády 2 (18. 11. 2026): k XP i to, co si každý hráč spočítá sám a uloží s postupem (data->'lb': série dní, úlohy, varianty, odznaky) =====
--- Nevidí se hráči s 0 XP (kromě mě) a ti, kdo mají hideLb=true.
-create or replace function public.trener_lb2(p_token text)
-returns json language plpgsql security definer set search_path = public, extensions as $$
-declare me uuid;
-begin
-  select player_id into me from player_sessions where token = p_token;
-  if me is null then raise exception 'bad_token'; end if;
-  return coalesce((select json_agg(x order by x.week desc, x.xp desc) from (
-    select p.username, (p.id = me) as is_me,
-           coalesce((pr.data->>'xp')::bigint, 0) as xp,
-           coalesce((select sum(v::bigint) from jsonb_each_text(coalesce(pr.data->'xpDay','{}'::jsonb)) as d(k, v)
-                     where k >= to_char(now() - interval '6 days', 'YYYY-MM-DD')), 0) as week,
-           coalesce(pr.data->'lb', '{}'::jsonb) as lb,
-           pr.updated_at as upd
-      from players p left join player_progress pr on pr.player_id = p.id
-     where p.id = me or (coalesce((pr.data->>'hideLb')::boolean, false) = false and coalesce((pr.data->>'xp')::bigint, 0) > 0)
-     limit 200) x), '[]'::json);
-end $$;
-revoke all on function public.trener_lb2(text) from public;
-grant execute on function public.trener_lb2(text) to anon, authenticated;
+-- ===== Žebříček s kamarády 2 (trener_lb2) byl 18. 11. 2026 zrušen (veřejný žebříček nechceme) =====
+drop function if exists public.trener_lb2(text);
