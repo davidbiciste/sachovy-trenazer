@@ -3,7 +3,9 @@
 Odpovídej česky, jednoduše (majitel není programátor).
 
 ## Jak web funguje
-- Statický web: `index.html` (celá aplikace v jednom souboru), `config.js` (veřejné údaje Supabase).
+- Statický web (od 18. 11. 2026 rozdělený do souborů): `index.html` (HTML kostra, `APP_VERSION` a `APP_JS` v hlavičce), `css/app.css` (všechny styly), `js/*.js` v pořadí `APP_JS`: `data-kurzy` (COURSES, PUZZLES, EVAL, BETA_TU_LESSONS), `zaklad` (figury, pravidla, engine, ukládání, účty, Najít variantu, Pasti), `puzzle`, `stranky` (šachovnice a figurky, koncovky, profil, vývojář, CRAZY, zvuk, DOM, stav), `rozbor` (Rozbor hráče), `lekce` (lekce, bot, Odhad Elo), `review` (Rozbor partie), `novinky` (souřadnice, výzva, soupeři, varianty od hráčů), `uvod` (stránky, Nový trenažér, noví hráči), `trenazer` (drill, Stockfish naživo, ovládání a spuštění – musí být poslední). `config.js` = veřejné údaje Supabase.
+- Soubory se načítají přes `document.write` s `?v=APP_VERSION` (nová verze = nové adresy, service worker ani prohlížeč nedá starý soubor). Pozdější soubor smí používat funkce z dřívějších; kód, který běží hned při načtení, nesmí volat funkce ze souborů načtených později. Dynamický `import()` musí mít adresu přes `new URL('engine/…',document.baseURI)` (jinak hledá v `js/`). `fetch` a `new Worker` jsou relativně ke stránce, ty jsou v pořádku.
+- Kontrola po větší změně: smoke test projde všechny stránky jako host i přihlášený a hlídá chyby v konzoli (viz tests/rozbor.test.js pro Rozbor hráče).
 - `engine/`: Stockfish 17.1 lite (WASM, běží v prohlížeči hráče) + `chess.js` (pravidla pro volnou hru). Engine se načte až v trenažéru. Lokální test potřebuje HTTP server (`python3 -m http.server`), z `file://` Worker nefunguje.
 - Puzzle – záložka „Z tvých partií“ (`#puzzle/moje`, `pqOwnPage`, kontext `own`): úlohy z hrubých chyb konkrétního hráče, soubor `puzzles/hraci/<jméno z chess.com>.txt` (Stockfish: první tah jasně nejlepší, dál až 3 tahy hráče s víc uznanými variantami oddělenými `|`; pole 9 = pokračování, pole 10 = zisk materiálu nebo `mat`, text po vyřešení `pqOwnAfter`). Kdo má soubor: `PQ_OWN` + `PQ_OWN_ACC` (účet → jméno). Vyřešené v `store.pq.own`. Soubor má jen Gengstrdavca (davidbiciste).
 - Úlohy z partií pro všechny přihlášené (`ogPage`, `ogRun`): hráč zadá jméno z chess.com → `rzLoad` + `rzParse` (posledních `OG_N`=50 partií) → Stockfish ve vlastním Workeru v prohlížeči hráče (hl. 8 všechny pozice, kandidáti hl. 13 MultiPV 2, prodloužení na 3 tahy hl. 12 MultiPV 3) → `store.pq.gen={n,t,L}` (řádky ve stejném formátu jako soubor). Vygenerované úlohy mají přednost před souborem. Na počítači cca minuta.
@@ -22,9 +24,9 @@ Odpovídej česky, jednoduše (majitel není programátor).
 - Databáze se mění jen přes `supabase.sql` (spustit se dá opakovaně, nic nemaže).
 
 ## Pravidla
-- Při každé změně webu zvyš `APP_VERSION` v `index.html` (ukazuje se v patičce) a při změně `sw.js` i `VERSION` v něm.
+- Při každé změně webu zvyš `APP_VERSION` v hlavičce `index.html` (ukazuje se v patičce a mění adresy css/js) a při změně `sw.js` i `VERSION` v něm.
 - Změny commitni a **pushni rovnou do `main`** (majitel to tak chce), pokud neřekne jinak.
-- Před pushem zkontroluj, že se `index.html` načte bez chyb v konzoli (Playwright/Chromium je k dispozici).
+- Před pushem zkontroluj, že se web (index.html + css/ + js/) načte bez chyb v konzoli (Playwright/Chromium je k dispozici).
 - Když měníš databázi, uprav `supabase.sql` a spusť ho přes Supabase Management API:
   ```bash
   python3 -c "import json;print(json.dumps({'query':open('supabase.sql').read()}))" > /tmp/q.json
