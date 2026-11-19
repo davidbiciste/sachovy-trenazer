@@ -28,7 +28,8 @@ function betaHomeHTML(neo){if(!isBeta())return'';
  const s=btSt();const best=Math.max(0,...Object.values(s.co));
  const tile=(go,cls,ic,t,sub)=>neo?`<button class="nxTile ${cls}" data-go="${go}"><span class="nxTIc">${NX_IC[ic]}</span><span class="nxTTx"><b>${t}</b><small>${sub}</small></span><span class="nxTGo">${NX_IC.arrow}</span></button>`
   :`<button class="profStrip exStrip" data-btgo="${go}"><span><b>${t}</b><small class="sub">${sub}</small></span></button>`;
- const body=`${tile('#souradnice','sky','king','Souřadnice',best?`Rekord ${best} polí za 30 s`:'Najdi pole co nejrychleji')}
+ const body=`${tile('#hra','sun','king','Hra s kamarádem','Živá partie s hodinami, pošli odkaz')}
+  ${tile('#souradnice','sky','king','Souřadnice',best?`Rekord ${best} polí za 30 s`:'Najdi pole co nejrychleji')}
   ${tile('#odznaky','violet','bars','Odznaky',`Máš ${Object.keys(store.badges||{}).length} z ${BADGES.length}`)}
   ${tile('#vyzva','coral','trap','Výzva kamarádovi','5 puzzle na čas, pošli odkaz')}
   ${tile('#qg','sun','book','Dámský gambit','Nový kurz za bílé po 1.d4 d5 2.c4')}

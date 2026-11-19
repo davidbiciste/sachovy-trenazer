@@ -371,3 +371,222 @@ grant execute on function public.trener_cv_add(text, text, text, text, text, int
 
 -- ===== Žebříček s kamarády 2 (trener_lb2) byl 18. 11. 2026 zrušen (veřejný žebříček nechceme) =====
 drop function if exists public.trener_lb2(text);
+
+-- ===== Hra s kamarádem naživo (#hra, 19. 11. 2026) =====
+-- Tahy kontroluje prohlížeč (chess.js), databáze hlídá pořadí tahů a hodiny (čas se počítá podle času serveru).
+create table if not exists public.live_games (
+  id            bigserial primary key,
+  code          text not null unique,
+  creator       uuid not null references public.players (id) on delete cascade,
+  creator_color text not null default 'r',          -- w / b / r (náhodně)
+  white         uuid references public.players (id) on delete set null,
+  black         uuid references public.players (id) on delete set null,
+  base_ms       int  not null default 300000,       -- 0 = bez času
+  inc_ms        int  not null default 0,
+  moves         text not null default '',           -- tahy v UCI oddělené mezerou
+  ply           int  not null default 0,
+  fen           text not null default 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+  wtime         int  not null default 0,
+  btime         int  not null default 0,
+  last_at       timestamptz,
+  status        text not null default 'wait',       -- wait / play / end
+  result        text,                               -- 1-0 / 0-1 / 1/2-1/2 / null (zrušená)
+  reason        text,                               -- mate, resign, time, draw, stalemate, repetition, material, fifty, abort
+  draw_offer    text,                               -- w / b
+  rematch_offer text,                               -- w / b
+  rematch       text,                               -- kód odvety
+  created_at    timestamptz not null default now(),
+  updated_at    timestamptz not null default now()
+);
+create index if not exists live_games_white_idx on public.live_games (white, updated_at desc);
+create index if not exists live_games_black_idx on public.live_games (black, updated_at desc);
+create index if not exists live_games_creator_idx on public.live_games (creator, created_at desc);
+alter table public.live_games enable row level security;
+revoke all on public.live_games from anon, authenticated;
+
+create or replace function public.trener_live_pid(p_token text)
+returns uuid language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid;
+begin
+  select player_id into pid from player_sessions where token = p_token;
+  if pid is null then raise exception 'bad_token'; end if;
+  return pid;
+end $$;
+
+-- konec na čas: kdo propadl, prohrál; když soupeř má jen krále, je to remíza
+create or replace function public.trener_live_flag(g public.live_games)
+returns public.live_games language plpgsql security definer set search_path = public, extensions as $$
+declare stm text; left_ms int; board text;
+begin
+  if g.status <> 'play' or g.base_ms = 0 or g.ply < 2 or g.last_at is null then return g; end if;
+  stm := case when g.ply % 2 = 0 then 'w' else 'b' end;
+  left_ms := (case when stm = 'w' then g.wtime else g.btime end) - (extract(epoch from (now() - g.last_at)) * 1000)::int;
+  if left_ms > 0 then return g; end if;
+  board := split_part(g.fen, ' ', 1);
+  if stm = 'w' then g.wtime := 0; else g.btime := 0; end if;
+  g.status := 'end'; g.reason := 'time'; g.draw_offer := null;
+  if (stm = 'w' and regexp_replace(board, '[^pnbrq]', '', 'g') = '') or (stm = 'b' and regexp_replace(board, '[^PNBRQ]', '', 'g') = '') then
+    g.result := '1/2-1/2';
+  else
+    g.result := case when stm = 'w' then '0-1' else '1-0' end;
+  end if;
+  update live_games set wtime = g.wtime, btime = g.btime, status = g.status, reason = g.reason, result = g.result, draw_offer = null, updated_at = now() where id = g.id;
+  return g;
+end $$;
+
+create or replace function public.trener_live_json(g public.live_games, pid uuid)
+returns json language sql security definer set search_path = public, extensions as $$
+  select json_build_object(
+    'code', g.code, 'status', g.status, 'result', g.result, 'reason', g.reason,
+    'base', g.base_ms, 'inc', g.inc_ms, 'moves', g.moves, 'ply', g.ply, 'fen', g.fen,
+    'wtime', g.wtime, 'btime', g.btime,
+    'last', case when g.last_at is null then null else (extract(epoch from g.last_at) * 1000)::bigint end,
+    'now', (extract(epoch from clock_timestamp()) * 1000)::bigint,
+    'wname', (select username from players where id = g.white),
+    'bname', (select username from players where id = g.black),
+    'cname', (select username from players where id = g.creator),
+    'ccolor', g.creator_color,
+    'me', case when pid = g.white then 'w' when pid = g.black then 'b' when pid = g.creator and g.status = 'wait' then 'c' else null end,
+    'draw', g.draw_offer, 'remo', g.rematch_offer, 'rematch', g.rematch)
+$$;
+
+-- nová hra: p_base a p_inc v sekundách (p_base 0 = bez času), p_color w / b / r
+create or replace function public.trener_live_create(p_token text, p_base int, p_inc int, p_color text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid := trener_live_pid(p_token); c text; g live_games; i int;
+begin
+  if p_color not in ('w','b','r') then raise exception 'bad_color'; end if;
+  if p_base < 0 or p_base > 10800 or p_inc < 0 or p_inc > 180 then raise exception 'bad_time'; end if;
+  if (select count(*) from live_games where creator = pid and created_at > now() - interval '1 hour') >= 40 then raise exception 'too_many'; end if;
+  delete from live_games where status = 'wait' and created_at < now() - interval '2 days';
+  for i in 1..20 loop
+    c := (select string_agg(substr('abcdefghjkmnpqrstuvwxyz23456789', 1 + floor(random() * 31)::int, 1), '') from generate_series(1, 7));
+    exit when not exists (select 1 from live_games where code = c);
+  end loop;
+  insert into live_games (code, creator, creator_color, base_ms, inc_ms, wtime, btime)
+    values (c, pid, p_color, p_base * 1000, p_inc * 1000, p_base * 1000, p_base * 1000) returning * into g;
+  return trener_live_json(g, pid);
+end $$;
+
+-- otevření odkazu: když hra čeká a otevře ji někdo jiný než zakladatel, přisedne a hra začne
+create or replace function public.trener_live_join(p_token text, p_code text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid := trener_live_pid(p_token); g live_games; cw boolean;
+begin
+  select * into g from live_games where code = lower(trim(p_code)) for update;
+  if g.id is null then raise exception 'not_found'; end if;
+  if g.status = 'wait' and pid <> g.creator then
+    cw := case g.creator_color when 'w' then true when 'b' then false else random() < 0.5 end;
+    g.white := case when cw then g.creator else pid end;
+    g.black := case when cw then pid else g.creator end;
+    g.status := 'play'; g.last_at := now();
+    update live_games set white = g.white, black = g.black, status = 'play', last_at = now(), updated_at = now() where id = g.id;
+  end if;
+  g := trener_live_flag(g);
+  return trener_live_json(g, pid);
+end $$;
+
+create or replace function public.trener_live_state(p_token text, p_code text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid := trener_live_pid(p_token); g live_games;
+begin
+  select * into g from live_games where code = lower(trim(p_code));
+  if g.id is null then raise exception 'not_found'; end if;
+  g := trener_live_flag(g);
+  return trener_live_json(g, pid);
+end $$;
+
+-- tah: p_ply = kolikátý půltah to je (od 0), p_over = konec partie podle prohlížeče (mate, stalemate, repetition, material, fifty)
+create or replace function public.trener_live_move(p_token text, p_code text, p_ply int, p_uci text, p_fen text, p_over text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid := trener_live_pid(p_token); g live_games; col text; t int;
+begin
+  select * into g from live_games where code = lower(trim(p_code)) for update;
+  if g.id is null then raise exception 'not_found'; end if;
+  g := trener_live_flag(g);
+  if g.status <> 'play' then return trener_live_json(g, pid); end if;
+  col := case when g.ply % 2 = 0 then 'w' else 'b' end;
+  if (col = 'w' and pid is distinct from g.white) or (col = 'b' and pid is distinct from g.black) then raise exception 'not_your_turn'; end if;
+  if p_ply <> g.ply then return trener_live_json(g, pid); end if;
+  if p_uci !~ '^[a-h][1-8][a-h][1-8][qrbn]?$' or length(coalesce(p_fen,'')) > 100 or g.ply >= 1200 then raise exception 'bad_move'; end if;
+  if g.base_ms > 0 and g.ply >= 2 then
+    t := (case when col = 'w' then g.wtime else g.btime end) - (extract(epoch from (now() - g.last_at)) * 1000)::int + g.inc_ms;
+    if col = 'w' then g.wtime := t; else g.btime := t; end if;
+  end if;
+  g.moves := trim(g.moves || ' ' || p_uci); g.ply := g.ply + 1; g.fen := p_fen; g.last_at := now();
+  g.draw_offer := case when g.draw_offer = col then g.draw_offer else null end;
+  if p_over in ('mate','stalemate','repetition','material','fifty') then
+    g.status := 'end'; g.reason := p_over; g.draw_offer := null;
+    g.result := case when p_over = 'mate' then (case when col = 'w' then '1-0' else '0-1' end) else '1/2-1/2' end;
+  end if;
+  update live_games set moves = g.moves, ply = g.ply, fen = g.fen, last_at = g.last_at, wtime = g.wtime, btime = g.btime,
+    draw_offer = g.draw_offer, status = g.status, reason = g.reason, result = g.result, updated_at = now() where id = g.id;
+  return trener_live_json(g, pid);
+end $$;
+
+-- akce: resign, draw (nabídnout / přijmout), nodraw (odmítnout), abort (zrušit do prvního tahu černého), rematch (nabídnout / přijmout odvetu)
+create or replace function public.trener_live_act(p_token text, p_code text, p_act text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid := trener_live_pid(p_token); g live_games; col text; opp text; n live_games; c text; i int;
+begin
+  select * into g from live_games where code = lower(trim(p_code)) for update;
+  if g.id is null then raise exception 'not_found'; end if;
+  g := trener_live_flag(g);
+  col := case when pid = g.white then 'w' when pid = g.black then 'b' else null end;
+  if p_act = 'abort' and g.status = 'wait' and pid = g.creator then
+    update live_games set status = 'end', reason = 'abort', updated_at = now() where id = g.id returning * into g;
+    return trener_live_json(g, pid);
+  end if;
+  if col is null then raise exception 'not_player'; end if;
+  opp := case when col = 'w' then 'b' else 'w' end;
+  if g.status = 'play' then
+    if p_act = 'resign' then
+      g.status := 'end'; g.reason := 'resign'; g.result := case when col = 'w' then '0-1' else '1-0' end; g.draw_offer := null;
+    elsif p_act = 'abort' and g.ply < 2 then
+      g.status := 'end'; g.reason := 'abort'; g.result := null; g.draw_offer := null;
+    elsif p_act = 'draw' then
+      if g.draw_offer = opp then g.status := 'end'; g.reason := 'draw'; g.result := '1/2-1/2'; g.draw_offer := null;
+      else g.draw_offer := col; end if;
+    elsif p_act = 'nodraw' and g.draw_offer = opp then
+      g.draw_offer := null;
+    end if;
+  elsif g.status = 'end' and p_act = 'rematch' and g.rematch is null then
+    if g.rematch_offer = opp then
+      for i in 1..20 loop
+        c := (select string_agg(substr('abcdefghjkmnpqrstuvwxyz23456789', 1 + floor(random() * 31)::int, 1), '') from generate_series(1, 7));
+        exit when not exists (select 1 from live_games where code = c);
+      end loop;
+      insert into live_games (code, creator, creator_color, white, black, base_ms, inc_ms, wtime, btime, status, last_at)
+        values (c, pid, col, g.black, g.white, g.base_ms, g.inc_ms, g.base_ms, g.base_ms, 'play', now()) returning * into n;
+      g.rematch := c; g.rematch_offer := null;
+    else
+      g.rematch_offer := col;
+    end if;
+  elsif g.status = 'end' and p_act = 'norematch' then
+    g.rematch_offer := null;
+  end if;
+  update live_games set status = g.status, reason = g.reason, result = g.result, draw_offer = g.draw_offer,
+    rematch_offer = g.rematch_offer, rematch = g.rematch, updated_at = now() where id = g.id;
+  return trener_live_json(g, pid);
+end $$;
+
+-- moje poslední hry (rozehrané nahoře)
+create or replace function public.trener_live_mine(p_token text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid := trener_live_pid(p_token);
+begin
+  return coalesce((select json_agg(x) from (
+    select g.code, g.status, g.result, g.reason, g.base_ms as base, g.inc_ms as inc, g.ply, g.updated_at as at,
+           case when pid = g.white then 'w' when pid = g.black then 'b' else 'c' end as me,
+           (select username from players where id = case when pid = g.white then g.black else g.white end) as opp
+      from live_games g
+     where (g.white = pid or g.black = pid or (g.creator = pid and g.status = 'wait'))
+       and not (g.status = 'end' and g.reason = 'abort')
+     order by (g.status = 'end'), g.updated_at desc limit 12) x), '[]'::json);
+end $$;
+
+revoke all on function public.trener_live_pid(text), public.trener_live_flag(public.live_games), public.trener_live_json(public.live_games, uuid) from public, anon, authenticated;
+revoke all on function public.trener_live_create(text, int, int, text), public.trener_live_join(text, text), public.trener_live_state(text, text),
+  public.trener_live_move(text, text, int, text, text, text), public.trener_live_act(text, text, text), public.trener_live_mine(text) from public;
+grant execute on function public.trener_live_create(text, int, int, text), public.trener_live_join(text, text), public.trener_live_state(text, text),
+  public.trener_live_move(text, text, int, text, text, text), public.trener_live_act(text, text, text), public.trener_live_mine(text) to anon, authenticated;
