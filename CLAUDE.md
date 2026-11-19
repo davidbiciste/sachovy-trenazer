@@ -61,6 +61,7 @@ Odpovídej česky, jednoduše (majitel není programátor).
 - Třída `d-neo` na `<html>` (spolu s `d-klub d-sal`), CSS blok „NÁVRH Nový trenažér“, JS blok se stejným názvem (`renderNeoHome`, `nxNav`, `nxCmd`). Písmo Bricolage Grotesque v `fonts/bricolage.woff` (hostované u sebe).
 - Boční menu (počítač) / spodní lišta (mobil), úvod s živou šachovnicí, bento dlaždice, pás kurzů, hledání Ctrl K.
 - Úplně noví hráči (žádné XP ani hotová varianta, `fresh` v `renderNeoHome`): místo velké karty výběr „Jak hraješ šachy?“ (`nxStartHTML`, `nxStartWire`, 5 možností, u 1000+ ještě barva) → `store.start={l,s}` → doporučení `nxStartRec` (lekce g0/g1, Odhad Elo, nebo kurz italian/vienna/caro/najdorf) s odkazem „Vybrat znovu“. Noví hráči nevidí čísla se samými nulami, Novinky, Najít variantu, Rozbor partie/hráče ani „Vrátit starý vzhled“; místo Rozboru partie mají dlaždici Souřadnice (`#souradnice` je pro všechny).
+- Nováček (19. 11. 2026): dokud nevybere „Jak hraješ šachy?“, vidí na úvodu jen tuhle otázku (`calm`, zbytek v `#nxMore` schovaný, odkaz „Ukázat celý trenažér“ = `NX.all`); noví hráči nemají nahoře zvuk, vzhled ani level. Přihlašovací okno pro úplně nové návštěvníky (bez `localStorage['trener-was-in']`, tokenu a XP) má uvítání, co web umí, a otevře se na Registrovat. Dlouhý text o původu variant je v patičce sbalený pod „Odkud jsou varianty“.
 - Tlačítko „Starý vzhled“ v menu a „Vrátit starý vzhled“ dole na úvodu vidí jen správce (muzeum); ostatním jsou schované.
 - Zálohy před novým vzhledem: větev `zaloha-pred-novym-trenazerem`.
 
