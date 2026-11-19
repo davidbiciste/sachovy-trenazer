@@ -315,7 +315,7 @@ const markColor=e=>e.shiftKey?'#d6453d':e.altKey?'#2f7fd8':e.ctrlKey||e.metaKey?
 boardEl.addEventListener('contextmenu',e=>e.preventDefault());
 let holdT=null;boardEl.addEventListener('pointerdown',e=>{if(e.button===2||(pen&&e.button===0)){const i=sqAt(e.clientX,e.clientY);if(i!=null){drawStart={sq:i,c:markColor(e)};clearTimeout(holdT);holdT=setTimeout(()=>{if(drawStart&&drawStart.sq===i){marks=[];renderMarks();drawStart=null;}},650);e.stopImmediatePropagation();e.preventDefault();}}},true);
 window.addEventListener('pointerup',e=>{clearTimeout(holdT);if(!drawStart)return;const i=sqAt(e.clientX,e.clientY);if(i!=null){if(i===drawStart.sq){markClick(marks,i,boardPt(boardEl,e.clientX,e.clientY),q=>colOf(q)+.5,q=>rowOf(q)+.5,drawStart.c);renderMarks();}else toggleMark(drawStart.sq,i,drawStart.c);}drawStart=null;},true);
-$('penBtn').onclick=()=>{pen=!pen;$('penBtn').setAttribute('aria-pressed',pen);if(!pen)clearMarks();};
+$('flipBtn').onclick=()=>boardFlip();$('penBtn').onclick=()=>{pen=!pen;$('penBtn').setAttribute('aria-pressed',pen);if(!pen)clearMarks();};
 /* ---------- Pointer ---------- */
 function sqAt(x,y){const r=boardEl.getBoundingClientRect();const col=Math.floor((x-r.left)/r.width*8),row=Math.floor((y-r.top)/r.height*8);
  if(col<0||col>7||row<0||row>7)return null;const f=flipped?7-col:col,rk=flipped?row:7-row;return rk*8+f;}

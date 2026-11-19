@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <script src="config.js"></script>
-<script>const APP_VERSION='2026-11-18 desky1';/* zvyš při každé změně – ukazuje se v patičce a mění adresy css/ a js/ souborů (aby hráči dostali novou verzi) */
+<script>const APP_VERSION='2026-11-19 otocit1';/* zvyš při každé změně – ukazuje se v patičce a mění adresy css/ a js/ souborů (aby hráči dostali novou verzi) */
 const APP_JS=["data-kurzy", "zaklad", "puzzle", "stranky", "rozbor", "lekce", "review", "novinky", "uvod", "zebricek", "trenazer"];</script>
 <script>/* PŘEPÍNAČ VZHLEDU (pro všechny hráče): výchozí je Nový trenažér (neo), starý vzhled = sal */
 window.DESIGNS={neo:{n:'Nový trenažér',d:'Výchozí: boční menu, živá šachovnice, barevné dlaždice, hledání Ctrl K',cls:'d-klub d-sal d-neo'},
@@ -82,6 +82,7 @@ window.applyDesign(window.MUSEUM?(localStorage.getItem('trener-design')||'neo'):
         <button class="btn" id="nPrev" aria-label="Tah zpět"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z"/></svg></button>
         <button class="btn" id="nNext" aria-label="Tah vpřed"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 6 8.6 7.4 13.2 12l-4.6 4.6L10 18l6-6z"/></svg></button>
         <button class="btn penBtn" id="penBtn" aria-pressed="false" title="Kreslení šipek levým tlačítkem (pravým kreslíš vždy; znovu stejná šipka nebo pole = smazat, podržet = smazat vše)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.2V21h3.8l11-11-3.8-3.8-11 11zM20.7 7a1 1 0 0 0 0-1.4l-2.3-2.3a1 1 0 0 0-1.4 0l-1.8 1.8 3.8 3.8L20.7 7z"/></svg></button>
+        <button class="btn" id="flipBtn" aria-label="Otočit šachovnici" title="Otočit šachovnici (klávesa F)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3 5 6.99h3V14h2V6.99h3L9 3z"/></svg></button>
         <button class="btn" id="nLast" aria-label="Na aktuální tah"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg></button>
       </div>
     </section>
