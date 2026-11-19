@@ -87,6 +87,48 @@ function btGameView(i){const d=BT.dev&&BT.dev[i];if(!d)return;const box=document
  set(devK);box.scrollIntoView({block:'nearest',behavior:'smooth'});}
 function btPractice(cid,lid){const c=COURSES.find(q=>q.id===cid);if(!c)return;const from=location.hash;BT_NAV++;course=c;page='course';history.pushState(null,'','#'+c.id);flipped=c.side==='b';const l=LINES().find(q=>q.id===lid);if(l)openLine(l);else route();BT.from=from;/* Zpět do menu vrátí sem */}
 
+/* ---------- Co teď cvičit (#plan) – jen pro správce (isTest), plán z rozboru 295 partií z chess.com (listopad 2026) ---------- */
+const PLAN_DATE='19. 11. 2026';
+const PLAN=[
+ {k:'d6',min:5,t:'Vídeňka: když černý zahraje 2…d6',go:['vienna','2d6'],go2:['vienna','v-2d6-nd7'],
+  why:'Tohle ti soupeři hrají často (11 partií) a máš tu nejhorší výsledek: jen 27 %. Hrál jsi 3.Nf3 nebo 3.f4.',
+  todo:'Správně je hned <b>3.d4</b>. Když černý vezme 3…exd4, ber dámou <b>4.Qxd4</b> a pak dámu uhni na d3. Černý je tak pasivní, že mu rovnou zabereš centrum.'},
+ {k:'bc5',min:5,t:'Vídeňka: když černý zahraje 2…Bc5',go:['vienna','bc5'],go2:['vienna','v-bc5-nc6'],
+  why:'9 partií a jen 33 %. Po 3.Nf3 d6 4.d4 exd4 5.Nxd4 Nf6 jsi dvakrát zahrál 6.Bg5 a obě partie jsi prohrál.',
+  todo:'Tam patří klidné <b>6.Be2</b> a rošáda. A když černý místo d6 zahraje 3…Nc6, máš trik <b>4.Nxe5!</b> a po 4…Nxe5 vidličku <b>5.d4</b>.'},
+ {k:'nc6',min:5,t:'Vídeňka: po 2…Nc6 vždycky 3.Bc4',go:['vienna','cc-g6-d6'],go2:['vienna','cc-qf6'],
+  why:'Nejčastější odpověď soupeřů (26 partií). Sedmkrát jsi zahrál 3.Nf3 a z Vídeňky se stala obyčejná hra čtyř jezdců. Po 3.Bc4 Bc5 jsi čtyřikrát zahrál 4.Nf3 místo naučeného 4.Qg4.',
+  todo:'Po 2…Nc6 hraj <b>3.Bc4</b>, a když přijde 3…Bc5, tak hned <b>4.Qg4</b>: dáma hrozí sebrat g7. Procvič obě odpovědi černého (4…g6 a 4…Qf6).'},
+ {k:'own',min:10,t:'Puzzle z tvých partií',href:'#puzzle/moje',
+  why:'Dvě třetiny proher nejsou kvůli zahájení. 69 proher skončilo matem a 34 partií jsi prohrál do 20. tahu.',
+  todo:'Vyřeš úlohy, které čekají na dnešek. Jsou to přesně pozice, kde jsi v partii udělal hrubou chybu.'},
+ {k:'hang',min:5,t:'Motiv: nekrytá figura',href:'#puzzle/motivy/hangingPiece',
+  why:'Nejčastější chyba v tvých partiích: figura postavená na pole, kam na ni soupeř dosáhne (52× ze 168 chyb).',
+  todo:'Pár úloh na rozehřátí. Jestli zbude čas, přidej <a href="#puzzle/motivy/backRankMate">Mat na poslední řadě</a>.'},
+ {k:'slav',min:5,t:'Za černé proti 1.d4: Slovanská',href:'#slav',
+  why:'Proti 1.d4 máš jen 4 výhry z 25 partií (16 %). Tady se dá získat nejvíc bodů, protože teď proti 1.d4 hraješ, co tě zrovna napadne.',
+  todo:'Začni první kapitolou. Stačí umět prvních 5–6 tahů: 1…d5, 2…c6 a vyvést figury.'}];
+const PLAN_RULES=['Hraj rapid 10+0 místo blitzu. V rapidu máš 74 %, v blitzu 49 %.',
+ 'Před každým tahem tři otázky: <b>Co mi soupeř hrozí? Co mám nekryté? Je tu šach, braní nebo útok?</b>',
+ 'Po 1.e4 e5 hraj 2.Nc3 a drž se kurzu. Gambit 3.f4 ti funguje skvěle: 13 partií a 81 %, jen se do něj soupeři dostanou málokdy.',
+ 'Když soupeř nezahraje 1…e5 (je to polovina partií), zatím hraj jednoduše: d4, Nf3, Nc3, Bc4 nebo Bd3 a rošáda. Do kurzu tyhle odpovědi ještě doplníme.'];
+function planDay(){const s=btSt();const d=new Date().toISOString().slice(0,10);if(!s.plan||s.plan.d!==d)s.plan={d,ok:[]};return s.plan;}
+function renderPlan(){document.body.classList.add('homeMode');
+ if(!isTest()){$('home').innerHTML='<button type="button" class="btn btBack">← Zpět</button><div class="profCard"><h2>Co teď cvičit</h2><p class="btDim">Tahle stránka je jen pro správce.</p></div>';return;}
+ const P=planDay();const done=PLAN.filter(x=>P.ok.includes(x.k)).length;const mins=PLAN.reduce((a,x)=>a+x.min,0);
+ $('home').innerHTML=`<button type="button" class="btn btBack">← Zpět</button><div class="btPage plPage"><div class="btHead"><h1>Co teď cvičit</h1>
+ <p class="btDim">Plán jen pro tebe. Vychází z rozboru tvých 295 partií z chess.com (rozbor ${PLAN_DATE}). Celkem asi ${mins} minut, jdi odshora. Hotové si odškrtni, zítra se seznam vynuluje.</p></div>
+ <div class="plProg"><span class="nxCBar"><i style="width:${Math.round(100*done/PLAN.length)}%"></i></span><span>${done} z ${PLAN.length} hotovo</span></div>
+ <ol class="plList">${PLAN.map((x,i)=>{const ok=P.ok.includes(x.k);return `<li class="plItem profCard${ok?' ok':''}">
+  <div class="plTop"><label class="plChk"><input type="checkbox" data-plk="${x.k}"${ok?' checked':''}><span class="plN">${i+1}</span></label><div class="plTx"><h2>${x.t}</h2><span class="btDim plMin">${x.min} min</span></div></div>
+  <p class="plWhy"><b>Proč:</b> ${x.why}</p><p class="plDo"><b>Co dělat:</b> ${x.todo}</p>
+  <div class="plBtns">${x.go?`<button class="btn primary" data-plgo="${x.go.join('|')}">Procvičit</button>${x.go2?`<button class="btn" data-plgo="${x.go2.join('|')}">Druhá varianta</button>`:''}`:`<button class="btn primary" data-go="${x.href}">Otevřít</button>`}</div></li>`;}).join('')}</ol>
+ <div class="profCard plRules"><h2>Do partií si pamatuj</h2><ul>${PLAN_RULES.map(r=>`<li>${r}</li>`).join('')}</ul></div></div>`;
+ const H=$('home');
+ H.querySelectorAll('[data-plk]').forEach(c=>c.onchange=()=>{const P=planDay();const k=c.dataset.plk;P.ok=P.ok.filter(q=>q!==k);if(c.checked)P.ok.push(k);save();renderPlan();});
+ H.querySelectorAll('[data-plgo]').forEach(b=>b.onclick=()=>btPractice(...b.dataset.plgo.split('|')));
+ H.querySelectorAll('.plItem [data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));}
+
 /* ---------- trénink souřadnic (#souradnice) ---------- */
 const BT_CO_SEC=30;
 function renderCoords(){document.body.classList.add('homeMode');const s=btSt();const C=BT.co=BT.co||{mode:'find',side:'w',lab:true,run:false};
