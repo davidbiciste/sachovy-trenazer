@@ -215,7 +215,7 @@ function msgShow(m,kind){MSG.shown.add((kind==='reply'?'r':'m')+m.id);const d=do
   try{if(kind==='reply')await rpc('trener_admin_message',{p_token:getTok(),p_user:m.from,p_body:t});else await rpc('trener_reply',{p_token:getTok(),p_body:t,p_reply_to:m.id});
    note.textContent='Odesláno.';setTimeout(close,900);}catch(e){b.disabled=false;note.textContent=/too_many/.test(e.message||'')?'Moc zpráv za hodinu, zkus to později.':'Nepodařilo se odeslat. Zkontroluj připojení a zkus to znovu.';}};}
 setInterval(msgCheck,20000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)msgCheck();});
-async function onLogin(token,known){setSync('wait');
+async function onLogin(token,known){try{localStorage.setItem('trener-was-in','1');}catch(e){}setSync('wait');
  try{const r=await rpc('trener_load',{p_token:token});setTok(token);SYNC.user=r.username;SYNC.uid=r.username;SYNC.admin=!!r.is_admin;
   if(store.owner!==r.username)resetLocal();betaApply();/* postup jiného účtu (nebo bez účtu) se do tohohle účtu nepřimíchá */
   await attachBackend({kind:'supa',save:s=>rpc('trener_save',{p_token:token,p_data:s})},r.data||null);store.owner=r.username;saveLocal();
@@ -226,9 +226,9 @@ async function supaLogout(){const t=getTok();try{if(SYNC.dirty){clearTimeout(SYN
 function resetLocal(){store={xp:0,sound:store.sound!==false,theme:store.theme||'green',prog:{},mastered:{}};COURSES.forEach(c=>{store.prog[c.id]={};});saveLocal();
  try{applyTheme();renderSound();renderLvl();if(!$('home').hidden)renderHome();}catch(e){}}
 const AUTH_ERR=m=>/taken/.test(m)?'Tohle jméno už někdo má. Vyber si jiné, nebo se přihlas.':/bad_login/.test(m)?'Špatné jméno nebo heslo.':/bad_username/.test(m)?'Jméno: 3–20 znaků, jen písmena bez diakritiky, čísla, tečka, pomlčka nebo podtržítko.':/short_password/.test(m)?'Heslo musí mít aspoň 6 znaků.':/too_many/.test(m)?'Moc pokusů. Zkus to za pár minut.':/Failed to fetch|NetworkError|Load failed/i.test(m)?'Nejde se spojit se serverem. Jsi online? (Free Supabase projekt se mohl uspat.)':/Invalid API key|No API key|JWT|Unauthorized/i.test(m)?'Špatný klíč v config.js. Zkus místo publishable klíče starší „anon“ klíč (viz návod).':/no_user/.test(m)?'Takový hráč neexistuje.':/forbidden/.test(m)?'Na tohle nemáš oprávnění.':/function .* does not exist|Could not find the function/i.test(m)?'V Supabase chybí funkce – spusť soubor supabase.sql (viz návod).':'Nepovedlo se: '+m;
-function openAccount(gate){if(gate!==true)gate=false;if(!gate&&needGate())return;const pk=gate?$('gate'):$('picker');const logged=SYNC.be&&SYNC.be.kind==='supa';
+function openAccount(gate){if(gate!==true)gate=false;if(!gate&&needGate())return;let gNew=false;try{gNew=gate&&!localStorage.getItem('trener-was-in')&&!getTok()&&!(store.xp>0);}catch(e){}/* úplně nový návštěvník: rovnou Registrovat */const pk=gate?$('gate'):$('picker');const logged=SYNC.be&&SYNC.be.kind==='supa';
  pk.innerHTML=logged?`<div class="pkCard acc"><h2>Tvůj účet</h2><p>Přihlášen jako <b>${escH(SYNC.user)}</b>. Postup se ukládá do účtu. Na jiném zařízení se přihlas stejným jménem a heslem a uvidíš ho tam taky.</p><div class="row"><button class="btn" id="accClose">Zavřít</button><button class="btn" id="accOut">Odhlásit</button></div></div>`
- :`<div class="pkCard acc">${gate?'<h2>Přihlas se a hraj</h2><p>Na hraní potřebuješ účet. Nemáš ho? Klikni na <b>Registrovat</b>, stačí jméno a heslo. Postup se ti uloží a uvidíš ho na mobilu i na počítači.</p>':'<h2>Účet</h2><p>S účtem se ti postup uloží a uvidíš ho na mobilu i na počítači.</p>'}${gate&&SYNC.state==='err'?'<p class="accMsg">Nepodařilo se načíst účet. Zkus se přihlásit znovu.</p>':''}
+ :`<div class="pkCard acc">${gate?(gNew?'<h2>Vítej v Šachovém trenažéru</h2><p>Naučíš se tu zahájení, taktiku i koncovky. Krok za krokem, ať hraješ šachy první týden, nebo roky.</p><ul class="accWhat"><li>Lekce od pravidel až po 1500 Elo</li><li>Kurzy zahájení s tahy ověřenými enginem</li><li>Puzzle podle tvé úrovně</li></ul><p>Založ si účet, stačí jméno a heslo. Postup se ti uloží a uvidíš ho na mobilu i na počítači. Je to zdarma.</p>':'<h2>Přihlas se a hraj</h2><p>Na hraní potřebuješ účet. Nemáš ho? Klikni na <b>Registrovat</b>, stačí jméno a heslo. Postup se ti uloží a uvidíš ho na mobilu i na počítači.</p>'):'<h2>Účet</h2><p>S účtem se ti postup uloží a uvidíš ho na mobilu i na počítači.</p>'}${gate&&SYNC.state==='err'?'<p class="accMsg">Nepodařilo se načíst účet. Zkus se přihlásit znovu.</p>':''}
   <div class="accTabs chip2" role="group"><button type="button" data-at="in" aria-pressed="true">Přihlásit</button><button type="button" data-at="up" aria-pressed="false">Registrovat</button></div>
   <form id="accForm" autocomplete="on" novalidate><label>Přihlašovací jméno<input id="accUser" name="username" maxlength="20" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
   <label>Heslo<input id="accPass" name="password" type="password" autocomplete="current-password"></label>
@@ -238,13 +238,14 @@ function openAccount(gate){if(gate!==true)gate=false;if(!gate&&needGate())return
  pk.hidden=false;let tab='in';
  pk.onclick=async e=>{if((e.target===pk&&!gate)||e.target.id==='accClose'){pk.hidden=true;return;}if(e.target.id==='accOut'){await supaLogout();pk.hidden=true;if(!$('home').hidden)renderHome();return;}
   const t=e.target.closest('[data-at]');if(t){tab=t.dataset.at;const up=tab==='up';pk.querySelectorAll('[data-at]').forEach(b=>b.setAttribute('aria-pressed',b===t));pk.querySelector('.accRep').hidden=!up;pk.querySelector('.accHint').hidden=!up;$('accGo').textContent=up?'Vytvořit účet':'Přihlásit';$('accPass').autocomplete=up?'new-password':'current-password';$('accMsg').textContent='';}};
- pk.onchange=null;const f=document.getElementById('accForm');if(!f)return;
+ pk.onchange=null;if(gNew){const up=pk.querySelector('[data-at="up"]');if(up)up.click();}
+ const f=document.getElementById('accForm');if(!f)return;
  f.onsubmit=async e=>{e.preventDefault();const msg=$('accMsg');if(!SB){msg.textContent='Připojení k účtům teď nefunguje. Obnov stránku, nebo to zkus za chvíli.';return;}
   const user=$('accUser').value.trim().toLowerCase(),pass=$('accPass').value;
   if(!/^[a-z0-9_.-]{3,20}$/.test(user)){msg.textContent=AUTH_ERR('bad_username');return;}if(pass.length<6){msg.textContent=AUTH_ERR('short_password');return;}
   if(tab==='up'&&pass!==$('accPass2').value){msg.textContent='Hesla se neshodují.';return;}
   const go=$('accGo');go.disabled=true;msg.textContent=tab==='up'?'Vytvářím účet…':'Přihlašuji…';
-  try{const r=await rpc(tab==='up'?'trener_register':'trener_login',{p_user:user,p_pass:pass});if(r&&r.error)throw new Error(r.error);await onLogin(r.token,true);
+  try{const r=await rpc(tab==='up'?'trener_register':'trener_login',{p_user:user,p_pass:pass});if(r&&r.error)throw new Error(r.error);try{localStorage.setItem('trener-was-in','1');}catch(e){}await onLogin(r.token,true);
   }catch(err){msg.textContent=AUTH_ERR(err&&err.message||String(err));go.disabled=false;}};}
 /* ---------- levely podle XP ---------- */
 const LVL_NAMES=['Začátečník','Pěšák','Jezdec','Střelec','Věž','Dáma','Král','Klubový hráč','Turnajový hráč','Krajský přeborník','Kandidát mistra','Národní mistr','FIDE mistr','Mezinárodní mistr','Velmistr','Supervelmistr','Kandidát na titul','Mistr světa','Legenda','Šachový bůh'];

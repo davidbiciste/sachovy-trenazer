@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <script src="config.js"></script>
-<script>const APP_VERSION='2026-11-19 plan1';/* zvyš při každé změně – ukazuje se v patičce a mění adresy css/ a js/ souborů (aby hráči dostali novou verzi) */
+<script>const APP_VERSION='2026-11-19 novacek1';/* zvyš při každé změně – ukazuje se v patičce a mění adresy css/ a js/ souborů (aby hráči dostali novou verzi) */
 const APP_JS=["data-kurzy", "zaklad", "puzzle", "stranky", "rozbor", "lekce", "review", "novinky", "uvod", "zebricek", "trenazer"];</script>
 <script>/* PŘEPÍNAČ VZHLEDU (pro všechny hráče): výchozí je Nový trenažér (neo), starý vzhled = sal */
 window.DESIGNS={neo:{n:'Nový trenažér',d:'Výchozí: boční menu, živá šachovnice, barevné dlaždice, hledání Ctrl K',cls:'d-klub d-sal d-neo'},
@@ -121,7 +121,8 @@ window.applyDesign(window.MUSEUM?(localStorage.getItem('trener-design')||'neo'):
   </div>
   <div class="picker" id="picker" hidden></div>
   <div class="picker gate" id="gate" hidden></div>
-  <p class="foot">Varianty sestavil Claude a každý tah, který hraješ ty, ověřil proti vyhodnocení enginu Stockfish z databáze Lichess. Tahy soupeře jsou nejčastěji nejlepší odpovědi enginu. Slovanskou obranu, Najdorfa a Královskou indickou (i nově doplněné varianty) jsem sestavil a ověřil enginem Stockfish 16 (hloubka 16–18). Procenta u variant jsou z databáze Lichess (hráči 1400–2500, blitz, rapid a klasika). Výjimkou je Kráva: je to vtipné zahájení, které je objektivně o kousek horší, a její varianty jsou sestavené podle plánu krávy (engine jen hlídá, abys neztratil figuru). Podobně Alien gambit je vtipný a objektivně nekorektní gambit – tahy bílého v něm vybral Stockfish 16 (hloubka 17–18) jako nejlepší pokračování po oběti. Figury jsou kreslené ve stylu sady Colina M. L. Burnetta (CC BY-SA 3.0). Šipkami ← → procházíš tahy. <span id="appVer"></span></p>
+  <div class="foot"><p>Každý tah, který v kurzech hraješ, je ověřený enginem Stockfish. Figury: Colin M. L. Burnett (CC BY-SA 3.0). <span id="appVer"></span></p>
+  <details class="footMore"><summary>Odkud jsou varianty</summary><p>Varianty sestavil Claude a každý tah, který hraješ ty, ověřil proti vyhodnocení enginu Stockfish z databáze Lichess. Tahy soupeře jsou nejčastěji nejlepší odpovědi enginu. Slovanskou obranu, Najdorfa a Královskou indickou (i nově doplněné varianty) jsem sestavil a ověřil enginem Stockfish 16 (hloubka 16–18). Procenta u variant jsou z databáze Lichess (hráči 1400–2500, blitz, rapid a klasika). Výjimkou je Kráva: je to vtipné zahájení, které je objektivně o kousek horší, a její varianty jsou sestavené podle plánu krávy (engine jen hlídá, abys neztratil figuru). Podobně Alien gambit je vtipný a objektivně nekorektní gambit – tahy bílého v něm vybral Stockfish 16 (hloubka 17–18) jako nejlepší pokračování po oběti. Šipkami ← → procházíš tahy.</p></details></div>
 </div>
 
 <script>/* aplikace je rozdělená do souborů v js/ – načítají se v tomhle pořadí (pozdější soubory používají funkce z dřívějších) */

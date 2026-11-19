@@ -188,6 +188,7 @@ function nxStartWire(){const hero=document.querySelector('.nxHero');if(!hero)ret
 function renderNeoHome(){document.body.classList.add('homeMode');const L=lvlOf(store.xp);const rec=nxPick();
  const all=COURSES.flatMap(c=>c.chapters.flatMap(ch=>ch.lines.map(l=>stateIn(c,l))));const done=all.filter(s=>s==='done'||s==='due').length,dueAll=all.filter(s=>s==='due').length;
  const fresh=!(store.xp>0)&&!done;/* úplně nový hráč: zatím žádné XP ani hotová varianta */
+ const calm=fresh&&!store.start&&!NX.all;/* nováček před výběrem: jen otázka „Jak hraješ šachy?“, nic dalšího, ať ví, kam kliknout */
  const sr=fresh?nxStartRec():null,pick=(fresh&&!store.start)?null:(sr&&(sr.c?{c:sr.c,why:sr.why,cta:sr.cta,own:sr}:{own:sr}))||rec;
  const heroTx=!pick?nxStartHTML():pick.c?`<div class="nxHeroTx"><span class="nxEyebrowless">${pick.c.side==='w'?'Za bílé':'Za černé'}</span><h1>${pick.c.title}</h1><p>${pick.why}</p>
    <div class="nxHeroProg"><span class="nxCBar"><i style="width:${courseProg(pick.c)}%"></i></span><span>${courseProg(pick.c)} %</span></div>
@@ -197,12 +198,13 @@ function renderNeoHome(){document.body.classList.add('homeMode');const L=lvlOf(s
  const g=greeting();const nm='';/* jméno se neskloňuje (je to přihlašovací jméno), proto ho do oslovení nedáváme */const hi=/[?!]$/.test(g)?g.replace(/([?!])$/,nm+'$1'):g+nm+'.';
  const tile=(id,cls,ic,t,s,extra='')=>`<button class="nxTile ${cls}" data-go="${id}"><span class="nxTIc">${NX_IC[ic]}</span><span class="nxTTx"><b>${t}</b><small>${s}</small></span>${extra}<span class="nxTGo">${NX_IC.arrow}</span></button>`;
  let h=`<div class="nx">
- <header class="nxHead"><div class="nxHi"><p>${hi}</p></div><div class="nxTools"><button class="nxSearch" id="nxSearch">${NX_IC.search}<span>Hledat kurz nebo stránku</span><kbd>Ctrl K</kbd></button><button class="nxIco" id="nxSound" aria-label="Zvuk">${store.sound?SND_ON:SND_OFF}</button><button class="nxIco" id="nxLooks" aria-label="Vzhled" title="Vzhled">${NX_IC.brush}</button><button class="nxLvl" id="nxLvl" title="Tvůj level"><span class="nxRing" style="--p:${L.pct}"><b>${L.n}</b></span><span><b>${escH(myLvl(L))}</b><small>${store.xp} XP</small></span></button></div></header>
- <section class="nxHero${pick?'':' isStart'}">
+ <header class="nxHead"><div class="nxHi"><p>${hi}</p></div><div class="nxTools"><button class="nxSearch" id="nxSearch">${NX_IC.search}<span>Hledat kurz nebo stránku</span><kbd>Ctrl K</kbd></button><button class="nxIco" id="nxSound" aria-label="Zvuk" title="Zvuk"${fresh?' hidden':''}>${store.sound?SND_ON:SND_OFF}</button><button class="nxIco" id="nxLooks" aria-label="Vzhled šachovnice" title="Vzhled šachovnice"${fresh?' hidden':''}>${NX_IC.brush}</button><button class="nxLvl" id="nxLvl" title="Tvůj level"${fresh?' hidden':''}><span class="nxRing" style="--p:${L.pct}"><b>${L.n}</b></span><span><b>${escH(myLvl(L))}</b><small>${store.xp} XP</small></span></button></div></header>
+ <section class="nxHero${pick?'':' isStart'}${pick&&!pick.c?' noCourse':''}">
   ${heroTx}
   <div class="nxHeroBoard" id="nxHeroBoard" data-go="#${(pick&&pick.c||COURSES.find(x=>x.id==='italian')||COURSES[0]).id}" title="${escH((pick&&pick.c||COURSES.find(x=>x.id==='italian')||COURSES[0]).title)} – otevřít kurz"></div>
  </section>
- ${fresh?'':`<section class="nxStats">
+ ${calm?`<p class="nxCalm">Chceš se nejdřív jen rozhlédnout? <button class="nxLink" id="nxAll">Ukázat celý trenažér</button></p>`:''}
+ <div class="nxMore" id="nxMore"${calm?' hidden':''}>${fresh?'':`<section class="nxStats">
   <div class="nxStat"><span class="nxSN" data-count="${done}">${done}</span><span class="nxSL">variant umíš</span></div>
   <div class="nxStat ${dueAll?'hot':''}"><span class="nxSN" data-count="${dueAll}">${dueAll}</span><span class="nxSL">k opakování dnes</span></div>
   <div class="nxStat"><span class="nxSN" data-count="${store.xp||0}">${store.xp||0}</span><span class="nxSL">XP celkem</span></div>
@@ -211,7 +213,7 @@ function renderNeoHome(){document.body.classList.add('homeMode');const L=lvlOf(s
  ${isTest()?`<button class="nxPlan" data-go="#plan"><span class="nxTTx"><b>Co mám teď cvičit</b><small>Plán jen pro tebe podle tvých partií. Asi 35 minut.</small></span><span class="nxTGo">${NX_IC.arrow}</span></button>`:''}
  <h2 class="nxH2">Trénink</h2>
  <section class="nxBento">
-  ${tile('#lekce','lime big','book','Lekce strategie','Od nováčka po 1500 Elo. Krátké vysvětlení, cvičení a hra proti botům.')}
+  ${tile('#lekce','lime big','book','Lekce strategie','Od nováčka po 1500 Elo. Krátké vysvětlení, cvičení a hra proti botům.','<span class="nxFloors" aria-hidden="true"><i>Základy</i><i>Cesta k 1000</i><i>Nad 1000</i><i>Nad 1500</i></span>')}
   ${tile('#odhad','violet','elo','Odhad Elo','Zahraj partii a zjisti, kde jsi')}
   ${tile('#puzzle','coral','trap','Puzzle a pasti','Úrovně od 400 do 2800, Puzzle Rush, pasti')}
   ${fresh?tile('#souradnice','sky','king','Souřadnice','Nauč se najít každé pole na šachovnici'):tile('#review','sky','chart','Rozbor partie','Každý tah ohodnocený')}
@@ -220,11 +222,12 @@ function renderNeoHome(){document.body.classList.add('homeMode');const L=lvlOf(s
   ${fresh?'':tile(store.ccName?'#rozbor/'+encodeURIComponent(store.ccName):'#rozbor','plain','bars','Rozbor hráče','Tvoje partie z chess.com')}
  </section>
  ${fresh?'':betaHomeHTML(true)}
- <section class="nxCourses" id="nxCourses"><div class="nxCHead"><h2 class="nxH2">Tvoje zahájení</h2><div class="nxSeg" role="group" aria-label="Filtr kurzů"><span class="nxSegInd" aria-hidden="true"></span>${[['all','Vše'],['w','Za bílé'],['b','Za černé']].map(([k,t])=>`<button data-f="${k}" aria-pressed="${NX.f===k}">${t}</button>`).join('')}</div><div class="nxArrows"><button class="nxIco" data-sc="-1" aria-label="Posunout doleva">${NX_IC.left}</button><button class="nxIco" data-sc="1" aria-label="Posunout doprava">${NX_IC.right}</button></div></div>
+ <section class="nxCourses" id="nxCourses"><div class="nxCHead"><h2 class="nxH2">${fresh?'Kurzy zahájení':'Tvoje zahájení'}</h2><div class="nxSeg" role="group" aria-label="Filtr kurzů"><span class="nxSegInd" aria-hidden="true"></span>${[['all','Vše'],['w','Za bílé'],['b','Za černé']].map(([k,t])=>`<button data-f="${k}" aria-pressed="${NX.f===k}">${t}</button>`).join('')}</div><div class="nxArrows"><button class="nxIco" data-sc="-1" aria-label="Posunout doleva">${NX_IC.left}</button><button class="nxIco" data-sc="1" aria-label="Posunout doprava">${NX_IC.right}</button></div></div>
   <div class="nxRow" id="nxRow">${[...COURSES].sort((a,b)=>(a.side==='w'?0:1)-(b.side==='w'?0:1)).map(nxCourseCard).join('')}</div></section>
+ </div>
  <footer class="nxFoot"><p class="nxOldRow nxDevLnk"${SYNC.admin&&getTok()?'':' hidden'}><button class="nxLink" id="nxDev">Vývojářská stránka</button></p><p class="nxOldRow"${fresh?' hidden':''}>Nový vzhled ti nesedí? <button class="nxLink" id="nxOld">Vrátit starý vzhled</button></p><p class="nxJoke"><span id="jokeTx">${JOKES[JOKE_I]}</span> <button class="nxLink" id="jokeNext">Další vtip</button></p>${syncHTML()}</footer>
  </div>`;
- $('home').innerHTML=h;renderSide();wireSync();nxStartWire();try{if(SYNC.user&&typeof lbTick==='function'&&lbTick(true))save();}catch(e){}
+ $('home').innerHTML=h;renderSide();if($('nxAll'))$('nxAll').onclick=()=>{NX.all=true;$('nxMore').hidden=false;$('nxAll').parentNode.hidden=true;nxFilter(NX.f,true);const t=$('nxMore');t.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});};wireSync();nxStartWire();try{if(SYNC.user&&typeof lbTick==='function'&&lbTick(true))save();}catch(e){}
  nxBoard($('nxHeroBoard'),pick&&pick.c||COURSES.find(x=>x.id==='italian'));nxCount($('home'));nxFilter(NX.f,true);NX.anim=false;betaWireHome();
  $('jokeNext').onclick=()=>{JOKE_I=(JOKE_I+1+Math.floor(Math.random()*(JOKES.length-1)))%JOKES.length;$('jokeTx').textContent=JOKES[JOKE_I];};
  $('nxSearch').onclick=()=>nxCmd();$('nxOld').onclick=nxOld;$('nxDev').onclick=()=>go('#dev');$('nxLooks').onclick=()=>go('#sachovnice');$('nxLvl').onclick=()=>go('#profil');
