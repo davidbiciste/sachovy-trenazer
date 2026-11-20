@@ -166,12 +166,12 @@ function pqTrapPage(id){const s=pqStore();const t=id&&PQ_TRAPS.find(x=>x.id===id
  $('home').innerHTML=pqTabs('pasti')+pqBoardHTML();renderSide();PQ.ctx='trap';xInput();
  pqLoad({id:'trap-'+t.id,fen:t.fen,lines:t.lines.map(l=>l.split(' ')),r:0,th:[],trap:t});}
 /* ---- společné řešení úlohy ---- */
-function pqLoad(p){pqFabHide();PQ.tok++;const tok=PQ.tok;document.querySelectorAll('.pzPop').forEach(x=>x.remove());XM.marks=[];xRenderMarks&&xRenderMarks();if(XB.sq&&XB.sq.length)pzClearMarks();
+function pqLoad(p){pqFabHide();pqPopClose();PQ.tok++;const tok=PQ.tok;document.querySelectorAll('.pzPop').forEach(x=>x.remove());XM.marks=[];xRenderMarks&&xRenderMarks();if(XB.sq&&XB.sq.length)pzClearMarks();
  PQ.p=p;PQ.counted=null;PQ.g=new CHESS(p.fen);PQ.flip=PQ.g.turn()==='w';PQ.lines=p.lines.slice();PQ.step=0;PQ.fail=false;PQ.hint=0;PQ.done=false;PQ.lock=true;XB.sel=null;xArrow(null);xBuild();xSet();pqPanel();
  setTimeout(()=>{if(tok!==PQ.tok)return;pqAuto(PQ.lines[0][0]);PQ.step=1;PQ.lock=false;pqMsg('');pqEvPre();},p.trap?900:600);}
 function pqAuto(u){pqBadge(null);let mv;try{mv=PQ.g.move({from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||undefined});}catch(e){}if(mv){xAnimate(mv);xMarks();sfx(PQ.g.inCheck()?'check':mv.captured?'capture':'move');}return mv;}
 const pqMe=()=>PQ.flip?'černé':'bílé';
-function pqMsg(h,cls){const m=document.getElementById('pqMsg');if(m){m.className='accMsg'+(cls?' '+cls:'');m.innerHTML=h;}}
+function pqMsg(h,cls){const m=document.getElementById('pqMsg');if(m){m.className='accMsg'+(cls?' '+cls:'');m.innerHTML=h;}const t=document.getElementById('pqTopMsg');if(t){t.className='pqTopMsg'+(cls?' '+cls:'');t.innerHTML=h;}}
 function pqPanel(){const p=PQ.p,s=pqStore(),el=$('pqPanel');if(!el)return;const who=`<div class="pqWho"><i class="${PQ.flip?'b':'w'}"></i>Hraješ za ${pqMe()}</div>`;let top='';
  if(PQ.ctx==='lvl'){const L=PQ.lvl,I=pqLvlInfo(L.n);top=`<div class="pqPT"><div><small>${PQ_TIERS[I.ti][0]}</small><h2>Úroveň ${L.n}</h2></div><span class="pqPN">${L.i+1}/${L.list.length}</span></div><div class="pqDots">${L.list.map((x,i)=>`<i class="${L.res[i]===true?'ok':L.res[i]===false?'bad':i===L.i?'cur':''}"></i>`).join('')}</div>`;}
  else if(PQ.ctx==='rated')top=`<div class="pqPT"><div><small>Hodnocené úlohy</small><h2>${s.r}</h2></div><span class="pqPN" id="pqDelta"></span></div>${pqSpark(s.rh)}`;
@@ -183,7 +183,7 @@ function pqPanel(){const p=PQ.p,s=pqStore(),el=$('pqPanel');if(!el)return;const 
  else if(PQ.ctx==='miss'){const M=pqStore().miss,now=Date.now();top=`<div class="pqPT"><div><small>Opakovat chyby</small><h2>Dnes ${M.filter(m=>(m.d||0)<=now).length}</h2></div><span class="pqPN">celkem ${M.length}</span></div>`;}
  else if(PQ.ctx==='trap'){const t=p.trap;top=`<div class="pqPT"><div><small>${t.o}</small><h2>${t.n}</h2></div></div><p class="profEmpty pqPre">${pqPreSan(t)}</p>`;}
  const rush=PQ.ctx==='rush';
- const G=pqGoal(p);const gt=document.getElementById('pqGoalTop');if(gt){gt.hidden=false;gt.className='pqGoalTop '+G.c;gt.innerHTML=`<i class="${PQ.flip?'b':'w'}"></i><span>${PQ.flip?'Černý':'Bílý'} na tahu</span>${G.show?`<b>${G.t}</b>`:`<button class="pqGoalBtn" data-goal>Ukázat cíl</button>`}`;}el.innerHTML=top+who+(G.show?`<div class="pqGoal ${G.c}"><b>${G.t}</b><span>${G.s}</span></div>`:`<div class="pqGoal hid"><button class="btn" data-goal>Ukázat cíl</button><span>Mat, nebo výhra? Zkus to poznat sám. Ukázání cíle se počítá jako nápověda.</span></div>`)+`<p class="pqTask">${PQ.ctx==='trap'?'Soupeř právě udělal chybu. Jak ho potrestáš?':'Najdi nejlepší tah'+(PQ.lines[0].length>2?' a pokračuj, dokud úloha neskončí':'')+'.'}</p><p class="accMsg" id="pqMsg"></p><div class="tuVerd pqVerd" id="pqVerd" hidden></div>`+
+ const G=pqGoal(p);const gt=document.getElementById('pqGoalTop');if(gt){gt.hidden=false;gt.className='pqGoalTop '+G.c;gt.innerHTML=`<i class="${PQ.flip?'b':'w'}"></i><span>${PQ.flip?'Černý':'Bílý'} na tahu</span>${G.show?`<b>${G.t}</b>`:`<button class="pqGoalBtn" data-goal>Ukázat cíl</button>`}`+(rush||PQ.ctx==='test'?`<div class="pqTopRow"><span class="pqTopMsg" id="pqTopMsg"></span></div>`:`<div class="pqTopRow"><span class="pqTopMsg" id="pqTopMsg"></span><button type="button" class="pqTopHint" id="pqTopHint">Nápověda</button></div><div class="pqTopV" id="pqTopV" hidden></div>`);const th=document.getElementById('pqTopHint');if(th)th.onclick=pqHintF;}el.innerHTML=top+who+(G.show?`<div class="pqGoal ${G.c}"><b>${G.t}</b><span>${G.s}</span></div>`:`<div class="pqGoal hid"><button class="btn" data-goal>Ukázat cíl</button><span>Mat, nebo výhra? Zkus to poznat sám. Ukázání cíle se počítá jako nápověda.</span></div>`)+`<p class="pqTask">${PQ.ctx==='trap'?'Soupeř právě udělal chybu. Jak ho potrestáš?':'Najdi nejlepší tah'+(PQ.lines[0].length>2?' a pokračuj, dokud úloha neskončí':'')+'.'}</p><p class="accMsg" id="pqMsg"></p><div class="tuVerd pqVerd" id="pqVerd" hidden></div>`+
  (rush?`<div class="freeBtns"><button class="btn" id="pqEnd">Ukončit</button></div>`:PQ.ctx==='test'?`<div class="freeBtns"><a class="btn" href="#puzzle/urovne">Ukončit zkoušku</a></div>`:`<div class="freeBtns"><button class="btn" id="pqHint">Nápověda</button><button class="btn" id="pqSol">Ukázat řešení</button><button class="btn primary" id="pqNext">${PQ.ctx==='lvl'?'Přeskočit':'Další úloha'}</button></div>`)+
  (p.r&&!rush?`<p class="pqMeta" id="pqMeta"><span>Úloha ${p.r}</span></p>`:'');
  if(rush){$('pqEnd').onclick=pqRushEnd;return;}if(PQ.ctx==='test')return;
@@ -261,7 +261,7 @@ function pqAfter(head){const p=PQ.p;const th=pqShowTh(p);let extra='';
  pqMsg(head,'ok');const m=document.getElementById('pqMsg');if(m)m.insertAdjacentHTML('afterend',`<div class="pqAfter">${extra}</div>`);
  const nb=$('pqNext');if(nb){nb.textContent=PQ.ctx==='daily'?'Hrát další úlohy':PQ.ctx==='lvl'?(PQ.lvl.i+1<PQ.lvl.list.length?'Další úloha':'Výsledek úrovně'):PQ.ctx==='trap'?'Další past':'Další úloha';nb.onclick=pqAdvance;nb.focus({preventScroll:true});}
  const h=$('pqHint');if(h)h.disabled=true;const so=$('pqSol');if(so){so.textContent='Přehrát znovu';so.onclick=()=>pqReplay();}
- if(PQ.ctx==='lvl')pqPanelDots();pqFab(/Správně/.test(head)?'ok':'');}
+ if(PQ.ctx==='lvl')pqPanelDots();const tH=document.getElementById('pqTopHint');if(tH)tH.disabled=true;pqPop(head,/Správně/.test(head)?'ok':'');}
 function pqPanelDots(){const L=PQ.lvl;const d=document.querySelector('.pqDots');if(d)d.innerHTML=L.list.map((x,i)=>`<i class="${L.res[i]===true?'ok':L.res[i]===false?'bad':i===L.i?'cur':''}"></i>`).join('');}
 function pqSolve(){if(PQ.done||PQ.lock)return;PQ.fail=true;pqResult(false);PQ.done=true;pqShowLine(()=>{pqAfter('Řešení: <b>'+pqLineSan()+'</b>');});}
 function pqLineSan(){const p=PQ.p;const g=new CHESS(p.fen);g.move({from:PQ.lines[0][0].slice(0,2),to:PQ.lines[0][0].slice(2,4),promotion:PQ.lines[0][0][4]});const out=[];for(const u of PQ.lines[0].slice(1)){const m=g.move({from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||undefined});if(!m)break;out.push(m.san);}return out.join(' ');}
@@ -381,5 +381,18 @@ async function pqEvJudge(fen0,u,g,right){if(!pqEvOn())return;const tok=PQ.tok,fe
  let tx=mate?'Mat!':`Stockfish: ${me(cp1)}`;
  if(!right&&!mate){if(k==='best'||k==='good')tx+='. Engine ho má skoro stejně dobrý, ale úloha chce jiný tah – najdi ho.';else tx+=` (s nejlepším tahem ${me(cp0)}).`;}
  else if(right&&!mate&&k==='best')tx+='. Přesně tohle by zahrál i Stockfish.';
- const el=document.getElementById('pqVerd');if(el){el.hidden=false;el.className='tuVerd pqVerd k-'+k;el.innerHTML=`<b>${lab}</b> – ${tx}`;}
+ const el=document.getElementById('pqVerd');if(el){el.hidden=false;el.className='tuVerd pqVerd k-'+k;el.innerHTML=`<b>${lab}</b> – ${tx}`;}const tv=document.getElementById('pqTopV');if(tv){tv.hidden=false;tv.className='pqTopV k-'+k;tv.innerHTML=`<b>${lab}</b> – ${tx}`;}const pv=document.getElementById('pqPopV');if(pv&&PQ.done){pv.className='pqPopV k-'+k;pv.innerHTML=`<b>${lab}</b> – ${tx}`;}
  if(right&&PQ.g===g&&g.fen()===fen1){const d=XB.sq&&XB.sq[sqOf(u.slice(2,4))];if(d)d.querySelectorAll('.pzMk').forEach(x=>x.remove());pqBadge(u.slice(2,4),k);}}
+
+/* okénko po vyřešení přímo nad šachovnicí: výsledek, hodnocení Stockfishe a Další úloha (ať se nemusí posouvat k panelu) */
+function pqPopClose(){document.querySelectorAll('.pqDone').forEach(x=>x.remove());}
+function pqPop(head,cls){pqPopClose();pqFabHide();const tok=PQ.tok;const W=document.querySelector('.pqWrap .boardWrap');if(!W)return;
+ setTimeout(()=>{if(tok!==PQ.tok||!PQ.done)return;const nb=$('pqNext');const v=document.getElementById('pqVerd');
+  const d=document.createElement('div');d.className='pqDone '+(cls||'');d.setAttribute('role','dialog');
+  d.innerHTML=`<button type="button" class="pqDoneX" aria-label="Zavřít">✕</button><div class="pqDoneH">${cls==='ok'?'<i>✓</i>':''}<span>${head}</span></div><div class="pqPopV${v&&!v.hidden?' '+[...v.classList].filter(c=>c.startsWith('k-')).join(' '):''}" id="pqPopV">${v&&!v.hidden?v.innerHTML:''}</div><div class="pqDoneB"><button type="button" class="btn" data-pp="re">Přehrát znovu</button><button type="button" class="btn primary" data-pp="next">${escH(nb?nb.textContent.trim():'Další úloha')}</button></div>`;
+  W.appendChild(d);requestAnimationFrame(()=>d.classList.add('in'));
+  d.querySelector('.pqDoneX').onclick=()=>{pqPopClose();pqFab(cls);};
+  d.querySelector('[data-pp=re]').onclick=()=>{pqPopClose();pqFab(cls);pqReplay();};
+  d.querySelector('[data-pp=next]').onclick=()=>{pqPopClose();const b=$('pqNext');if(b)b.click();};
+  const nx=d.querySelector('[data-pp=next]');try{nx.focus({preventScroll:true});}catch(e){}},550);}
+window.addEventListener('hashchange',pqPopClose);
