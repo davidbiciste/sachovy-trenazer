@@ -20,7 +20,7 @@ function lvSfx(mv,g){sfx(mv.flags.includes('k')||mv.flags.includes('q')?'castle'
 function lvOver(g){return g.isCheckmate()?'mate':g.isStalemate()?'stalemate':g.isInsufficientMaterial()?'material':g.isThreefoldRepetition()?'repetition':g.isDrawByFiftyMoves()?'fifty':null;}
 
 /* ---------- spojení: Realtime + dotazování ---------- */
-function lvSub(code){lvUnsub();try{if(!SB||!SB.channel)return;const ch=SB.channel('trener-live-'+code,{config:{broadcast:{self:false}}});ch.on('broadcast',{event:'u'},()=>lvFetch());ch.subscribe(st=>{LV.rt=st==='SUBSCRIBED';});LV.ch=ch;}catch(e){LV.ch=null;}}
+function lvSub(code){lvUnsub();try{if(!SB||!SB.channel)return;const ch=SB.channel('trener-live-'+code,{config:{broadcast:{self:false}}});ch.on('broadcast',{event:'u'},()=>lvFetch());ch.on('broadcast',{event:'aw'},m=>{const p=m&&m.payload||{};if(p.c&&p.c!==lvMySide()){LV.oppAway=!!p.on;lvBars();}});ch.subscribe(st=>{LV.rt=st==='SUBSCRIBED';});LV.ch=ch;}catch(e){LV.ch=null;}}
 function lvUnsub(){if(LV.ch){try{SB.removeChannel(LV.ch);}catch(e){}}LV.ch=null;LV.rt=false;}
 function lvPing(){try{if(LV.ch&&LV.rt)LV.ch.send({type:'broadcast',event:'u',payload:{}});}catch(e){}}
 function lvStop(){clearTimeout(LV.pt);LV.pt=null;clearInterval(LV.tick);LV.tick=null;lvUnsub();LV.code=null;}
@@ -88,7 +88,8 @@ function lvPreRun(){const p=LV.pre;LV.pre=null;if(!p||!lvCanMove()){lvPreMarks()
 LV.fp={blur:0,away:0,since:null};LV.rep={};
 function lvMyTurn(){const s=LV.s,me=lvMySide();return !!(s&&me&&s.status==='play'&&LV.g&&LV.g.turn()===me&&page==='hra');}
 function lvFpCheck(){const away=document.hidden||!document.hasFocus();const f=LV.fp;
- if(away&&f.since==null){if(lvMyTurn()){f.blur++;f.since=Date.now();}}else if(!away&&f.since!=null){f.away+=Date.now()-f.since;f.since=null;}}
+ if(away&&f.since==null){if(lvMyTurn()){f.blur++;f.since=Date.now();}}else if(!away&&f.since!=null){f.away+=Date.now()-f.since;f.since=null;}
+ const live=!!(LV.s&&LV.s.status==='play'&&lvMySide());if(live&&away!==LV.meAway){LV.meAway=away;try{if(LV.ch&&LV.rt)LV.ch.send({type:'broadcast',event:'aw',payload:{c:lvMySide(),on:away}});}catch(e){}}}
 ['blur','focus'].forEach(ev=>addEventListener(ev,()=>setTimeout(lvFpCheck,0)));document.addEventListener('visibilitychange',lvFpCheck);
 function lvFpTake(){const f=LV.fp;let away=f.away;if(f.since!=null){away+=Date.now()-f.since;f.since=Date.now();}const r={blur:f.blur,away:Math.round(away)};f.blur=0;f.away=0;return r;}
 async function lvReport(kind){const code=LV.code;if(!code||LV.rep[code])return;LV.rep[code]=1;try{const r=await lvRpc('trener_live_act',{p_code:code,p_act:kind});if(LV.code===code){lvApply(r);lvPing();}}catch(e){LV.rep[code]=0;}}
@@ -99,10 +100,32 @@ function lvVerify(s,want){const me=lvMySide();if(!me||!LV.g||LV.rep[s.code]||s.f
   if(!ok)lvReport('fakeend');}}
 function lvCheatTxt(s){const me=lvMySide(),what=s.flag==='fakeend'?'vyhlásil konec partie, který podle pravidel nenastal':'poslal tah, který podle pravidel nejde zahrát';
  return s.flag_by===me?`Soupeř ${what}. Partie se nepočítá.`:me?`Soupeřův prohlížeč nahlásil, že jsi ${what}. Partie se nepočítá.`:`Jeden z hráčů ${what}. Partie se nepočítá.`;}
-function lvFairHTML(s){if(!s||s.ply<2)return '';const T=(s.mtimes||'').split(' ').filter(Boolean).map(Number);const me=lvMySide();
+function lvFairHTML(s){if(!s||s.ply<2)return '';const T=(s.mtimes||'').split(' ').filter(Boolean).map(Number);const me=lvMySide();const ec=LV.ec[s.code];
  const row=col=>{const ts=T.filter((_,i)=>(i%2===0)===(col==='w')).slice(1);const avg=ts.length?ts.reduce((a,b)=>a+b,0)/ts.length:0;const b=s['blur_'+col]||0,aw=Math.round((s['away_'+col]||0)/1000);const nm=escH((col==='w'?s.wname:s.bname)||'?');
-  const sus=b>=3||aw>=20;return `<li class="${sus?'sus':''}"><span class="lvDot ${col}"></span><span class="lvLi"><b>${nm}${me===col?' <small>(ty)</small>':''}</b><small>mimo okno ${b}× (${aw} s) · průměrně ${(avg/1000).toFixed(1).replace('.',',')} s na tah</small>${sus&&me!==col?'<small class="lvSus">Během svých tahů často odcházel z okna – mohl si radit jinde.</small>':''}</span></li>`;};
- return `<div class="lvFair"><h3>Férovost</h3><ul class="lvList">${row('w')}${row('b')}</ul><p class="btDim">Přesnost obou hráčů podle Stockfishe uvidíš v Rozboru partie. Když hráč do 1500 Elo zahraje delší partii s přesností nad 90 %, je to podezřelé.</p></div>`;}
+  const e=ec&&ec.res&&ec.res[col];const v=e?lvVerdict(e,b,aw):null;const sus=(v&&v.lvl>0)||b>=3||aw>=20;
+  const eng=e?(e.n>=10?`<small>Stockfish: přesnost ${e.acc} %, ${e.top} % tahů jako engine, průměrná ztráta ${e.acpl} setin pěšce${e.elo?` · hraje zhruba jako ${e.elo} Elo`:''}</small>`:'<small>Málo tahů mimo teorii na kontrolu Stockfishem (potřeba aspoň 10).</small>'):'';
+  const vt=v&&e.n>=10?`<small class="lvV l${v.lvl}">${v.t}</small>`:(!e&&(b>=3||aw>=20)&&me!==col?'<small class="lvV l1">Během svých tahů často odcházel z okna – mohl si radit jinde.</small>':'');
+  return `<li class="${sus?'sus':''}"><span class="lvDot ${col}"></span><span class="lvLi"><b>${nm}${me===col?' <small>(ty)</small>':''}</b><small>mimo okno ${b}× (${aw} s) · průměrně ${(avg/1000).toFixed(1).replace('.',',')} s na tah</small>${eng}${vt}</span></li>`;};
+ const st=!ec?(s.status==='end'&&s.ply>=16?'<button class="btn" id="lvEcGo">Zkontrolovat Stockfishem</button>':s.status==='end'?'<p class="btDim">Kontrola Stockfishem potřebuje delší partii.</p>':''):ec.busy?`<p class="btDim"><span class="spin"></span> Stockfish kontroluje partii… ${ec.k} z ${ec.n}</p>`:ec.err?'<p class="btDim">Stockfish se nepodařilo spustit. Zkus Rozbor partie.</p>':'';
+ return `<div class="lvFair"><h3>Férovost</h3><ul class="lvList">${row('w')}${row('b')}</ul>${st}<p class="btDim">Kontrola porovná tahy s nejlepšími tahy Stockfishe (prvních 8 tahů a tahy z kurzů se nepočítají, to je teorie). Engine na druhém zařízení se nedá poznat podle oken, ale podle přesnosti ano. Je to vodítko, ne důkaz.</p></div>`;}
+function lvVerdict(e,blur,away){if(e.n<10)return{lvl:0,t:''};let lvl=e.top>=80&&e.acpl<=18?2:(e.top>=70||e.acpl<=25)?1:0;if(lvl===1&&(blur>=2||away>=15))lvl=2;
+ return {lvl,t:lvl===2?'Hrál skoro jako engine – velmi podezřelé.':lvl===1?'Neobvykle přesná hra – podezřelé.':'Nic podezřelého, hrál jako člověk.'};}
+/* kontrola Stockfishem: všechny pozice partie, movetime 160 ms (mobil 120 ms); výsledek v LV.ec[kód] a sessionStorage */
+LV.ec={};
+function lvEcCalc(H,ev,best,F){const cl=v=>Math.max(-1000,Math.min(1000,v));const R={};let I=null;try{I=rzIdx();}catch(e){}let book=0;if(I&&F){for(let k=1;k<F.length;k++){if(I.has(F[k].split(' ').slice(0,3).join(' ')))book=k;else break;}}
+ ['w','b'].forEach(col=>{let n=0,top=0,acc=0,loss=0;for(let k=1;k<=H.length;k++){const m=H[k-1];if(m.color!==col||k<=Math.max(16,book))continue;const b=ev[k-1],a=ev[k];if(b==null||a==null||Math.abs(b)>800)continue;const sg=col==='w'?1:-1;
+   const drop=Math.max(0,rzWp(sg*b)-rzWp(sg*a));acc+=Math.max(0,Math.min(100,103.1668*Math.exp(-0.04354*drop)-3.1669));loss+=Math.max(0,cl(sg*b)-cl(sg*a));if(best[k-1]&&best[k-1].slice(0,4)===(m.from+m.to))top++;n++;}
+  const acpl=n?Math.round(loss/n):0;const T=[[15,2400],[30,2000],[50,1500],[65,1200],[80,1000],[100,800],[130,600],[180,400],[260,250],[400,100]];let elo=100;if(n>=6){if(acpl<=15)elo=2400;else for(let i=1;i<T.length;i++){if(acpl<=T[i][0]){const [c1,v1]=T[i-1],[c2,v2]=T[i];elo=Math.round((v1+(v2-v1)*(acpl-c1)/(c2-c1))/50)*50;break;}}}
+  R[col]={n,acc:n?Math.round(acc/n):0,top:n?Math.round(top/n*100):0,acpl,elo:n>=6?elo:null};});return R;}
+async function lvEngineCheck(s){const code=s.code;if(!LV.g||s.ply<16||LV.ec[code]&&!LV.ec[code].err)return;
+ try{const c=JSON.parse(sessionStorage.getItem('trener-lv-ec:'+code)||'null');if(c){LV.ec[code]={res:c};lvPanel();return;}}catch(e){}
+ const H=LV.g.history({verbose:true}),g=new CHESS(),F=[g.fen()];H.forEach(m=>{g.move(m);F.push(g.fen());});
+ const E=LV.ec[code]={busy:true,k:0,n:F.length};lvPanel();const ev=[],best=[],ms=IS_MOBILE?120:160;
+ for(let k=0;k<F.length;k++){if(page!=='hra'||LV.code!==code){delete LV.ec[code];return;}const p=new CHESS(F[k]);
+  if(p.isCheckmate()){ev[k]=p.turn()==='w'?-3000:3000;}else if(p.isDraw()){ev[k]=0;}else{let r=null,t=0;while(!r&&t<4){try{r=await sfAnalyse(F[k],{movetime:ms,multipv:1});}catch(e){E.busy=false;E.err=true;lvPanel();return;}t++;}
+   if(!r){E.busy=false;E.err=true;lvPanel();return;}const l=r.lines[0];ev[k]=l?Math.max(-3000,Math.min(3000,l.cp)):0;best[k]=l&&l.pv&&l.pv[0];}
+  E.k=k+1;if(k%3===0){const el=document.querySelector('#lvPanel .lvFair .spin');if(el&&el.parentNode)el.parentNode.lastChild.textContent=` Stockfish kontroluje partii… ${E.k} z ${E.n}`;}}
+ E.busy=false;E.res=lvEcCalc(H,ev,best,F);try{sessionStorage.setItem('trener-lv-ec:'+code,JSON.stringify(E.res));}catch(e){}lvPanel();}
 
 /* ---------- chat v partii (22. 11. 2026) ----------
    DB tabulka live_chat, funkce trener_live_say / trener_live_chat; stav partie nese 'chat' = id poslední zprávy → když je vyšší než LV.chatMax, dotáhnou se nové zprávy.
@@ -172,7 +195,7 @@ function lvClocks(){const s=LV.s;if(!s)return;const [w,b]=lvTimes(),bot=LV.flip?
  if(s.status==='play'&&s.base&&s.ply>=2&&(stm==='w'?w:b)<=0&&Date.now()-LV.flagAt>1500){LV.flagAt=Date.now();lvFetch();}}
 function lvBars(){const s=LV.s;if(!s)return;const bot=LV.flip?'b':'w',top=bot==='w'?'b':'w';const md=LV.g?lvMat(LV.g):0;const me=lvMySide();
  const nm=col=>{const n=col==='w'?s.wname:s.bname;if(!n)return s.status==='wait'?(col===(s.ccolor==='r'?null:s.ccolor)?escH(s.cname):'Čeká se na kamaráda'):'?';return escH(n)+(me===col?' <small>(ty)</small>':'');};
- const adv=col=>{const d=col==='w'?md:-md,b=s['blur_'+col]||0;return (d>0?`<span class="lvAdv">+${d}</span>`:'')+(b&&me!==col?`<span class="lvFp" title="Během svých tahů opustil okno ${b}×, celkem ${Math.round((s['away_'+col]||0)/1000)} s">mimo okno ${b}×</span>`:'');};
+ const adv=col=>{const d=col==='w'?md:-md,b=s['blur_'+col]||0;return (d>0?`<span class="lvAdv">+${d}</span>`:'')+(me&&me!==col&&LV.oppAway&&s.status==='play'?'<span class="lvFp now">teď mimo okno</span>':'')+(b&&me!==col?`<span class="lvFp" title="Během svých tahů opustil okno ${b}×, celkem ${Math.round((s['away_'+col]||0)/1000)} s">mimo okno ${b}×</span>`:'');};
  [['lvClkT',top],['lvClkB',bot]].forEach(([id,col])=>{const el=document.getElementById(id);if(!el)return;el.querySelector('.lvWho').innerHTML=`<span class="lvDot ${col}"></span><span class="lvNm">${nm(col)}</span>${adv(col)}`;});}
 function lvMoves(){const el=document.getElementById('lvMoves');if(!el||!LV.g)return;const h=LV.g.history(),n=h.length,cur=LV.vw==null?n:LV.vw;
  if(!n){el.innerHTML='<p class="btDim lvNoMv">Zatím žádný tah.</p>';}
@@ -208,6 +231,8 @@ function lvPanel(){const el=document.getElementById('lvPanel');const s=LV.s;if(!
  const ab=document.getElementById('lvAbort');if(ab)ab.onclick=async()=>{await lvAct('abort');go('#hra');};
  const cp=document.getElementById('lvCopy');if(cp)cp.onclick=async()=>{const t=lvLink(s.code);try{await navigator.clipboard.writeText(t);toast('Odkaz zkopírovaný. Pošli ho kamarádovi.');}catch(e){const i=document.getElementById('lvLinkIn');i.select();try{document.execCommand('copy');toast('Odkaz zkopírovaný.');}catch(e2){}}};
  const sh=document.getElementById('lvShare');if(sh)sh.onclick=()=>navigator.share({title:'Zahraj si se mnou šachy',text:`Partie ${lvTc(s.base,s.inc)} v Šachovém trenažéru`,url:lvLink(s.code)}).catch(()=>{});
+ const eg=document.getElementById('lvEcGo');if(eg)eg.onclick=()=>lvEngineCheck(s);
+ if(s.status==='end'&&lvMySide()&&s.ply>=16&&!LV.ec[s.code]&&s.reason!=='abort')setTimeout(()=>lvEngineCheck(s),400);
  const rv=document.getElementById('lvReview');if(rv)rv.onclick=()=>rvOpen({sans:LV.g.history(),w:s.wname||'Bílý',b:s.bname||'Černý',me:me||'w',src:'live'});}
 
 function lvShell(title,body){return `<button type="button" class="btn btBack">← Zpět</button><div class="btPage lvPage"><div class="btHead"><h1>${title}</h1></div>${body}</div>`;}
@@ -219,7 +244,7 @@ async function renderHra(){document.body.classList.add('homeMode');const code=LV
  if(page!=='hra'||LV.route!==code)return;
  if(!code)return lvLobby();
  if(LV.code===code&&document.getElementById('lvPanel')){lvPanel();return;}
- LV.code=code;LV.s=null;LV.g=null;LV.vw=null;LV.vg=null;LV.pend=0;LV.conf=null;LV.low={};LV.chat=[];LV.chatMax=0;LV.chatInit=false;XB.mode='lv';XB.sel=null;
+ LV.code=code;LV.s=null;LV.g=null;LV.vw=null;LV.vg=null;LV.pend=0;LV.conf=null;LV.low={};LV.chat=[];LV.chatMax=0;LV.chatInit=false;LV.oppAway=false;LV.meAway=false;XB.mode='lv';XB.sel=null;
  $('home').innerHTML=`<a class="backAll" href="#hra">← Hra s kamarádem</a><div class="exWrap lvWrap"><div class="exLeft"><div class="profCard lvBoardCard">
   <div class="lvClk" id="lvClkT"><span class="lvWho"></span><span class="lvTime">–</span></div>
   <div class="xRow pqRow"><div class="boardWrap"><div class="board" id="xBoard"><div class="sqs" id="xSqs"></div><svg class="arrows" id="xArrows" viewBox="0 0 8 8" aria-hidden="true"></svg><div class="pcs" id="xPcs"></div></div></div></div>

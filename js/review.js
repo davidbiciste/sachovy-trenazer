@@ -16,7 +16,7 @@ async function rvAnalyse(){const G=RV.g;if(!G)return;const my=++RV.run;RV.busy=t
   let r=null;try{r=await sfAnalyse(F[k],{movetime:ms,multipv:2});}catch(e){RV.fail=true;break;}
   if(!r){if(my!==RV.run||page!=='review')return;k--;continue;}
   const l1=r.lines[0],l2=r.lines[1];G.ev[k]=l1?Math.max(-3000,Math.min(3000,l1.cp)):0;G.best[k]=l1&&l1.pv[0];G.gap[k]=l1&&l2?Math.abs(rzWp(l1.cp)-rzWp(l2.cp)):null;
-  rvProg(k+1,F.length);if(k%4===0||k===F.length-1)rvRender(true);if(k===RV.k||k===RV.k-1)rvShow();}
+  rvProg(k+1,F.length);if(page==='review'&&(k%4===0||k===F.length-1))rvRender(true);if(page==='review'&&(k===RV.k||k===RV.k-1))rvShow();}
  if(my!==RV.run)return;RV.busy=false;rvProg();if(!RV.fail)rzPut('e',G.key,{ev:G.ev,best:G.best,gap:G.gap});if(page==='review')rvRender();}
 function rvProg(a,n){const el=document.getElementById('rvProg');if(!el)return;if(!RV.busy){el.hidden=true;return;}el.hidden=false;el.querySelector('span').textContent=n?`Stockfish hodnotí tahy… ${a} z ${n}`:'Spouštím Stockfish…';if(n)el.querySelector('i').style.width=(a/n*100)+'%';}
 /* klasifikace tahu k (1..N) z pohledu toho, kdo táhl */

@@ -1953,3 +1953,7 @@ html.d-neo.d-sal .lvInvBar .btn.primary,html .lvInvBar .btn.primary{background:v
 .lvBubble{position:absolute;z-index:19;left:50%;top:10px;max-width:80%;padding:8px 14px;border-radius:14px;background:var(--fg);color:var(--bg);font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.3);overflow-wrap:anywhere;opacity:0;transform:translate(-50%,-8px);pointer-events:none;transition:opacity .2s,transform .25s}
 .lvBubble.in{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){.lvBubble{transition:none}}
+
+.lvFp.now{color:#fff;background:var(--bad);border-color:var(--bad)}
+.lvV{font-weight:700}.lvV.l0{color:var(--muted)!important}.lvV.l1{color:var(--bad)!important}.lvV.l2{color:#fff!important;background:var(--bad);padding:2px 8px;border-radius:6px;margin-top:3px;align-self:flex-start}
+.lvFair #lvEcGo{margin-top:6px}
