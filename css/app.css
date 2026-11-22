@@ -155,7 +155,7 @@ canvas.confetti{position:absolute;inset:0;width:100%;height:100%;z-index:20;poin
 .doneCard .xp{font-size:15px;font-weight:800;color:var(--gold)}
 .doneCard h2{margin:0;font-size:24px;font-weight:800;letter-spacing:-.01em}
 .doneCard p{margin:0;color:var(--muted)}
-.nav{display:flex;gap:6px;width:min(100%, calc(100vh - 190px) + 30px);max-width:790px;padding-left:30px}
+.nav{display:flex;gap:6px;width:min(100%, calc(100vh - 250px) + 30px);max-width:790px;padding-left:30px}
 .nav .btn{flex:1;padding:9px 0}
 
 /* coach */
@@ -293,7 +293,7 @@ details.chRow.mast .chNum{background:var(--accent);color:#fff;border-color:trans
 .legendRow span{display:inline-flex;align-items:center;gap:6px}
 .legendRow .st{width:14px;height:14px}.legendRow .st svg{width:9px;height:9px}
 .popNote{margin-top:6px;font-size:12.5px;color:var(--muted)}.popNote b{color:var(--best)}
-.progTop{display:flex;align-items:center;gap:12px;width:min(100%, calc(100vh - 190px) + 30px);max-width:790px;padding-left:30px;font-size:13px;font-weight:700;color:var(--muted)}
+.progTop{display:flex;align-items:center;gap:12px;width:min(100%, calc(100vh - 250px) + 30px);max-width:790px;padding-left:30px;font-size:13px;font-weight:700;color:var(--muted)}
 .progTop .bar{flex:1;height:8px}.progTop #progLabel{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:45%;color:var(--fg)}
 .contList{margin-top:10px;display:grid;gap:6px}.contList>b{color:var(--fg)}.contList small{color:var(--dim);font-size:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .dotB,.dotR{display:inline-block;width:10px;height:10px;border-radius:50%;background:#2f8fe8}.dotR{background:#e2533b}
@@ -1846,7 +1846,7 @@ html.d-neo.d-sal .nxFloors i{font-style:normal;font-size:13px;font-weight:600;pa
 /* hodiny nad a pod šachovnicí */
 .lvBoardCard{display:grid;gap:8px}
 .lvBoardCard .xRow.pqRow{width:100%!important}
-@media (min-width:821px){.lvBoardCard .xRow.pqRow{width:min(100%,calc(100vh - 190px))!important}.lvBoardCard .lvClk{width:min(100%,calc(100vh - 190px));margin:0 auto}}
+@media (min-width:821px){.lvBoardCard .xRow.pqRow{width:min(100%,calc(100vh - 250px))!important}.lvBoardCard .lvClk{width:min(100%,calc(100vh - 250px));margin:0 auto}}
 .lvBoardCard .xTools small{display:none}
 .lvClk{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:44px}
 .lvWho{display:flex;align-items:center;gap:8px;min-width:0;font-weight:700}
@@ -1856,7 +1856,7 @@ html.d-neo.d-sal .nxFloors i{font-style:normal;font-size:13px;font-weight:600;pa
 .lvClk.on .lvTime{background:var(--fg);color:var(--bg)}
 .lvClk.run .lvTime{background:var(--accent);color:#fff}
 .lvClk.low.run .lvTime,.lvClk.out .lvTime{background:var(--bad);color:#fff}
-.lvClk.low:not(.on) .lvTime{color:var(--bad)}
+.lvClk.low:not(.on):not(.out) .lvTime{color:var(--bad)}
 .lvPanel h2{margin:0 0 4px;font-size:20px}
 .lvTc{margin:0 0 10px;color:var(--muted);font-variant-numeric:tabular-nums}
 .lvLink{display:flex;gap:8px;margin:12px 0 10px}
@@ -1873,7 +1873,23 @@ html.d-neo.d-sal .nxFloors i{font-style:normal;font-size:13px;font-weight:600;pa
 .lvMv{padding:4px 8px;border:0;border-radius:6px;background:none;color:var(--fg);font:inherit;font-weight:600;text-align:left;cursor:pointer}
 .lvMv:hover{background:var(--tint,var(--bg))}.lvMv.cur{background:var(--fg);color:var(--bg)}
 .lvNoMv{margin:0}
-.lvNav{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.lvNav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.lvNav .btn{padding:10px 0;font-size:16px}.lvNav .lvLiveB{grid-column:1/-1}
+@media (min-width:821px){.lvBoardCard .lvNav{width:min(100%,calc(100vh - 250px));margin:0 auto}}
+.lvWhoIn{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);font:inherit;font-size:15px}
+.lvFr{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.lvFr:empty{display:none}
+.lvFrB{padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--fg);font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.lvFrB[aria-pressed="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.lvInvCard{margin-bottom:16px;border:1px solid var(--accent)}
+.lvInvRow{display:flex;align-items:center;gap:8px;padding:6px 0}
+.lvInvBar{position:fixed;z-index:9000;left:50%;transform:translateX(-50%);top:14px;width:min(560px,calc(100% - 24px));box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:12px 12px 12px 16px;border-radius:14px;background:var(--fg);color:var(--bg);box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.lvInvTxt{flex:1;min-width:0;display:flex;flex-direction:column}.lvInvTxt small{opacity:.75}
+.lvInvBtns{display:flex;align-items:center;gap:6px}
+.lvInvBar .btn{text-decoration:none;white-space:nowrap}
+html.d-neo.d-sal .lvInvBar .btn:not(.primary),html .lvInvBar .btn:not(.primary){background:transparent!important;color:var(--bg)!important;border:1px solid color-mix(in srgb,var(--bg) 35%,transparent)!important}
+html.d-neo.d-sal .lvInvBar .btn.primary,html .lvInvBar .btn.primary{background:var(--accent)!important;border:1px solid var(--accent)!important;color:#fff!important}
+.lvInvX{border:0;background:none;color:inherit;font-size:22px;line-height:1;padding:4px 6px;cursor:pointer;opacity:.7}
+@media (max-width:560px){.lvInvBar{flex-wrap:wrap;top:auto;bottom:96px}.lvInvBtns{width:100%}.lvInvBtns .btn{flex:1;text-align:center}}
 @media (max-width:820px){.lvLobby{grid-template-columns:1fr}.lvTime{font-size:24px;min-width:88px}.lvMoves{max-height:180px}}
 
 /* Puzzle: nápověda a zprávy nahoře nad šachovnicí (mobil), okénko po vyřešení */

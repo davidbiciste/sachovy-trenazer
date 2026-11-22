@@ -9,7 +9,7 @@ try{const c=JSON.parse(localStorage.getItem('trener-lv-cfg')||'null');if(c&&c.t&
 const lvRpc=(fn,a)=>rpc(fn,Object.assign({p_token:getTok()},a));
 const lvLink=c=>location.origin+location.pathname+'#hra/'+c;
 const lvTc=(base,inc)=>base?`${Math.round(base/60000*10)/10} + ${Math.round(inc/1000)}`.replace('.',','):'Bez času';
-const lvErr=e=>{const m=String(e&&(e.message||e.msg)||e||'');return /not_found/.test(m)?'Hra s tímhle kódem neexistuje. Zkontroluj odkaz.':/too_many/.test(m)?'Vytvořil jsi moc her za poslední hodinu. Zkus to za chvíli.':/bad_token/.test(m)?'Přihlášení vypršelo. Přihlas se znovu.':/function .*trener_live|Could not find the function|PGRST202/i.test(m)?'Hra s kamarádem ještě není zapnutá v databázi.':'Teď se nejde spojit se serverem. Zkus to za chvíli.';};
+const lvErr=e=>{const m=String(e&&(e.message||e.msg)||e||'');return /not_invited/.test(m)?'Tahle výzva je pro jiného hráče.':/no_user/.test(m)?'Hráč s tímhle jménem tu není. Zkontroluj, jak se v trenažéru přesně jmenuje.':/\bself\b/.test(m)?'Sám sebe vyzvat nejde.':/not_found/.test(m)?'Hra s tímhle kódem neexistuje. Zkontroluj odkaz.':/too_many/.test(m)?'Vytvořil jsi moc her za poslední hodinu. Zkus to za chvíli.':/bad_token/.test(m)?'Přihlášení vypršelo. Přihlas se znovu.':/function .*trener_live|Could not find the function|PGRST202/i.test(m)?'Hra s kamarádem ještě není zapnutá v databázi.':'Teď se nejde spojit se serverem. Zkus to za chvíli.';};
 function lvFmt(ms){ms=Math.max(0,ms);if(ms<20000)return (Math.floor(ms/100)/10).toFixed(1).replace('.',',');const s=Math.ceil(ms/1000),h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(r).padStart(2,'0');}
 function lvTimes(){const s=LV.s;if(!s)return[0,0];let w=s.wtime,b=s.btime;if(s.status==='play'&&s.base>0&&s.ply>=2&&s.last){const el=Date.now()+LV.off-s.last;if(s.ply%2===0)w-=el;else b-=el;}return[Math.max(0,w),Math.max(0,b)];}
 function lvBuildG(moves){const g=new CHESS();for(const u of moves){if(!u)continue;let ok=null;try{ok=g.move({from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||undefined});}catch(e){}if(!ok)break;}return g;}
@@ -83,7 +83,9 @@ const LV_WHY={mate:'matem',resign:'vzdáním',time:'na čas',draw:'dohodou',stal
 function lvPanel(){const el=document.getElementById('lvPanel');const s=LV.s;if(!el||!s)return;lvBars();lvMoves();const me=lvMySide(),opp=me==='w'?'b':'w';let h='';
  const tc=`<p class="lvTc">${lvTc(s.base,s.inc)}${s.base?' · minuty + sekundy za tah':''}</p>`;
  if(s.status==='wait'){
-  if(s.me==='c'){h=`<h2>Čekám na kamaráda</h2>${tc}<p class="btDim">Pošli mu tenhle odkaz. Jakmile ho otevře, hra začne. Musí být přihlášený (účet si založí za pár vteřin).</p>
+  if(s.me==='c'&&s.iname){h=`<h2>Čekám na ${escH(s.iname)}</h2>${tc}<p class="btDim">Výzva mu vyskočila v aplikaci. Jakmile ji přijme, hra začne. Můžeš mu poslat i odkaz:</p>
+   <div class="lvLink"><input id="lvLinkIn" readonly value="${escH(lvLink(s.code))}" aria-label="Odkaz na hru"><button class="btn" id="lvCopy">Kopírovat odkaz</button></div><button class="btn" id="lvAbort">Zrušit výzvu</button>`;}
+  else if(s.me==='c'){h=`<h2>Čekám na kamaráda</h2>${tc}<p class="btDim">Pošli mu tenhle odkaz. Jakmile ho otevře, hra začne. Musí být přihlášený (účet si založí za pár vteřin).</p>
    <div class="lvLink"><input id="lvLinkIn" readonly value="${escH(lvLink(s.code))}" aria-label="Odkaz na hru"><button class="btn primary" id="lvCopy">Kopírovat odkaz</button></div>
    ${navigator.share?'<button class="btn" id="lvShare">Poslat přes…</button> ':''}<button class="btn" id="lvAbort">Zrušit hru</button><p class="btDim lvCode">Kód hry: <b>${escH(s.code)}</b></p>`;}
   else h=`<h2>Hra ještě nezačala</h2>${tc}`;}
@@ -95,10 +97,10 @@ function lvPanel(){const el=document.getElementById('lvPanel');const s=LV.s;if(!
    else if(s.draw===me)h+=`<p class="btDim">Nabídl jsi remízu. Čeká se na soupeře.</p>`;
    h+=`<div class="lvActs">${s.ply<2?'<button class="btn" data-lva="abort">Zrušit hru</button>':''}${s.draw?'':'<button class="btn" data-lva="draw">Nabídnout remízu</button>'}<button class="btn${LV.conf==='resign'?' lvDanger':''}" id="lvResign">${LV.conf==='resign'?'Opravdu se vzdát?':'Vzdát se'}</button></div>`;}}
  else{const r=s.result;let t;
-  if(s.reason==='abort'||!r)t='Hra zrušena';else if(r==='1/2-1/2')t='Remíza';else if(!me)t=(r==='1-0'?'Vyhrál bílý':'Vyhrál černý');else t=(r==='1-0')===(me==='w')?'Vyhrál jsi':'Prohrál jsi';
-  const why=s.reason&&s.reason!=='abort'?(s.reason==='resign'?((r==='1-0')===(me==='w')?'Soupeř se vzdal.':me?'Vzdal ses.':''):'Konec '+LV_WHY[s.reason]+'.'):'';
+  if(s.reason==='declined')t=SYNC.user&&String(SYNC.user).toLowerCase()===s.iname?'Výzvu jsi odmítl':`${escH(s.iname||'Soupeř')} výzvu odmítl`;else if(s.reason==='abort'||!r)t='Hra zrušena';else if(r==='1/2-1/2')t='Remíza';else if(!me)t=(r==='1-0'?'Vyhrál bílý':'Vyhrál černý');else t=(r==='1-0')===(me==='w')?'Vyhrál jsi':'Prohrál jsi';
+  const why=s.reason&&s.reason!=='abort'&&s.reason!=='declined'?(s.reason==='resign'?((r==='1-0')===(me==='w')?'Soupeř se vzdal.':me?'Vzdal ses.':''):'Konec '+LV_WHY[s.reason]+'.'):'';
   h=`<h2 class="lvRes">${t}${r&&s.reason!=='abort'?` <span class="lvScore">${r.replace('1/2-1/2','½–½').replace('-','–')}</span>`:''}</h2><p class="btDim">${why}</p><div class="lvActs">`;
-  if(me&&s.reason!=='abort'){if(s.rematch)h+=`<a class="btn primary" href="#hra/${escH(s.rematch)}">Hrát odvetu</a>`;else if(s.remo===opp)h+=`<button class="btn primary" data-lva="rematch">Soupeř chce odvetu – hrát</button><button class="btn" data-lva="norematch">Ne, díky</button>`;else if(s.remo===me)h+=`<button class="btn" disabled>Odveta nabídnuta…</button>`;else h+=`<button class="btn primary" data-lva="rematch">Odveta</button>`;}
+  if(me&&s.reason!=='abort'&&s.reason!=='declined'){if(s.rematch)h+=`<a class="btn primary" href="#hra/${escH(s.rematch)}">Hrát odvetu</a>`;else if(s.remo===opp)h+=`<button class="btn primary" data-lva="rematch">Soupeř chce odvetu – hrát</button><button class="btn" data-lva="norematch">Ne, díky</button>`;else if(s.remo===me)h+=`<button class="btn" disabled>Odveta nabídnuta…</button>`;else h+=`<button class="btn primary" data-lva="rematch">Odveta</button>`;}
   h+=`<a class="btn" href="#hra">Nová hra</a>${s.ply>=2?'<button class="btn" id="lvReview">Rozbor partie</button>':''}</div>`;}
  el.innerHTML=h;
  el.querySelectorAll('[data-lva]').forEach(b=>b.onclick=()=>lvAct(b.dataset.lva));
@@ -121,9 +123,10 @@ async function renderHra(){document.body.classList.add('homeMode');const code=LV
  $('home').innerHTML=`<a class="backAll" href="#hra">← Hra s kamarádem</a><div class="exWrap lvWrap"><div class="exLeft"><div class="profCard lvBoardCard">
   <div class="lvClk" id="lvClkT"><span class="lvWho"></span><span class="lvTime">–</span></div>
   <div class="xRow pqRow"><div class="boardWrap"><div class="board" id="xBoard"><div class="sqs" id="xSqs"></div><svg class="arrows" id="xArrows" viewBox="0 0 8 8" aria-hidden="true"></svg><div class="pcs" id="xPcs"></div></div></div></div>
-  <div class="lvClk" id="lvClkB"><span class="lvWho"></span><span class="lvTime">–</span></div></div></div>
+  <div class="lvClk" id="lvClkB"><span class="lvWho"></span><span class="lvTime">–</span></div>
+  <div class="lvNav" id="lvNav"><button class="btn" data-lvn="s" title="Na začátek" aria-label="Na začátek">⏮</button><button class="btn" data-lvn="b" title="Tah zpět (←)" aria-label="Tah zpět">◀</button><button class="btn" data-lvn="f" title="Tah vpřed (→)" aria-label="Tah vpřed">▶</button><button class="btn" data-lvn="e" title="Na konec" aria-label="Na konec">⏭</button><button class="btn primary lvLiveB" id="lvLiveB" hidden>Zpět k partii</button></div></div></div>
   <div class="exRight"><div class="profCard lvPanel" id="lvPanel"><p class="btDim"><span class="spin"></span> Připojuji se ke hře…</p></div>
-  <div class="profCard"><h2 class="lvH">Tahy</h2><div class="lvMoves" id="lvMoves"></div><div class="lvNav" id="lvNav"><button class="btn" data-lvn="s" title="Na začátek" aria-label="Na začátek">⏮</button><button class="btn" data-lvn="b" title="Tah zpět (←)" aria-label="Tah zpět">◀</button><button class="btn" data-lvn="f" title="Tah vpřed (→)" aria-label="Tah vpřed">▶</button><button class="btn" data-lvn="e" title="Na konec" aria-label="Na konec">⏭</button><button class="btn" id="lvLiveB" hidden>Zpět k partii</button></div></div></div></div>`;
+  <div class="profCard"><h2 class="lvH">Tahy</h2><div class="lvMoves" id="lvMoves"></div></div></div></div>`;
  LV.g=new CHESS();LV.flip=false;xBuild();xSet();xInput();{const t=document.querySelector('.lvBoardCard .xTools');if(t)document.querySelector('.lvBoardCard').appendChild(t);}lvMoves();
  document.querySelectorAll('[data-lvn]').forEach(b=>b.onclick=()=>{const n=LV.g.history().length,cur=LV.vw==null?n:LV.vw;const k=b.dataset.lvn;lvView(k==='s'?0:k==='b'?cur-1:k==='f'?cur+1:null);});
  document.getElementById('lvLiveB').onclick=()=>lvView(null);
@@ -133,16 +136,21 @@ async function renderHra(){document.body.classList.add('homeMode');const code=LV
 
 /* ---------- výběr hry (lobby) ---------- */
 async function lvLobby(){XB.mode='lv';const c=LV.cfg;
- $('home').innerHTML=lvShell('Hra s kamarádem',`<p class="btDim lvIntro">Zahraj si živou partii s kamarádem. Vyber čas, vytvoř hru a pošli mu odkaz.</p><div class="lvLobby" id="lvLobby">
+ $('home').innerHTML=lvShell('Hra s kamarádem',`<p class="btDim lvIntro">Zahraj si živou partii s kamarádem. Vyber čas, vytvoř hru a pošli mu odkaz.</p><div class="lvInvList" id="lvInvs"></div><div class="lvLobby" id="lvLobby">
   <div class="profCard"><h2 class="lvH">Čas</h2><div class="lvTimes" role="group" aria-label="Tempo partie">${LV_TIMES.map(([t,k])=>`<button class="lvT" data-lvt="${t}" aria-pressed="${c.t===t}"><b>${t==='0+0'?'∞':t.replace('+',' + ')}</b><small>${k}</small></button>`).join('')}</div>
   <h2 class="lvH">Hraješ za</h2><div class="chip2 lvCols" role="group" aria-label="Barva">${[['w','Bílé'],['r','Náhodně'],['b','Černé']].map(([k,t])=>`<button data-lvc="${k}" aria-pressed="${c.c===k}">${k!=='r'?`<span class="lvDot ${k}"></span>`:''}${t}</button>`).join('')}</div>
+  <h2 class="lvH">Soupeř</h2><input class="lvWhoIn" id="lvWhoIn" placeholder="Jméno kamaráda v trenažéru (nepovinné)" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Jméno kamaráda"><div class="lvFr" id="lvFr"></div>
   <button class="btn primary lvGo" id="lvCreate">Vytvořit hru a získat odkaz</button><p class="lvMsg" id="lvMsg" role="status"></p></div>
   <div class="lvSideCol"><div class="profCard"><h2 class="lvH">Máš kód od kamaráda?</h2><form class="lvJoin" id="lvJoinF"><input id="lvJoinIn" placeholder="např. k7m2xqp nebo celý odkaz" autocomplete="off" autocapitalize="none" spellcheck="false" aria-label="Kód nebo odkaz hry"><button class="btn">Připojit</button></form></div>
   <div class="profCard"><h2 class="lvH">Tvoje hry</h2><div id="lvMine"><p class="btDim">Načítám…</p></div></div></div></div>`);
  document.querySelectorAll('[data-lvt]').forEach(b=>b.onclick=()=>{LV.cfg.t=b.dataset.lvt;lvSaveCfg();document.querySelectorAll('[data-lvt]').forEach(x=>x.setAttribute('aria-pressed',x===b));});
  document.querySelectorAll('[data-lvc]').forEach(b=>b.onclick=()=>{LV.cfg.c=b.dataset.lvc;lvSaveCfg();document.querySelectorAll('[data-lvc]').forEach(x=>x.setAttribute('aria-pressed',x===b));});
  $('lvCreate').onclick=async()=>{const bt=$('lvCreate');bt.disabled=true;$('lvMsg').textContent='';const [m,i]=LV.cfg.t.split('+').map(Number);
-  try{const r=await lvRpc('trener_live_create',{p_base:Math.round(m*60),p_inc:i,p_color:LV.cfg.c});go('#hra/'+r.code);}catch(e){bt.disabled=false;$('lvMsg').textContent=lvErr(e);}};
+  const who=$('lvWhoIn').value.trim().toLowerCase();
+  try{const a={p_base:Math.round(m*60),p_inc:i,p_color:LV.cfg.c};const r=who?await lvRpc('trener_live_invite',Object.assign({p_user:who},a)):await lvRpc('trener_live_create',a);if(who)lvNotify(who);go('#hra/'+r.code);}catch(e){bt.disabled=false;$('lvMsg').textContent=lvErr(e);}};
+ const wi=$('lvWhoIn'),upd=()=>{const v=wi.value.trim();$('lvCreate').textContent=v?'Vyzvat '+v:'Vytvořit hru a získat odkaz';document.querySelectorAll('[data-lvfr]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.lvfr===v.toLowerCase()));};wi.oninput=upd;
+ lvRpc('trener_live_friends',{}).then(F=>{const el=document.getElementById('lvFr');if(!el||!F||!F.length)return;el.innerHTML=F.map(u=>`<button class="lvFrB" data-lvfr="${escH(u)}" aria-pressed="false">${escH(u)}</button>`).join('');el.querySelectorAll('[data-lvfr]').forEach(b=>b.onclick=()=>{wi.value=wi.value.trim().toLowerCase()===b.dataset.lvfr?'':b.dataset.lvfr;upd();});}).catch(()=>{});
+ lvInvCheck();
  $('lvJoinF').onsubmit=e=>{e.preventDefault();const v=$('lvJoinIn').value.trim();const m=v.match(/#hra\/([a-z0-9]+)/i)||v.match(/^([a-z0-9]{5,10})$/i);if(!m){$('lvJoinIn').focus();toast('Vlož kód hry (7 znaků) nebo celý odkaz.');return;}go('#hra/'+m[1].toLowerCase());};
  let L;try{L=await lvRpc('trener_live_mine',{});}catch(e){const el=document.getElementById('lvMine');if(el)el.innerHTML=`<p class="btDim">${lvErr(e)}</p>`;return;}
  const el=document.getElementById('lvMine');if(!el||page!=='hra'||LV.route)return;
@@ -150,3 +158,30 @@ async function lvLobby(){XB.mode='lv';const c=LV.cfg;
  el.innerHTML=`<ul class="lvList">${L.map(g=>{const st=g.status==='wait'?'čeká na soupeře':g.status==='play'?'<b>hraje se</b>':g.result==='1/2-1/2'?'remíza':(g.result==='1-0')===(g.me==='w')?'výhra':'prohra';
   return `<li><a href="#hra/${escH(g.code)}"><span class="lvDot ${g.me==='c'?'':g.me}"></span><span class="lvLi"><b>${g.opp?escH(g.opp):'Bez soupeře'}</b><small>${lvTc(g.base,g.inc)} · ${st}</small></span><span class="lvLiGo">${g.status==='end'?'Ukázat':'Pokračovat'}</span></a></li>`;}).join('')}</ul>`;}
 function lvSaveCfg(){try{localStorage.setItem('trener-lv-cfg',JSON.stringify(LV.cfg));}catch(e){}}
+
+/* ---------- výzvy v aplikaci: pozvánka vyskočí na každé stránce (22. 11. 2026) ----------
+   Vyzvaný hráč: dotaz trener_live_invites každých 20 s (jen když je stránka vidět) + Realtime kanál trener-inv-<jméno>, kam vyzyvatel pošle „u“, takže pozvánka přijde hned.
+   Pozvánka = lišta #lvInvBar (Hrát / Odmítnout / zavřít); zavřené kódy si pamatuje v LV.invHide. V lobby jsou výzvy i v #lvInvs. */
+LV.invHide=new Set();LV.invSeen=new Set();LV.invOff=false;LV.invCh=null;LV.invUser=null;LV.invs=[];
+const lvColTxt=cc=>cc==='w'?'hraješ černé':cc==='b'?'hraješ bílé':'barva náhodně';
+function lvNotify(user){try{if(!SB||!SB.channel)return;const ch=SB.channel('trener-inv-'+user);ch.subscribe(st=>{if(st==='SUBSCRIBED'){try{ch.send({type:'broadcast',event:'u',payload:{}});}catch(e){}setTimeout(()=>{try{SB.removeChannel(ch);}catch(e){}},2000);}});}catch(e){}}
+function lvInvSub(){const u=SYNC&&SYNC.user;if(u===LV.invUser)return;if(LV.invCh){try{SB.removeChannel(LV.invCh);}catch(e){}LV.invCh=null;}LV.invUser=u;if(!u)return;
+ try{if(!SB||!SB.channel)return;const ch=SB.channel('trener-inv-'+String(u).toLowerCase());ch.on('broadcast',{event:'u'},()=>lvInvCheck());ch.subscribe();LV.invCh=ch;}catch(e){}}
+async function lvInvCheck(){if(LV.invOff||!getTok()||!SYNC.user||!SB)return;let L;try{L=await lvRpc('trener_live_invites',{});}catch(e){if(/function|PGRST202|schema cache/i.test(String(e&&e.message)))LV.invOff=true;return;}
+ LV.invs=Array.isArray(L)?L:[];lvInvBar();lvInvLobby();}
+function lvInvBar(){let bar=document.getElementById('lvInvBar');const L=LV.invs.filter(i=>!LV.invHide.has(i.code)&&!(page==='hra'&&LV.route===i.code));
+ if(!L.length){if(bar)bar.remove();return;}const i=L[0];
+ if(!bar){bar=document.createElement('div');bar.id='lvInvBar';bar.className='lvInvBar';bar.setAttribute('role','alert');document.body.appendChild(bar);}
+ if(bar.dataset.code===i.code)return;bar.dataset.code=i.code;
+ if(!LV.invSeen.has(i.code)){LV.invSeen.add(i.code);sfx('start');}
+ bar.innerHTML=`<div class="lvInvTxt"><span><b>${escH(i.from)}</b> tě vyzývá na partii</span><small>${lvTc(i.base,i.inc)} · ${lvColTxt(i.cc)}</small></div><div class="lvInvBtns"><a class="btn primary" href="#hra/${escH(i.code)}">Hrát</a><button class="btn" data-lvinv="no">Odmítnout</button><button class="lvInvX" data-lvinv="x" aria-label="Zavřít" title="Zavřít">×</button></div>`;
+ bar.querySelector('a').onclick=()=>{LV.invHide.add(i.code);bar.remove();};
+ bar.querySelector('[data-lvinv="no"]').onclick=()=>lvInvDecline(i.code);
+ bar.querySelector('[data-lvinv="x"]').onclick=()=>{LV.invHide.add(i.code);bar.remove();lvInvBar();};}
+async function lvInvDecline(code){LV.invHide.add(code);LV.invs=LV.invs.filter(i=>i.code!==code);lvInvBar();lvInvLobby();try{await lvRpc('trener_live_act',{p_code:code,p_act:'decline'});}catch(e){}}
+function lvInvLobby(){const el=document.getElementById('lvInvs');if(!el)return;const L=LV.invs;
+ el.innerHTML=L.length?`<div class="profCard lvInvCard"><h2 class="lvH">Výzvy pro tebe</h2><ul class="lvList">${L.map(i=>`<li><div class="lvInvRow"><span class="lvLi"><b>${escH(i.from)}</b><small>${lvTc(i.base,i.inc)} · ${lvColTxt(i.cc)}</small></span><a class="btn primary" href="#hra/${escH(i.code)}">Hrát</a><button class="btn" data-lvdec="${escH(i.code)}">Odmítnout</button></div></li>`).join('')}</ul></div>`:'';
+ el.querySelectorAll('[data-lvdec]').forEach(b=>b.onclick=()=>lvInvDecline(b.dataset.lvdec));}
+(function lvInvLoop(){setTimeout(()=>{try{lvInvSub();if(!document.hidden)lvInvCheck();}catch(e){}lvInvLoop();},LV.invUser?20000:4000);})();
+addEventListener('hashchange',()=>setTimeout(lvInvBar,0));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)lvInvCheck();});

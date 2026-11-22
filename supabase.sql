@@ -402,6 +402,9 @@ create index if not exists live_games_white_idx on public.live_games (white, upd
 create index if not exists live_games_black_idx on public.live_games (black, updated_at desc);
 create index if not exists live_games_creator_idx on public.live_games (creator, created_at desc);
 alter table public.live_games enable row level security;
+-- výzva konkrétnímu hráči v aplikaci (22. 11. 2026): invited = koho zakladatel vyzval, jen ten může přisednout
+alter table public.live_games add column if not exists invited uuid references public.players (id) on delete cascade;
+create index if not exists live_games_invited_idx on public.live_games (invited, status);
 revoke all on public.live_games from anon, authenticated;
 
 create or replace function public.trener_live_pid(p_token text)
@@ -445,6 +448,7 @@ returns json language sql security definer set search_path = public, extensions 
     'wname', (select username from players where id = g.white),
     'bname', (select username from players where id = g.black),
     'cname', (select username from players where id = g.creator),
+    'iname', (select username from players where id = g.invited),
     'ccolor', g.creator_color,
     'me', case when pid = g.white then 'w' when pid = g.black then 'b' when pid = g.creator and g.status = 'wait' then 'c' else null end,
     'draw', g.draw_offer, 'remo', g.rematch_offer, 'rematch', g.rematch)
@@ -475,6 +479,7 @@ declare pid uuid := trener_live_pid(p_token); g live_games; cw boolean;
 begin
   select * into g from live_games where code = lower(trim(p_code)) for update;
   if g.id is null then raise exception 'not_found'; end if;
+  if g.status = 'wait' and g.invited is not null and pid <> g.creator and pid <> g.invited then raise exception 'not_invited'; end if;
   if g.status = 'wait' and pid <> g.creator then
     cw := case g.creator_color when 'w' then true when 'b' then false else random() < 0.5 end;
     g.white := case when cw then g.creator else pid end;
@@ -533,6 +538,10 @@ begin
   if g.id is null then raise exception 'not_found'; end if;
   g := trener_live_flag(g);
   col := case when pid = g.white then 'w' when pid = g.black then 'b' else null end;
+  if p_act = 'decline' and g.status = 'wait' and pid = g.invited then
+    update live_games set status = 'end', reason = 'declined', updated_at = now() where id = g.id returning * into g;
+    return trener_live_json(g, pid);
+  end if;
   if p_act = 'abort' and g.status = 'wait' and pid = g.creator then
     update live_games set status = 'end', reason = 'abort', updated_at = now() where id = g.id returning * into g;
     return trener_live_json(g, pid);
@@ -578,10 +587,10 @@ begin
   return coalesce((select json_agg(x) from (
     select g.code, g.status, g.result, g.reason, g.base_ms as base, g.inc_ms as inc, g.ply, g.updated_at as at,
            case when pid = g.white then 'w' when pid = g.black then 'b' else 'c' end as me,
-           (select username from players where id = case when pid = g.white then g.black else g.white end) as opp
+           coalesce((select username from players where id = case when pid = g.white then g.black else g.white end), (select username from players where id = g.invited)) as opp
       from live_games g
      where (g.white = pid or g.black = pid or (g.creator = pid and g.status = 'wait'))
-       and not (g.status = 'end' and g.reason = 'abort')
+       and not (g.status = 'end' and g.reason in ('abort','declined'))
      order by (g.status = 'end'), g.updated_at desc limit 12) x), '[]'::json);
 end $$;
 
@@ -590,3 +599,44 @@ revoke all on function public.trener_live_create(text, int, int, text), public.t
   public.trener_live_move(text, text, int, text, text, text), public.trener_live_act(text, text, text), public.trener_live_mine(text) from public;
 grant execute on function public.trener_live_create(text, int, int, text), public.trener_live_join(text, text), public.trener_live_state(text, text),
   public.trener_live_move(text, text, int, text, text, text), public.trener_live_act(text, text, text), public.trener_live_mine(text) to anon, authenticated;
+
+-- vyzvat hráče podle jména (v aplikaci mu vyskočí pozvánka)
+create or replace function public.trener_live_invite(p_token text, p_user text, p_base int, p_inc int, p_color text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid := trener_live_pid(p_token); oid uuid; j json;
+begin
+  select id into oid from players where username = lower(trim(p_user));
+  if oid is null then raise exception 'no_user'; end if;
+  if oid = pid then raise exception 'self'; end if;
+  update live_games set status = 'end', reason = 'abort', updated_at = now() where creator = pid and invited = oid and status = 'wait';
+  j := trener_live_create(p_token, p_base, p_inc, p_color);
+  update live_games set invited = oid where code = j->>'code';
+  return trener_live_state(p_token, j->>'code');
+end $$;
+
+-- výzvy pro mě (čekající, posledních 24 hodin)
+create or replace function public.trener_live_invites(p_token text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid := trener_live_pid(p_token);
+begin
+  return coalesce((select json_agg(x) from (
+    select g.code, p.username as "from", g.base_ms as base, g.inc_ms as inc, g.creator_color as cc, g.created_at as at
+      from live_games g join players p on p.id = g.creator
+     where g.invited = pid and g.status = 'wait' and g.created_at > now() - interval '1 day'
+     order by g.created_at desc limit 5) x), '[]'::json);
+end $$;
+
+-- s kým jsem naposledy hrál (návrhy jmen pro výzvu)
+create or replace function public.trener_live_friends(p_token text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid := trener_live_pid(p_token);
+begin
+  return coalesce((select json_agg(u) from (
+    select p.username as u, max(g.updated_at) as at
+      from live_games g join players p on p.id = case when g.white = pid then g.black when g.black = pid then g.white else g.invited end
+     where (g.white = pid or g.black = pid or g.creator = pid) and p.id <> pid
+     group by p.username order by max(g.updated_at) desc limit 8) x), '[]'::json);
+end $$;
+
+revoke all on function public.trener_live_invite(text, text, int, int, text), public.trener_live_invites(text), public.trener_live_friends(text) from public;
+grant execute on function public.trener_live_invite(text, text, int, int, text), public.trener_live_invites(text), public.trener_live_friends(text) to anon, authenticated;
