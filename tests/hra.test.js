@@ -1,5 +1,6 @@
 /* Test Hry s kamarádem (#hra) – dva prohlížeče proti skutečným SQL funkcím ze supabase.sql v místním PostgreSQL.
    Příprava (jednou): místní PostgreSQL na /tmp:5433 se spuštěným supabase.sql (role anon, authenticated a schéma extensions musí existovat).
+   Starší databáze (bez p_blur/p_away): OLDDB=1 node tests/hra.test.js – tahy musí jít dál (selže jen kontrola odchodů z okna).
    Spuštění: python3 -m http.server 8765 --bind 127.0.0.1  (v kořeni repozitáře, v jiném terminálu), pak node tests/hra.test.js
    Supabase klient je nahrazený: rpc jde přes malý server na portu 8766, který volá funkce přes psql. Realtime je vypnutý (testuje se záložní dotazování). */
 const {chromium}=require('playwright');const http=require('http');const {execFileSync}=require('child_process');
@@ -7,7 +8,7 @@ const URL='http://localhost:8765/';const SHOTS=process.env.SHOTS||'/tmp/hra-shot
 const psql=sql=>execFileSync('psql',['-h','/tmp','-p','5433','-U','postgres','-At','-q','-c',sql],{encoding:'utf8'}).trim();
 const lit=v=>v===null||v===undefined?'NULL':`'${(typeof v==='object'?JSON.stringify(v):String(v)).replace(/'/g,"''")}'`;
 const srv=http.createServer((q,r)=>{const H={'access-control-allow-origin':'*','access-control-allow-headers':'*','content-type':'application/json'};if(q.method==='OPTIONS'){r.writeHead(204,H);return r.end();}
- let b='';q.on('data',c=>b+=c);q.on('end',()=>{const fn=q.url.slice(1).replace(/[^a-z0-9_]/g,'');const a=JSON.parse(b||'{}');const call=`public.${fn}(${Object.entries(a).map(([k,v])=>`${k.replace(/[^a-z0-9_]/g,'')} => ${lit(v)}`).join(', ')})`;
+ let b='';q.on('data',c=>b+=c);q.on('end',()=>{const fn=q.url.slice(1).replace(/[^a-z0-9_]/g,'');const a=JSON.parse(b||'{}');if(process.env.OLDDB&&fn==='trener_live_move'&&'p_blur' in a){r.writeHead(200,H);return r.end(JSON.stringify({error:'Could not find the function public.trener_live_move(p_away, p_blur, p_code, p_fen, p_over, p_ply, p_token, p_uci) in the schema cache'}));}const call=`public.${fn}(${Object.entries(a).map(([k,v])=>`${k.replace(/[^a-z0-9_]/g,'')} => ${lit(v)}`).join(', ')})`;
   let out;try{try{out={data:JSON.parse(psql(`select coalesce(${call}::text,'null')`)||'null')};}catch(e){if(/void/.test(String(e.stderr))){psql(`select ${call}`);out={data:null};}else throw e;}}
   catch(e){out={error:String(e.stderr||e.message).split('\n').find(l=>/ERROR/.test(l))||'error'};}
   r.writeHead(200,H);r.end(JSON.stringify(out));});}).listen(8766);

@@ -53,8 +53,9 @@ function lvDo(from,to,promo){if(!lvCanMove())return false;const g=LV.g;let mv=nu
  if(s.base>0&&ply>=2&&s.last){const el=now-s.last;if(s.me==='w')s.wtime=s.wtime-el+s.inc;else s.btime=s.btime-el+s.inc;}
  s.moves=(s.moves?s.moves+' ':'')+uci;s.ply=ply+1;s.last=now;s.fen=g.fen();if(s.draw&&s.draw!==s.me)s.draw=null;
  const fp=lvFpTake();LV.pend=s.ply;LV.conf=null;lvPanel();lvClocks();lvPreMarks();lvSend(LV.code,{p_code:LV.code,p_ply:ply,p_uci:uci,p_fen:g.fen(),p_over:over,p_blur:fp.blur,p_away:fp.away},0);return true;}
-async function lvSend(code,args,n){try{const r=await lvRpc('trener_live_move',args);LV.pend=0;if(LV.code===code){lvApply(r);lvPing();}}
- catch(e){if(LV.code!==code)return;if(n<3&&!/not_your_turn|bad_move/.test(String(e&&e.message))){if(!n)toast('Tah se odesílá znovu…');setTimeout(()=>lvSend(code,args,n+1),800*(n+1));return;}LV.pend=0;toast('Tah se nepodařilo odeslat.');lvFetch();}}
+const lvNoFn=e=>/PGRST202|Could not find the function|schema cache|does not exist/i.test(String(e&&(e.message||e.code)||e));
+async function lvSend(code,args,n){if(LV.oldDb){args=Object.assign({},args);delete args.p_blur;delete args.p_away;}try{const r=await lvRpc('trener_live_move',args);LV.pend=0;if(LV.code===code){lvApply(r);lvPing();}}
+ catch(e){if(LV.code!==code)return;if(!LV.oldDb&&'p_blur' in args&&lvNoFn(e)){LV.oldDb=true;console.warn('Databáze má starší verzi Hry s kamarádem – spusť nový supabase.sql');lvSend(code,args,n);return;}if(n<3&&!/not_your_turn|bad_move/.test(String(e&&e.message))){if(!n)toast('Tah se odesílá znovu…');setTimeout(()=>lvSend(code,args,n+1),800*(n+1));return;}LV.pend=0;toast('Tah se nepodařilo odeslat.');lvFetch();}}
 async function lvAct(a){const code=LV.code;if(!code)return;LV.conf=null;try{const r=await lvRpc('trener_live_act',{p_code:code,p_act:a});if(LV.code===code){lvApply(r);lvPing();}}catch(e){toast(lvErr(e));}}
 
 /* ---------- předtah (premove, 22. 11. 2026) ----------
