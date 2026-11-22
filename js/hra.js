@@ -41,9 +41,9 @@ function lvApply(s){if(!s||s.code!==LV.code||page!=='hra')return;if(LV.pend&&s.s
  if(flipCh){xBuild();xSet();xRenderMarks();}
  if(s.status!=='play'||!lvMySide()){LV.pre=null;}lvPreMarks();
  if(prev&&prev.status==='wait'&&s.status==='play'){sfx('start');LV.low={};}
- if(prev&&prev.status==='play'&&s.status==='end'&&s.reason!=='abort'){const me=lvMySide();sfx(!me||s.result==='1/2-1/2'?'move':(s.result==='1-0')===(me==='w')?'win':'wrong');}
+ if(prev&&prev.status==='play'&&s.status==='end'&&s.reason!=='abort'){const me=lvMySide();sfx(!me||s.result==='1/2-1/2'?'move':(s.result==='1-0')===(me==='w')?'win':'wrong');LV.endFx=s.code;}
  if(s.rematch&&prev&&!prev.rematch&&lvMySide()){setTimeout(()=>{if(page==='hra'&&LV.s===s)go('#hra/'+s.rematch);},900);}
- lvPanel();lvClocks();}
+ lvPanel();lvClocks();if(LV.endFx===s.code){LV.endFx=null;setTimeout(()=>lvEndFx(s),260);}}
 
 /* ---------- tah ---------- */
 function lvTry(from,to){if(!lvCanMove()){if(lvCanPre())lvPreSet(from,to);return false;}return lvDo(sqName(from),sqName(to),XPROMO||'q');}
@@ -79,6 +79,30 @@ function lvPreMarks(){if(XB.mode!=='lv'||!XB.sq||!XB.sq.length)return;xMarks();X
  if(XB.sel!=null&&lvCanPre())lvPreTargets(XB.sel).forEach(t=>XB.sq[t]&&XB.sq[t].classList.add('dt'));
  if(LV.pre){XB.sq[sqOf(LV.pre.from)].classList.add('pre');XB.sq[sqOf(LV.pre.to)].classList.add('pre');}}
 function lvPreRun(){const p=LV.pre;LV.pre=null;if(!p||!lvCanMove()){lvPreMarks();return;}XB.sel=null;if(!lvDo(p.from,p.to,'q'))lvPreMarks();}
+
+/* ---------- konec partie na šachovnici (22. 11. 2026) ----------
+   Jen když partie skončí naživo (ne při otevření dohrané hry): poražený král se převrhne (.lvKingLose), vítězný se rozzáří (.lvKingWin), při remíze oba ztichnou (.lvKingDraw);
+   přes šachovnici vyjede karta s výsledkem (#lvEnd: Odveta, Rozbor partie, Prohlédnout pozici) a při výhře krátké konfety v canvasu. Bez pohybu při prefers-reduced-motion. */
+function lvEndFx(s){if(page!=='hra'||LV.code!==s.code||s.status!=='end')return;const B=document.getElementById('xBoard');if(!B)return;
+ const me=lvMySide(),r=s.result,draw=r==='1/2-1/2',win=r==='1-0'?'w':r==='0-1'?'b':null;
+ const g=LV.g,kings={};g.board().forEach((row,ri)=>row.forEach((p,fi)=>{if(p&&p.type==='k')kings[p.color]=(7-ri)*8+fi;}));
+ if(LV.vw==null)['w','b'].forEach(c=>{const el=XB.pcs[kings[c]];if(!el)return;el.classList.add(draw?'lvKingDraw':c===win?'lvKingWin':'lvKingLose');});
+ const iWon=!!me&&win===me,title=draw?'Remíza':!me?(win==='w'?'Vyhrál bílý':'Vyhrál černý'):iWon?'Vyhrál jsi':'Prohrál jsi';
+ const why=s.reason==='resign'?(iWon?'Soupeř se vzdal':me?'Vzdal ses':'Vzdáním'):'Konec '+(LV_WHY[s.reason]||'');
+ const old=document.getElementById('lvEnd');if(old)old.remove();
+ const d=document.createElement('div');d.id='lvEnd';d.className='lvEnd'+(iWon?' won':draw?' draw':'');d.setAttribute('role','dialog');d.setAttribute('aria-label',title);
+ d.innerHTML=`<div class="lvEndCard"><p class="lvEndScore">${r.replace('1/2-1/2','½–½').replace('-','–')}</p><h2>${title}</h2><p class="lvEndWhy">${escH(why)}</p><div class="lvEndBtns">${me?'<button class="btn primary" data-lve="re">Odveta</button>':''}${s.ply>=2?'<button class="btn" data-lve="rv">Rozbor partie</button>':''}<button class="btn lvEndLook" data-lve="x">Prohlédnout pozici</button></div></div>`;
+ B.appendChild(d);requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('in')));
+ const close=()=>{d.classList.remove('in');setTimeout(()=>d.remove(),250);};
+ d.querySelector('[data-lve="x"]').onclick=close;
+ const re=d.querySelector('[data-lve="re"]');if(re)re.onclick=()=>{close();lvAct('rematch');};
+ const rv=d.querySelector('[data-lve="rv"]');if(rv)rv.onclick=()=>rvOpen({sans:LV.g.history(),w:s.wname||'Bílý',b:s.bname||'Černý',me:me||'w',src:'live'});
+ if(iWon&&!matchMedia('(prefers-reduced-motion: reduce)').matches)lvConfetti(B);}
+function lvConfetti(B){const c=document.createElement('canvas');c.className='lvConf';B.appendChild(c);const W=c.width=B.clientWidth*devicePixelRatio,H=c.height=B.clientHeight*devicePixelRatio;const x=c.getContext('2d');
+ const cs=getComputedStyle(document.documentElement),cols=[cs.getPropertyValue('--accent').trim()||'#8b6cf6','#e8b84a','#ffffff','#2fbf71'];
+ const P=Array.from({length:110},()=>({x:W/2+(Math.random()-.5)*W*.2,y:H*.62,vx:(Math.random()-.5)*W*.022,vy:-(Math.random()*.022+.012)*H,w:(Math.random()*6+5)*devicePixelRatio,h:(Math.random()*4+3)*devicePixelRatio,r:Math.random()*6,vr:(Math.random()-.5)*.35,c:cols[Math.random()*cols.length|0]}));
+ const t0=performance.now();(function f(t){const k=(t-t0)/1900;x.clearRect(0,0,W,H);if(k>=1||!c.isConnected){c.remove();return;}x.globalAlpha=k>.7?(1-k)/.3:1;
+  P.forEach(p=>{p.vy+=H*.0009;p.vx*=.99;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;x.save();x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;x.fillRect(-p.w/2,-p.h/2,p.w,p.h*Math.abs(Math.cos(p.r*1.7)));x.restore();});requestAnimationFrame(f);})(t0);}
 
 /* ---------- prohlížení tahů (◀ ▶, šipky) ---------- */
 function lvView(v,quiet){const g=LV.g;if(!g)return;const h=g.history(),n=h.length;
