@@ -176,20 +176,30 @@ function nxCourseCard(c){const p=courseProg(c),L=c.chapters.flatMap(ch=>ch.lines
 /* ===== ÚPLNĚ NOVÍ HRÁČI – výběr, kde začít (18. 11. 2026). store.start={l:0..4,s:'w'|'b'}; l: 0 pravidla, 1 do 1000, 2 1000–1500, 3 nad 1500, 4 nevím.
    Ukazuje se místo velké karty nahoře, dokud hráč nemá XP ani hotovou variantu a nic nevybral. */
 const NX_START_L=[['Teprve se učím pravidla','Ukážu ti, jak táhnou figury'],['Znám pravidla, hraju občas','Zhruba do 1000 Elo'],['Hraju pravidelně','Zhruba 1000 až 1500 Elo'],['Hraju hodně','Přes 1500 Elo'],['Nevím, jak na tom jsem','Zahraj partii a zjistíme to']];
+/* cíl hráče z výběru „Co se chceš naučit?“ (23. 11. 2026): store.start.g = 'zah' zahájení | 'hra' hra a strategie (lekce) | 'puz' puzzle | 'hrat' hrát partie */
+const NX_START_G=[['zah','Zahájení','První tahy partie zpaměti, ať tě soupeř hned nezaskočí'],['hra','Hru a strategii','Jak hrát dobře: principy, plány, typické chyby'],['puz','Puzzle a taktiku','Najdi nejlepší tah, triky a maty'],['hrat','Prostě hrát','Partie s počítačem nebo s kamarádem']];
 function nxStartRec(){const st=store.start;if(!st)return null;
+ if(st.g==='hra'){const id=['g0','g1','g2','g3','g1'][st.l]||'g1';const T={g0:['Úplné základy','Pravidla a jak táhnou figury. Krátké lekce s cvičením na šachovnici.'],g1:['Cesta k 1000 Elo','Základní principy a chyby, které začátečníky stojí nejvíc partií.'],g2:['Nad 1000 Elo','Taktika a střední hra: plány, slabá pole, útok na krále.'],g3:['Nad 1500 Elo','Pokročilá strategie a koncovky, které rozhodují vyrovnané partie.']}[id];return{eb:'Lekce strategie',t:T[0],why:T[1],go:'#lekce/'+id,cta:'Začít'};}
+ if(st.g==='puz')return st.l<=1||st.l===4?{eb:'Puzzle',t:'Vyber nejlepší tah',why:'Ze tří možností vybereš nejlepší tah a hned uvidíš proč. Nejlepší začátek s taktikou.',go:'#puzzle/vyber',cta:'Začít'}:{eb:'Puzzle',t:'Puzzle podle úrovní',why:'Úlohy od matu jedním tahem po těžké kombinace. Začni na své úrovni a postupuj výš.',go:'#puzzle',cta:'Začít'};
+ if(st.g==='hrat')return{eb:'Partie s počítačem',t:'Zahraj si partii',why:'Celá partie proti botovi tak silnému, jak chceš. Na konci uvidíš, jak silně asi hraješ.',go:'#odhad',cta:'Zahrát partii'};
+ if(st.g!=='zah'){
  if(st.l===0)return{eb:'Lekce',t:'Úplné základy',why:'Pravidla a jak táhnou figury. Krátké lekce s cvičením.',go:'#lekce/g0',cta:'Začít'};
  if(st.l===1)return{eb:'Lekce',t:'Cesta k 1000 Elo',why:'Základní principy a chyby, které začátečníky stojí nejvíc partií.',go:'#lekce/g1',cta:'Začít'};
- if(st.l===4)return{eb:'Odhad Elo',t:'Zjisti, jak hraješ',why:'Zahraj jednu partii s botem. Podle ní uvidíš, kde začít.',go:'#odhad',cta:'Zahrát partii'};
+ if(st.l===4)return{eb:'Odhad Elo',t:'Zjisti, jak hraješ',why:'Zahraj jednu partii s botem. Podle ní uvidíš, kde začít.',go:'#odhad',cta:'Zahrát partii'};}
  const id=st.s==='b'?(st.l===3?'najdorf':'caro'):(st.l===3?'vienna':'italian');const c=COURSES.find(x=>x.id===id)||COURSES[0];
  return{c,eb:c.side==='w'?'Za bílé':'Za černé',t:c.title,why:st.s==='b'?(st.l===3?'Ostrá a bohatá obrana proti 1.e4.':'Pevná obrana proti 1.e4, kde se těžko prohrává hned v zahájení.'):(st.l===3?'Útočné zahájení, ve kterém soupeře rychle dostaneš pod tlak.':'Klidné a zdravé zahájení. Ideální první kurz.'),go:'#'+c.id,cta:'Začít kurz'};}
-function nxStartHTML(step){if(step==='side')return `<div class="nxHeroTx nxStart"><h1>Za kterou barvu?</h1><p>Vyber, za koho se chceš naučit první zahájení. Druhou barvu přidáš kdykoli.</p>
-  <div class="nxStartOpts"><button class="nxStartOpt" data-ss="w"><b>Za bílé</b><small>Hraješ první tah</small></button><button class="nxStartOpt" data-ss="b"><b>Za černé</b><small>Odpovídáš na 1.e4</small></button></div><button class="nxLink nxStartBack" data-sback>Zpět</button></div>`;
+function nxStartHTML(step){if(step==='goal')return `<div class="nxHeroTx nxStart"><h1>Co se chceš naučit?</h1><p>Vyber, čemu se chceš teď věnovat. Ostatní věci najdeš v trenažéru taky, kdykoli.</p>
+  <div class="nxStartOpts">${NX_START_G.map(([k,t,s])=>`<button class="nxStartOpt" data-sg="${k}"><b>${t}</b><small>${s}</small></button>`).join('')}</div><button class="nxLink nxStartBack" data-sback="l">Zpět</button></div>`;
+ if(step==='side')return `<div class="nxHeroTx nxStart"><h1>Za kterou barvu?</h1><p>Vyber, za koho se chceš naučit první zahájení. Druhou barvu přidáš kdykoli.</p>
+  <div class="nxStartOpts"><button class="nxStartOpt" data-ss="w"><b>Za bílé</b><small>Hraješ první tah</small></button><button class="nxStartOpt" data-ss="b"><b>Za černé</b><small>Odpovídáš na 1.e4</small></button></div><button class="nxLink nxStartBack" data-sback="g">Zpět</button></div>`;
  return `<div class="nxHeroTx nxStart"><h1>Vítej v trenažéru</h1><p>Jak hraješ šachy? Podle toho ti ukážu, kde začít.</p>
   <div class="nxStartOpts">${NX_START_L.map(([t,s],i)=>`<button class="nxStartOpt" data-sl="${i}"><b>${t}</b><small>${s}</small></button>`).join('')}</div></div>`;}
-function nxStartWire(){const hero=document.querySelector('.nxHero');if(!hero)return;hero.onclick=e=>{const l=e.target.closest('[data-sl]'),sd=e.target.closest('[data-ss]');
- if(l){const v=+l.dataset.sl;if(v===2||v===3){NX.startL=v;hero.querySelector('.nxStart').outerHTML=nxStartHTML('side');return;}store.start={l:v};if((v<=1||v===4)&&!('simple' in store)){store.simple=true;simpleSync();}save();renderNeoHome();if(!store.introSeen)introOpen();return;}
- if(sd){store.start={l:NX.startL||2,s:sd.dataset.ss};save();renderNeoHome();if(!store.introSeen)introOpen();return;}
- if(e.target.closest('[data-sback]')){hero.querySelector('.nxStart').outerHTML=nxStartHTML();return;}
+function nxStartDone(st){store.start=st;const v=st.l;if((v<=1||v===4)&&!('simple' in store)){store.simple=true;simpleSync();}save();renderNeoHome();if(!store.introSeen)introOpen();}
+function nxStartWire(){const hero=document.querySelector('.nxHero');if(!hero)return;hero.onclick=e=>{const l=e.target.closest('[data-sl]'),g=e.target.closest('[data-sg]'),sd=e.target.closest('[data-ss]');const step=k=>{hero.querySelector('.nxStart').outerHTML=nxStartHTML(k);};
+ if(l){NX.startL=+l.dataset.sl;step('goal');return;}
+ if(g){const k=g.dataset.sg;if(k==='zah'){step('side');return;}nxStartDone({l:NX.startL??1,g:k});return;}
+ if(sd){nxStartDone({l:NX.startL??2,g:'zah',s:sd.dataset.ss});return;}
+ const bk=e.target.closest('[data-sback]');if(bk){step(bk.dataset.sback==='g'?'goal':undefined);return;}
  if(e.target.closest('[data-sreset]')){delete store.start;save();renderNeoHome();}};}
 /* JEDNODUCHÝ REŽIM – úvod (23. 11. 2026): jedna doporučená věc, krátce jak trenažér funguje, seznam možností s vysvětlením, zahájení jako jednoduchý seznam */
 const SMP_DO=[['#lekce','book','Lekce','Pravidla, základní triky a jak dát mat. Začni tady, jestli jsi úplný začátečník.'],
