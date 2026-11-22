@@ -37,28 +37,53 @@ function lvApply(s){if(!s||s.code!==LV.code||page!=='hra')return;if(LV.pend&&s.s
  const flip=s.me==='b'||(s.me==='c'&&s.ccolor==='b');const flipCh=flip!==LV.flip;LV.flip=flip;
  const want=s.moves?s.moves.split(' '):[];const have=LV.g?lvUcis(LV.g):null;
  if(!LV.g||want.length<have.length||have.some((u,i)=>u!==want[i])||want.length-have.length>1){LV.g=lvBuildG(want);if(LV.vw!=null)lvView(null,true);xBuild();xSet();}
- else if(want.length>have.length){if(LV.vw!=null)lvView(null,true);const u=want[want.length-1];let mv=null;try{mv=LV.g.move({from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||undefined});}catch(e){}if(mv){XB.sel=null;xAnimate(mv);xMarks();lvSfx(mv,LV.g);}else{LV.g=lvBuildG(want);xSet();}}
+ else if(want.length>have.length){const wasV=LV.vw!=null;if(wasV)lvView(null,true);const u=want[want.length-1];let mv=null;try{mv=LV.g.move({from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||undefined});}catch(e){}if(mv){if(wasV)xMorph();else{xAnimate(mv);xMarks();}lvSfx(mv,LV.g);if(LV.pre&&lvCanMove())setTimeout(lvPreRun,30);}else{LV.g=lvBuildG(want);xSet();}}
  if(flipCh){xBuild();xSet();xRenderMarks();}
+ if(s.status!=='play'||!lvMySide()){LV.pre=null;}lvPreMarks();
  if(prev&&prev.status==='wait'&&s.status==='play'){sfx('start');LV.low={};}
  if(prev&&prev.status==='play'&&s.status==='end'&&s.reason!=='abort'){const me=lvMySide();sfx(!me||s.result==='1/2-1/2'?'move':(s.result==='1-0')===(me==='w')?'win':'wrong');}
  if(s.rematch&&prev&&!prev.rematch&&lvMySide()){setTimeout(()=>{if(page==='hra'&&LV.s===s)go('#hra/'+s.rematch);},900);}
  lvPanel();lvClocks();}
 
 /* ---------- tah ---------- */
-function lvTry(from,to){if(!lvCanMove())return false;const g=LV.g;let mv=null;try{mv=g.move({from:sqName(from),to:sqName(to),promotion:XPROMO||'q'});}catch(e){}if(!mv)return false;
+function lvTry(from,to){if(!lvCanMove()){if(lvCanPre())lvPreSet(from,to);return false;}return lvDo(sqName(from),sqName(to),XPROMO||'q');}
+function lvDo(from,to,promo){if(!lvCanMove())return false;const g=LV.g;let mv=null;try{mv=g.move({from,to,promotion:promo});}catch(e){}if(!mv)return false;LV.pre=null;
  XB.sel=null;xAnimate(mv);xMarks();lvSfx(mv,g);
  const s=LV.s,ply=s.ply,uci=mv.from+mv.to+(mv.promotion||''),over=lvOver(g),now=Date.now()+LV.off;
  if(s.base>0&&ply>=2&&s.last){const el=now-s.last;if(s.me==='w')s.wtime=s.wtime-el+s.inc;else s.btime=s.btime-el+s.inc;}
  s.moves=(s.moves?s.moves+' ':'')+uci;s.ply=ply+1;s.last=now;s.fen=g.fen();if(s.draw&&s.draw!==s.me)s.draw=null;
- LV.pend=s.ply;LV.conf=null;lvPanel();lvClocks();lvSend(LV.code,{p_code:LV.code,p_ply:ply,p_uci:uci,p_fen:g.fen(),p_over:over},0);return true;}
+ LV.pend=s.ply;LV.conf=null;lvPanel();lvClocks();lvPreMarks();lvSend(LV.code,{p_code:LV.code,p_ply:ply,p_uci:uci,p_fen:g.fen(),p_over:over},0);return true;}
 async function lvSend(code,args,n){try{const r=await lvRpc('trener_live_move',args);LV.pend=0;if(LV.code===code){lvApply(r);lvPing();}}
  catch(e){if(LV.code!==code)return;if(n<3&&!/not_your_turn|bad_move/.test(String(e&&e.message))){if(!n)toast('Tah se odesílá znovu…');setTimeout(()=>lvSend(code,args,n+1),800*(n+1));return;}LV.pend=0;toast('Tah se nepodařilo odeslat.');lvFetch();}}
 async function lvAct(a){const code=LV.code;if(!code)return;LV.conf=null;try{const r=await lvRpc('trener_live_act',{p_code:code,p_act:a});if(LV.code===code){lvApply(r);lvPing();}}catch(e){toast(lvErr(e));}}
 
+/* ---------- předtah (premove, 22. 11. 2026) ----------
+   Když je na tahu soupeř: klik na svou figuru + cílové pole (nebo přetažení) uloží LV.pre={from,to}. Cíle = kam figura může dojít podle tvaru tahu (bez ohledu na to, co stojí v cestě), stejně jako na Lichess.
+   Po tahu soupeře lvPreRun zkusí předtah zahrát (proměna vždy na dámu); když už není povolený, tiše zmizí. Klik kamkoli na šachovnici předtah zruší. Zvýraznění = třída .pre na polích. */
+function lvCanPre(){const s=LV.s,me=lvMySide();return !!(s&&me&&s.status==='play'&&LV.g&&LV.g.turn()!==me&&LV.vw==null);}
+function lvPreTargets(i){const pc=LV.g&&LV.g.get(sqName(i));if(!pc)return[];const f=i&7,r=i>>3,out=new Set(),add=(ff,rr)=>{if(ff>=0&&ff<8&&rr>=0&&rr<8&&(ff!==f||rr!==r))out.add(rr*8+ff);};
+ const ray=(df,dr)=>{for(let k=1;k<8;k++)add(f+df*k,r+dr*k);};const t=pc.type;
+ if(t==='n')[[1,2],[2,1],[-1,2],[-2,1],[1,-2],[2,-1],[-1,-2],[-2,-1]].forEach(([a,b])=>add(f+a,r+b));
+ if(t==='b'||t==='q')[[1,1],[1,-1],[-1,1],[-1,-1]].forEach(([a,b])=>ray(a,b));
+ if(t==='r'||t==='q')[[1,0],[-1,0],[0,1],[0,-1]].forEach(([a,b])=>ray(a,b));
+ if(t==='k'){for(let a=-1;a<=1;a++)for(let b=-1;b<=1;b++)add(f+a,r+b);const hr=pc.color==='w'?0:7;if(f===4&&r===hr){add(6,hr);add(2,hr);}}
+ if(t==='p'){const d=pc.color==='w'?1:-1,st=pc.color==='w'?1:6;add(f,r+d);if(r===st)add(f,r+2*d);add(f-1,r+d);add(f+1,r+d);}
+ return [...out];}
+function lvPreSet(from,to){if(!lvCanPre()||!lvPreTargets(from).includes(to))return false;LV.pre={from:sqName(from),to:sqName(to)};XB.sel=null;lvPreMarks();return true;}
+function lvPreDown(e,i,B){if(!lvCanPre()){if(LV.pre){LV.pre=null;lvPreMarks();}return;}const g=LV.g,pc=g.get(sqName(i)),me=lvMySide();
+ if(XB.sel!=null&&XB.sel!==i&&lvPreSet(XB.sel,i))return;
+ LV.pre=null;
+ if(pc&&pc.color===me){const was=XB.sel===i;XB.sel=i;lvPreMarks();XB.drag={from:i,el:XB.pcs[i],x:e.clientX,y:e.clientY,moved:false,was};B.setPointerCapture(e.pointerId);e.preventDefault();}
+ else{XB.sel=null;lvPreMarks();}}
+function lvPreMarks(){if(XB.mode!=='lv'||!XB.sq||!XB.sq.length)return;xMarks();XB.sq.forEach(d=>d.classList.remove('pre'));
+ if(XB.sel!=null&&lvCanPre())lvPreTargets(XB.sel).forEach(t=>XB.sq[t]&&XB.sq[t].classList.add('dt'));
+ if(LV.pre){XB.sq[sqOf(LV.pre.from)].classList.add('pre');XB.sq[sqOf(LV.pre.to)].classList.add('pre');}}
+function lvPreRun(){const p=LV.pre;LV.pre=null;if(!p||!lvCanMove()){lvPreMarks();return;}XB.sel=null;if(!lvDo(p.from,p.to,'q'))lvPreMarks();}
+
 /* ---------- prohlížení tahů (◀ ▶, šipky) ---------- */
 function lvView(v,quiet){const g=LV.g;if(!g)return;const h=g.history(),n=h.length;
  if(v==null||v>=n){LV.vw=null;LV.vg=null;}else{v=Math.max(0,v);const vg=new CHESS();for(let i=0;i<v;i++)vg.move(h[i]);LV.vw=v;LV.vg=vg;}
- if(quiet)return;XB.sel=null;xSet();lvMoves();sfx('move');}
+ LV.pre=null;if(quiet)return;XB.sel=null;xMorph();lvPreMarks();lvMoves();sfx('move');}
 addEventListener('keydown',e=>{if(page!=='hra'||!LV.g||!document.getElementById('lvMoves'))return;if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;if(e.target&&/input|textarea|select/i.test(e.target.tagName))return;
  const n=LV.g.history().length,cur=LV.vw==null?n:LV.vw;lvView(e.key==='ArrowLeft'?cur-1:cur+1);e.preventDefault();});
 

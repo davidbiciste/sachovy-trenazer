@@ -1843,6 +1843,8 @@ html.d-neo.d-sal .nxFloors i{font-style:normal;font-size:13px;font-weight:600;pa
 .lvList a:hover{background:var(--tint,var(--bg))}
 .lvLi{flex:1;min-width:0;display:flex;flex-direction:column}.lvLi small{color:var(--muted)}
 .lvLiGo{font-size:13.5px;font-weight:700;color:var(--accent)}
+/* předtah: modrofialové pole odkud a kam */
+#xSqs > .pre{background-image:linear-gradient(color-mix(in srgb,var(--accent) 58%,transparent),color-mix(in srgb,var(--accent) 58%,transparent))!important}
 /* hodiny nad a pod šachovnicí */
 .lvBoardCard{display:grid;gap:8px}
 .lvBoardCard .xRow.pqRow{width:100%!important}
