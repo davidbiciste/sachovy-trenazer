@@ -43,7 +43,7 @@ function lvApply(s){if(!s||s.code!==LV.code||page!=='hra')return;if(LV.pend&&s.s
  if(prev&&prev.status==='wait'&&s.status==='play'){sfx('start');LV.low={};}
  if(prev&&prev.status==='play'&&s.status==='end'&&s.reason!=='abort'){const me=lvMySide();sfx(!me||s.result==='1/2-1/2'?'move':(s.result==='1-0')===(me==='w')?'win':'wrong');LV.endFx=s.code;}
  if(s.rematch&&prev&&!prev.rematch&&lvMySide()){setTimeout(()=>{if(page==='hra'&&LV.s===s)go('#hra/'+s.rematch);},900);}
- lvPanel();lvClocks();if(LV.endFx===s.code){LV.endFx=null;setTimeout(()=>lvEndFx(s),260);}}
+ lvVerify(s,want);lvPanel();lvClocks();if(LV.endFx===s.code){LV.endFx=null;setTimeout(()=>lvEndFx(s),260);}}
 
 /* ---------- tah ---------- */
 function lvTry(from,to){if(!lvCanMove()){if(lvCanPre())lvPreSet(from,to);return false;}return lvDo(sqName(from),sqName(to),XPROMO||'q');}
@@ -52,7 +52,7 @@ function lvDo(from,to,promo){if(!lvCanMove())return false;const g=LV.g;let mv=nu
  const s=LV.s,ply=s.ply,uci=mv.from+mv.to+(mv.promotion||''),over=lvOver(g),now=Date.now()+LV.off;
  if(s.base>0&&ply>=2&&s.last){const el=now-s.last;if(s.me==='w')s.wtime=s.wtime-el+s.inc;else s.btime=s.btime-el+s.inc;}
  s.moves=(s.moves?s.moves+' ':'')+uci;s.ply=ply+1;s.last=now;s.fen=g.fen();if(s.draw&&s.draw!==s.me)s.draw=null;
- LV.pend=s.ply;LV.conf=null;lvPanel();lvClocks();lvPreMarks();lvSend(LV.code,{p_code:LV.code,p_ply:ply,p_uci:uci,p_fen:g.fen(),p_over:over},0);return true;}
+ const fp=lvFpTake();LV.pend=s.ply;LV.conf=null;lvPanel();lvClocks();lvPreMarks();lvSend(LV.code,{p_code:LV.code,p_ply:ply,p_uci:uci,p_fen:g.fen(),p_over:over,p_blur:fp.blur,p_away:fp.away},0);return true;}
 async function lvSend(code,args,n){try{const r=await lvRpc('trener_live_move',args);LV.pend=0;if(LV.code===code){lvApply(r);lvPing();}}
  catch(e){if(LV.code!==code)return;if(n<3&&!/not_your_turn|bad_move/.test(String(e&&e.message))){if(!n)toast('Tah se odesílá znovu…');setTimeout(()=>lvSend(code,args,n+1),800*(n+1));return;}LV.pend=0;toast('Tah se nepodařilo odeslat.');lvFetch();}}
 async function lvAct(a){const code=LV.code;if(!code)return;LV.conf=null;try{const r=await lvRpc('trener_live_act',{p_code:code,p_act:a});if(LV.code===code){lvApply(r);lvPing();}}catch(e){toast(lvErr(e));}}
@@ -80,18 +80,42 @@ function lvPreMarks(){if(XB.mode!=='lv'||!XB.sq||!XB.sq.length)return;xMarks();X
  if(LV.pre){XB.sq[sqOf(LV.pre.from)].classList.add('pre');XB.sq[sqOf(LV.pre.to)].classList.add('pre');}}
 function lvPreRun(){const p=LV.pre;LV.pre=null;if(!p||!lvCanMove()){lvPreMarks();return;}XB.sel=null;if(!lvDo(p.from,p.to,'q'))lvPreMarks();}
 
+/* ---------- férová hra (anti-cheat, 22. 11. 2026) ----------
+   1) Odchody z okna: když je hráč na tahu a stránka není vidět nebo okno nemá fokus (jiný panel, aplikace, okno s enginem), počítá se odchod a čas pryč; posílá se s tahem (p_blur, p_away), server sčítá blur_w/b a away_w/b. Soupeř vidí „mimo okno N×“ u jména.
+   2) Kontrola: prohlížeč ověří chess.js každý přijatý tah a vyhlášený mat/remízu. Nepovolený tah → act 'illegal', falešný konec → 'fakeend'; server partii zruší (reason 'cheat', bez vítěze) a zapíše flag + flag_by.
+   3) Po partii karta „Férovost“ (lvFairHTML): odchody, čas pryč, průměrný čas na tah (mtimes ze serveru), varování a odkaz na Rozbor partie (přesnost podle Stockfishe). */
+LV.fp={blur:0,away:0,since:null};LV.rep={};
+function lvMyTurn(){const s=LV.s,me=lvMySide();return !!(s&&me&&s.status==='play'&&LV.g&&LV.g.turn()===me&&page==='hra');}
+function lvFpCheck(){const away=document.hidden||!document.hasFocus();const f=LV.fp;
+ if(away&&f.since==null){if(lvMyTurn()){f.blur++;f.since=Date.now();}}else if(!away&&f.since!=null){f.away+=Date.now()-f.since;f.since=null;}}
+['blur','focus'].forEach(ev=>addEventListener(ev,()=>setTimeout(lvFpCheck,0)));document.addEventListener('visibilitychange',lvFpCheck);
+function lvFpTake(){const f=LV.fp;let away=f.away;if(f.since!=null){away+=Date.now()-f.since;f.since=Date.now();}const r={blur:f.blur,away:Math.round(away)};f.blur=0;f.away=0;return r;}
+async function lvReport(kind){const code=LV.code;if(!code||LV.rep[code])return;LV.rep[code]=1;try{const r=await lvRpc('trener_live_act',{p_code:code,p_act:kind});if(LV.code===code){lvApply(r);lvPing();}}catch(e){LV.rep[code]=0;}}
+function lvVerify(s,want){const me=lvMySide();if(!me||!LV.g||LV.rep[s.code]||s.flag)return;const n=LV.g.history().length;
+ if(n<want.length){const bad=n%2===0?'w':'b';if(bad!==me){lvReport('illegal');return;}}
+ if(s.status==='end'&&n===want.length&&n>0){const claim=s.reason,g=LV.g,by=(n-1)%2===0?'w':'b';if(by===me)return;
+  const ok=claim==='mate'?g.isCheckmate():claim==='stalemate'?g.isStalemate():claim==='material'?g.isInsufficientMaterial():claim==='repetition'?g.isThreefoldRepetition():claim==='fifty'?g.isDrawByFiftyMoves():true;
+  if(!ok)lvReport('fakeend');}}
+function lvCheatTxt(s){const me=lvMySide(),what=s.flag==='fakeend'?'vyhlásil konec partie, který podle pravidel nenastal':'poslal tah, který podle pravidel nejde zahrát';
+ return s.flag_by===me?`Soupeř ${what}. Partie se nepočítá.`:me?`Soupeřův prohlížeč nahlásil, že jsi ${what}. Partie se nepočítá.`:`Jeden z hráčů ${what}. Partie se nepočítá.`;}
+function lvFairHTML(s){if(!s||s.ply<2)return '';const T=(s.mtimes||'').split(' ').filter(Boolean).map(Number);const me=lvMySide();
+ const row=col=>{const ts=T.filter((_,i)=>(i%2===0)===(col==='w')).slice(1);const avg=ts.length?ts.reduce((a,b)=>a+b,0)/ts.length:0;const b=s['blur_'+col]||0,aw=Math.round((s['away_'+col]||0)/1000);const nm=escH((col==='w'?s.wname:s.bname)||'?');
+  const sus=b>=3||aw>=20;return `<li class="${sus?'sus':''}"><span class="lvDot ${col}"></span><span class="lvLi"><b>${nm}${me===col?' <small>(ty)</small>':''}</b><small>mimo okno ${b}× (${aw} s) · průměrně ${(avg/1000).toFixed(1).replace('.',',')} s na tah</small>${sus&&me!==col?'<small class="lvSus">Během svých tahů často odcházel z okna – mohl si radit jinde.</small>':''}</span></li>`;};
+ return `<div class="lvFair"><h3>Férovost</h3><ul class="lvList">${row('w')}${row('b')}</ul><p class="btDim">Přesnost obou hráčů podle Stockfishe uvidíš v Rozboru partie. Když hráč do 1500 Elo zahraje delší partii s přesností nad 90 %, je to podezřelé.</p></div>`;}
+
 /* ---------- konec partie na šachovnici (22. 11. 2026) ----------
    Jen když partie skončí naživo (ne při otevření dohrané hry): poražený král se převrhne (.lvKingLose), vítězný se rozzáří (.lvKingWin), při remíze oba ztichnou (.lvKingDraw);
    přes šachovnici vyjede karta s výsledkem (#lvEnd: Odveta, Rozbor partie, Prohlédnout pozici) a při výhře krátké konfety v canvasu. Bez pohybu při prefers-reduced-motion. */
 function lvEndFx(s){if(page!=='hra'||LV.code!==s.code||s.status!=='end')return;const B=document.getElementById('xBoard');if(!B)return;
  const me=lvMySide(),r=s.result,draw=r==='1/2-1/2',win=r==='1-0'?'w':r==='0-1'?'b':null;
  const g=LV.g,kings={};g.board().forEach((row,ri)=>row.forEach((p,fi)=>{if(p&&p.type==='k')kings[p.color]=(7-ri)*8+fi;}));
- if(LV.vw==null)['w','b'].forEach(c=>{const el=XB.pcs[kings[c]];if(!el)return;el.classList.add(draw?'lvKingDraw':c===win?'lvKingWin':'lvKingLose');});
- const iWon=!!me&&win===me,title=draw?'Remíza':!me?(win==='w'?'Vyhrál bílý':'Vyhrál černý'):iWon?'Vyhrál jsi':'Prohrál jsi';
- const why=s.reason==='resign'?(iWon?'Soupeř se vzdal':me?'Vzdal ses':'Vzdáním'):'Konec '+(LV_WHY[s.reason]||'');
+ if(LV.vw==null&&s.reason!=='cheat')['w','b'].forEach(c=>{const el=XB.pcs[kings[c]];if(!el)return;el.classList.add(draw?'lvKingDraw':c===win?'lvKingWin':'lvKingLose');});
+ if(s.reason==='cheat'){const old=document.getElementById('lvEnd');if(old)old.remove();}
+ const iWon=!!me&&win===me,title=s.reason==='cheat'?'Partie zrušena':draw?'Remíza':!me?(win==='w'?'Vyhrál bílý':'Vyhrál černý'):iWon?'Vyhrál jsi':'Prohrál jsi';
+ const why=s.reason==='cheat'?lvCheatTxt(s):s.reason==='resign'?(iWon?'Soupeř se vzdal':me?'Vzdal ses':'Vzdáním'):'Konec '+(LV_WHY[s.reason]||'');
  const old=document.getElementById('lvEnd');if(old)old.remove();
  const d=document.createElement('div');d.id='lvEnd';d.className='lvEnd'+(iWon?' won':draw?' draw':'');d.setAttribute('role','dialog');d.setAttribute('aria-label',title);
- d.innerHTML=`<div class="lvEndCard"><p class="lvEndScore">${r.replace('1/2-1/2','½–½').replace('-','–')}</p><h2>${title}</h2><p class="lvEndWhy">${escH(why)}</p><div class="lvEndBtns">${me?'<button class="btn primary" data-lve="re">Odveta</button>':''}${s.ply>=2?'<button class="btn" data-lve="rv">Rozbor partie</button>':''}<button class="btn lvEndLook" data-lve="x">Prohlédnout pozici</button></div></div>`;
+ d.innerHTML=`<div class="lvEndCard"><p class="lvEndScore">${r?r.replace('1/2-1/2','½–½').replace('-','–'):'–'}</p><h2>${title}</h2><p class="lvEndWhy">${escH(why)}</p><div class="lvEndBtns">${me&&s.reason!=='cheat'?'<button class="btn primary" data-lve="re">Odveta</button>':''}${s.ply>=2?'<button class="btn" data-lve="rv">Rozbor partie</button>':''}<button class="btn lvEndLook" data-lve="x">Prohlédnout pozici</button></div></div>`;
  B.appendChild(d);requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('in')));
  const close=()=>{d.classList.remove('in');setTimeout(()=>d.remove(),250);};
  d.querySelector('[data-lve="x"]').onclick=close;
@@ -121,7 +145,7 @@ function lvClocks(){const s=LV.s;if(!s)return;const [w,b]=lvTimes(),bot=LV.flip?
  if(s.status==='play'&&s.base&&s.ply>=2&&(stm==='w'?w:b)<=0&&Date.now()-LV.flagAt>1500){LV.flagAt=Date.now();lvFetch();}}
 function lvBars(){const s=LV.s;if(!s)return;const bot=LV.flip?'b':'w',top=bot==='w'?'b':'w';const md=LV.g?lvMat(LV.g):0;const me=lvMySide();
  const nm=col=>{const n=col==='w'?s.wname:s.bname;if(!n)return s.status==='wait'?(col===(s.ccolor==='r'?null:s.ccolor)?escH(s.cname):'Čeká se na kamaráda'):'?';return escH(n)+(me===col?' <small>(ty)</small>':'');};
- const adv=col=>{const d=col==='w'?md:-md;return d>0?`<span class="lvAdv">+${d}</span>`:'';};
+ const adv=col=>{const d=col==='w'?md:-md,b=s['blur_'+col]||0;return (d>0?`<span class="lvAdv">+${d}</span>`:'')+(b&&me!==col?`<span class="lvFp" title="Během svých tahů opustil okno ${b}×, celkem ${Math.round((s['away_'+col]||0)/1000)} s">mimo okno ${b}×</span>`:'');};
  [['lvClkT',top],['lvClkB',bot]].forEach(([id,col])=>{const el=document.getElementById(id);if(!el)return;el.querySelector('.lvWho').innerHTML=`<span class="lvDot ${col}"></span><span class="lvNm">${nm(col)}</span>${adv(col)}`;});}
 function lvMoves(){const el=document.getElementById('lvMoves');if(!el||!LV.g)return;const h=LV.g.history(),n=h.length,cur=LV.vw==null?n:LV.vw;
  if(!n){el.innerHTML='<p class="btDim lvNoMv">Zatím žádný tah.</p>';}
@@ -146,11 +170,11 @@ function lvPanel(){const el=document.getElementById('lvPanel');const s=LV.s;if(!
    else if(s.draw===me)h+=`<p class="btDim">Nabídl jsi remízu. Čeká se na soupeře.</p>`;
    h+=`<div class="lvActs">${s.ply<2?'<button class="btn" data-lva="abort">Zrušit hru</button>':''}${s.draw?'':'<button class="btn" data-lva="draw">Nabídnout remízu</button>'}<button class="btn${LV.conf==='resign'?' lvDanger':''}" id="lvResign">${LV.conf==='resign'?'Opravdu se vzdát?':'Vzdát se'}</button></div>`;}}
  else{const r=s.result;let t;
-  if(s.reason==='declined')t=SYNC.user&&String(SYNC.user).toLowerCase()===s.iname?'Výzvu jsi odmítl':`${escH(s.iname||'Soupeř')} výzvu odmítl`;else if(s.reason==='abort'||!r)t='Hra zrušena';else if(r==='1/2-1/2')t='Remíza';else if(!me)t=(r==='1-0'?'Vyhrál bílý':'Vyhrál černý');else t=(r==='1-0')===(me==='w')?'Vyhrál jsi':'Prohrál jsi';
-  const why=s.reason&&s.reason!=='abort'&&s.reason!=='declined'?(s.reason==='resign'?((r==='1-0')===(me==='w')?'Soupeř se vzdal.':me?'Vzdal ses.':''):'Konec '+LV_WHY[s.reason]+'.'):'';
+  if(s.reason==='cheat')t='Partie zrušena';else if(s.reason==='declined')t=SYNC.user&&String(SYNC.user).toLowerCase()===s.iname?'Výzvu jsi odmítl':`${escH(s.iname||'Soupeř')} výzvu odmítl`;else if(s.reason==='abort'||!r)t='Hra zrušena';else if(r==='1/2-1/2')t='Remíza';else if(!me)t=(r==='1-0'?'Vyhrál bílý':'Vyhrál černý');else t=(r==='1-0')===(me==='w')?'Vyhrál jsi':'Prohrál jsi';
+  const why=s.reason==='cheat'?lvCheatTxt(s):s.reason&&s.reason!=='abort'&&s.reason!=='declined'?(s.reason==='resign'?((r==='1-0')===(me==='w')?'Soupeř se vzdal.':me?'Vzdal ses.':''):'Konec '+LV_WHY[s.reason]+'.'):'';
   h=`<h2 class="lvRes">${t}${r&&s.reason!=='abort'?` <span class="lvScore">${r.replace('1/2-1/2','½–½').replace('-','–')}</span>`:''}</h2><p class="btDim">${why}</p><div class="lvActs">`;
-  if(me&&s.reason!=='abort'&&s.reason!=='declined'){if(s.rematch)h+=`<a class="btn primary" href="#hra/${escH(s.rematch)}">Hrát odvetu</a>`;else if(s.remo===opp)h+=`<button class="btn primary" data-lva="rematch">Soupeř chce odvetu – hrát</button><button class="btn" data-lva="norematch">Ne, díky</button>`;else if(s.remo===me)h+=`<button class="btn" disabled>Odveta nabídnuta…</button>`;else h+=`<button class="btn primary" data-lva="rematch">Odveta</button>`;}
-  h+=`<a class="btn" href="#hra">Nová hra</a>${s.ply>=2?'<button class="btn" id="lvReview">Rozbor partie</button>':''}</div>`;}
+  if(me&&!['abort','declined','cheat'].includes(s.reason)){if(s.rematch)h+=`<a class="btn primary" href="#hra/${escH(s.rematch)}">Hrát odvetu</a>`;else if(s.remo===opp)h+=`<button class="btn primary" data-lva="rematch">Soupeř chce odvetu – hrát</button><button class="btn" data-lva="norematch">Ne, díky</button>`;else if(s.remo===me)h+=`<button class="btn" disabled>Odveta nabídnuta…</button>`;else h+=`<button class="btn primary" data-lva="rematch">Odveta</button>`;}
+  h+=`<a class="btn" href="#hra">Nová hra</a>${s.ply>=2?'<button class="btn" id="lvReview">Rozbor partie</button>':''}</div>`+lvFairHTML(s);}
  el.innerHTML=h;
  el.querySelectorAll('[data-lva]').forEach(b=>b.onclick=()=>lvAct(b.dataset.lva));
  const rs=document.getElementById('lvResign');if(rs)rs.onclick=()=>{if(LV.conf==='resign'){lvAct('resign');return;}LV.conf='resign';lvPanel();clearTimeout(LV.confT);LV.confT=setTimeout(()=>{if(LV.conf==='resign'){LV.conf=null;lvPanel();}},4000);};

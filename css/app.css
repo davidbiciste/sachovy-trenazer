@@ -1928,3 +1928,12 @@ html.d-neo.d-sal .lvInvBar .btn.primary,html .lvInvBar .btn.primary{background:v
 .lvEndLook{flex-basis:100%!important;background:none!important;border:0!important;box-shadow:none!important;color:var(--muted)!important;padding:6px!important;font-weight:600!important}
 .lvConf{position:absolute;inset:0;width:100%;height:100%;z-index:21;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.pc.lvKingLose>*,.pc.lvKingWin>*{animation:none}.pc.lvKingLose>*{transform:rotate(82deg)}.lvEnd,.lvEndCard{transition:none}}
+
+/* férová hra */
+.lvFp{margin-left:6px;padding:1px 7px;border-radius:999px;font-size:12px;font-weight:700;color:var(--bad);border:1px solid color-mix(in srgb,var(--bad) 45%,transparent);white-space:nowrap}
+.lvFair{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.lvFair h3{margin:0 0 6px;font-size:16px}
+.lvFair li{display:flex;align-items:flex-start;gap:10px;padding:6px 0}.lvFair .lvDot{margin-top:4px}
+.lvFair li.sus b{color:var(--bad)}
+.lvSus{color:var(--bad)!important;font-weight:600}
+.lvFair p{margin:6px 0 0;font-size:13.5px}

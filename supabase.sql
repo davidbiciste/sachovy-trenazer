@@ -405,6 +405,14 @@ alter table public.live_games enable row level security;
 -- výzva konkrétnímu hráči v aplikaci (22. 11. 2026): invited = koho zakladatel vyzval, jen ten může přisednout
 alter table public.live_games add column if not exists invited uuid references public.players (id) on delete cascade;
 create index if not exists live_games_invited_idx on public.live_games (invited, status);
+-- férová hra (22. 11. 2026): odchody z okna během vlastního tahu, čas na tahy, nahlášený podvod
+alter table public.live_games add column if not exists blur_w int not null default 0;
+alter table public.live_games add column if not exists blur_b int not null default 0;
+alter table public.live_games add column if not exists away_w int not null default 0;   -- ms mimo okno
+alter table public.live_games add column if not exists away_b int not null default 0;
+alter table public.live_games add column if not exists mtimes text not null default ''; -- ms na každý půltah podle serveru
+alter table public.live_games add column if not exists flag text;                         -- illegal / fakeend
+alter table public.live_games add column if not exists flag_by text;                      -- w / b (kdo nahlásil)
 revoke all on public.live_games from anon, authenticated;
 
 create or replace function public.trener_live_pid(p_token text)
@@ -451,7 +459,8 @@ returns json language sql security definer set search_path = public, extensions 
     'iname', (select username from players where id = g.invited),
     'ccolor', g.creator_color,
     'me', case when pid = g.white then 'w' when pid = g.black then 'b' when pid = g.creator and g.status = 'wait' then 'c' else null end,
-    'draw', g.draw_offer, 'remo', g.rematch_offer, 'rematch', g.rematch)
+    'draw', g.draw_offer, 'remo', g.rematch_offer, 'rematch', g.rematch,
+    'blur_w', g.blur_w, 'blur_b', g.blur_b, 'away_w', g.away_w, 'away_b', g.away_b, 'mtimes', g.mtimes, 'flag', g.flag, 'flag_by', g.flag_by)
 $$;
 
 -- nová hra: p_base a p_inc v sekundách (p_base 0 = bez času), p_color w / b / r
@@ -502,9 +511,10 @@ begin
 end $$;
 
 -- tah: p_ply = kolikátý půltah to je (od 0), p_over = konec partie podle prohlížeče (mate, stalemate, repetition, material, fifty)
-create or replace function public.trener_live_move(p_token text, p_code text, p_ply int, p_uci text, p_fen text, p_over text)
+drop function if exists public.trener_live_move(text, text, int, text, text, text);
+create or replace function public.trener_live_move(p_token text, p_code text, p_ply int, p_uci text, p_fen text, p_over text, p_blur int default 0, p_away int default 0)
 returns json language plpgsql security definer set search_path = public, extensions as $$
-declare pid uuid := trener_live_pid(p_token); g live_games; col text; t int;
+declare pid uuid := trener_live_pid(p_token); g live_games; col text; t int; el int;
 begin
   select * into g from live_games where code = lower(trim(p_code)) for update;
   if g.id is null then raise exception 'not_found'; end if;
@@ -514,8 +524,12 @@ begin
   if (col = 'w' and pid is distinct from g.white) or (col = 'b' and pid is distinct from g.black) then raise exception 'not_your_turn'; end if;
   if p_ply <> g.ply then return trener_live_json(g, pid); end if;
   if p_uci !~ '^[a-h][1-8][a-h][1-8][qrbn]?$' or length(coalesce(p_fen,'')) > 100 or g.ply >= 1200 then raise exception 'bad_move'; end if;
+  el := greatest(0, (extract(epoch from (now() - coalesce(g.last_at, now()))) * 1000)::int);
+  g.mtimes := trim(g.mtimes || ' ' || el);
+  if col = 'w' then g.blur_w := g.blur_w + least(greatest(coalesce(p_blur,0),0),50); g.away_w := g.away_w + least(greatest(coalesce(p_away,0),0),el);
+  else g.blur_b := g.blur_b + least(greatest(coalesce(p_blur,0),0),50); g.away_b := g.away_b + least(greatest(coalesce(p_away,0),0),el); end if;
   if g.base_ms > 0 and g.ply >= 2 then
-    t := (case when col = 'w' then g.wtime else g.btime end) - (extract(epoch from (now() - g.last_at)) * 1000)::int + g.inc_ms;
+    t := (case when col = 'w' then g.wtime else g.btime end) - el + g.inc_ms;
     if col = 'w' then g.wtime := t; else g.btime := t; end if;
   end if;
   g.moves := trim(g.moves || ' ' || p_uci); g.ply := g.ply + 1; g.fen := p_fen; g.last_at := now();
@@ -525,7 +539,8 @@ begin
     g.result := case when p_over = 'mate' then (case when col = 'w' then '1-0' else '0-1' end) else '1/2-1/2' end;
   end if;
   update live_games set moves = g.moves, ply = g.ply, fen = g.fen, last_at = g.last_at, wtime = g.wtime, btime = g.btime,
-    draw_offer = g.draw_offer, status = g.status, reason = g.reason, result = g.result, updated_at = now() where id = g.id;
+    draw_offer = g.draw_offer, status = g.status, reason = g.reason, result = g.result,
+    mtimes = g.mtimes, blur_w = g.blur_w, blur_b = g.blur_b, away_w = g.away_w, away_b = g.away_b, updated_at = now() where id = g.id;
   return trener_live_json(g, pid);
 end $$;
 
@@ -548,6 +563,14 @@ begin
   end if;
   if col is null then raise exception 'not_player'; end if;
   opp := case when col = 'w' then 'b' else 'w' end;
+  if p_act in ('illegal','fakeend') and g.flag is null then
+    g.flag := p_act; g.flag_by := col;
+    if g.status = 'play' or (p_act = 'fakeend' and g.reason in ('mate','stalemate','repetition','material','fifty')) then
+      g.status := 'end'; g.result := null; g.reason := 'cheat'; g.draw_offer := null;
+    end if;
+    update live_games set status = g.status, result = g.result, reason = g.reason, draw_offer = null, flag = g.flag, flag_by = g.flag_by, updated_at = now() where id = g.id;
+    return trener_live_json(g, pid);
+  end if;
   if g.status = 'play' then
     if p_act = 'resign' then
       g.status := 'end'; g.reason := 'resign'; g.result := case when col = 'w' then '0-1' else '1-0' end; g.draw_offer := null;
@@ -596,9 +619,9 @@ end $$;
 
 revoke all on function public.trener_live_pid(text), public.trener_live_flag(public.live_games), public.trener_live_json(public.live_games, uuid) from public, anon, authenticated;
 revoke all on function public.trener_live_create(text, int, int, text), public.trener_live_join(text, text), public.trener_live_state(text, text),
-  public.trener_live_move(text, text, int, text, text, text), public.trener_live_act(text, text, text), public.trener_live_mine(text) from public;
+  public.trener_live_move(text, text, int, text, text, text, int, int), public.trener_live_act(text, text, text), public.trener_live_mine(text) from public;
 grant execute on function public.trener_live_create(text, int, int, text), public.trener_live_join(text, text), public.trener_live_state(text, text),
-  public.trener_live_move(text, text, int, text, text, text), public.trener_live_act(text, text, text), public.trener_live_mine(text) to anon, authenticated;
+  public.trener_live_move(text, text, int, text, text, text, int, int), public.trener_live_act(text, text, text), public.trener_live_mine(text) to anon, authenticated;
 
 -- vyzvat hráče podle jména (v aplikaci mu vyskočí pozvánka)
 create or replace function public.trener_live_invite(p_token text, p_user text, p_base int, p_inc int, p_color text)
