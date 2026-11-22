@@ -143,6 +143,7 @@ function mergeStores(a,b){resetStats(a);resetStats(b);/* a=local, b=remote; keep
  o.pz=Object.assign({},b.pz||{},a.pz||{});o.drillBest=Object.assign({},b.drillBest||{});Object.entries(a.drillBest||{}).forEach(([k,v])=>{if(!o.drillBest[k]||v.ms<o.drillBest[k].ms)o.drillBest[k]=v;});o.eg=Object.assign({},b.eg||{},a.eg||{});
  o.badges=Object.assign({},b.badges||{},a.badges||{});
  o.hideLb=('hideLb' in newer)?newer.hideLb:(a.hideLb||b.hideLb||false);
+ if('simple' in newer)o.simple=newer.simple;else if('simple' in a)o.simple=a.simple;else if('simple' in b)o.simple=b.simple;
  /* puzzle, poloviny kapitol, odhady Elo a testovací funkce: spojit postup z obou zařízení (dřív vyhrálo vždy jen toto zařízení) */
  o.pq=mergePq(a.pq,b.pq);if(!o.pq)delete o.pq;o.half=Object.assign({},b.half||{},a.half||{});
  {const gs=[...(b.guess||[]),...(a.guess||[])],seen=new Set();o.guess=gs.filter(x=>{const k=JSON.stringify(x);if(seen.has(k))return false;seen.add(k);return true;}).sort((x,y)=>String(x.d).localeCompare(String(y.d))).slice(-30);if(!o.guess.length)delete o.guess;}
@@ -150,7 +151,7 @@ function mergeStores(a,b){resetStats(a);resetStats(b);/* a=local, b=remote; keep
  new Set([...Object.keys(a.prog||{}),...Object.keys(b.prog||{})]).forEach(c=>{const pa=(a.prog||{})[c]||{},pb=(b.prog||{})[c]||{};const r={};
   new Set([...Object.keys(pa),...Object.keys(pb)]).forEach(id=>{const x=pa[id],y=pb[id];if(!x||!y){r[id]=x||y;return;}r[id]=((y.box||0)>(x.box||0)||((y.box||0)===(x.box||0)&&(y.due||0)>(x.due||0)))?y:x;});o.prog[c]=r;});
  return o;}
-function applyMerged(m){const before=JSON.stringify(store);store=resetStats(m);COURSES.forEach(c=>{store.prog[c.id]=store.prog[c.id]||{};});store.mastered=store.mastered||{};saveLocal();
+function applyMerged(m){const before=JSON.stringify(store);store=resetStats(m);COURSES.forEach(c=>{store.prog[c.id]=store.prog[c.id]||{};});store.mastered=store.mastered||{};saveLocal();if(typeof simpleSync==='function')simpleSync();
  if(JSON.stringify(store)!==before){applyTheme();if(typeof applyT1==='function')applyT1();renderSound();renderLvl();if(!$('home').hidden){renderCourses();renderHome();}}}
 function queueCloud(){if(!SYNC.be)return;SYNC.dirty=true;clearTimeout(SYNC.t);SYNC.t=setTimeout(pushCloud,1200);}
 async function pushCloud(){if(!SYNC.be||SYNC.busy||!SYNC.dirty)return;SYNC.busy=true;SYNC.dirty=false;const be=SYNC.be;
@@ -356,7 +357,7 @@ function xTry(from,to){if(XB.mode==='rz'||(XB.mode==='rv'&&!RV.vg))return false;
 /* kreslení šipek a značek na šachovnici stránek Pasti / Koncovky / Hledání – stejně jako v lekcích */
 const XM={marks:[],start:null,pen:false};
 function xEnsureDraw(){const B=$('xBoard');if(!B)return;if(!document.getElementById('xDraw')){const sv=document.createElementNS('http://www.w3.org/2000/svg','svg');sv.setAttribute('class','draw');sv.setAttribute('id','xDraw');sv.setAttribute('viewBox','0 0 8 8');sv.setAttribute('aria-hidden','true');B.appendChild(sv);}
- const row=B.closest('.xRow');if(row&&!row.parentElement.querySelector('.xTools')){const t=document.createElement('div');t.className='xTools';t.innerHTML='<button class="btn penBtn" id="xPen" aria-pressed="'+XM.pen+'" title="Kreslení šipek levým tlačítkem (pravým kreslíš vždy)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.2V21h3.8l11-11-3.8-3.8-11 11zM20.7 7a1 1 0 0 0 0-1.4l-2.3-2.3a1 1 0 0 0-1.4 0l-1.8 1.8 3.8 3.8L20.7 7z"/></svg> Kreslit</button><button class="btn" id="xClr">Smazat značky</button><button class="btn" id="xFlipU" title="Otočit šachovnici (klávesa F)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3 5 6.99h3V14h2V6.99h3L9 3z"/></svg> Otočit</button><small>Pravé tlačítko: šipka nebo pole (znovu = smazat, podržet = smazat vše) · Shift/Alt/Ctrl jiná barva · F = otočit šachovnici</small>';row.after(t);
+ const row=B.closest('.xRow');if(row&&!row.parentElement.querySelector('.xTools')){const t=document.createElement('div');t.className='xTools';t.innerHTML='<button class="btn penBtn" id="xPen" aria-pressed="'+XM.pen+'" title="Kreslení šipek levým tlačítkem (pravým kreslíš vždy)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.2V21h3.8l11-11-3.8-3.8-11 11zM20.7 7a1 1 0 0 0 0-1.4l-2.3-2.3a1 1 0 0 0-1.4 0l-1.8 1.8 3.8 3.8L20.7 7z"/></svg> Kreslit</button><button class="btn" id="xClr">Smazat značky</button><button class="btn" id="xFlipU" title="Otočit šachovnici (klávesa F)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 17.01V10h-2v7.01h-3L15 21l4-3.99h-3zM9 3 5 6.99h3V14h2V6.99h3L9 3z"/></svg> Otočit</button>';row.after(t);
   $('xPen').onclick=()=>{XM.pen=!XM.pen;$('xPen').setAttribute('aria-pressed',XM.pen);};$('xClr').onclick=()=>{XM.marks=[];xRenderMarks();};$('xFlipU').onclick=()=>boardFlip();}
  {const fb=document.getElementById('xFlipU');if(fb)fb.hidden=XB.mode==='ex';}
  XM.marks=[];xRenderMarks();}

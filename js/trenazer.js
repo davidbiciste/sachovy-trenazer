@@ -91,7 +91,7 @@ function jumpLine(l){let d=0;while(d<l.moves.length&&d<ply&&l.moves[d]===cur.mov
 document.getElementById('chList').addEventListener('click',e=>{const b=e.target.closest('.hLine');if(!b)return;const l=LINES().find(x=>x.id===b.dataset.id);if(!l||l===cur)return;jumpLine(l);});
 function start(){hideBoardTip();MISS={};if(FREE){cur=FREE.orig;mode=FREE.mode;FREE=null;setMode(mode);}clearMarks();boardIntoView();if(started)sfx('start');started=true;clearTimeout(timer);clearIdle();clr("hintsq");hist=[startBoard()];mvs=[];ply=0;view=0;mistakes=0;hintOn=false;busy=false;finished=false;
  select(null);markLast(null);badge(null);arrow(null);$('done').classList.remove('show');setPosition(hist[0]);
- $('chName').textContent=`Kapitola ${course.chapters.indexOf(cur.ch)+1}: ${cur.ch.t}`;$('lnName').innerHTML=escH(cur.name)+enH(cur);$('progLabel').textContent=`${cur.ch.t} · ${cur.name}`;
+ $('chName').textContent=`Kapitola ${course.chapters.indexOf(cur.ch)+1}: ${cur.ch.t}`;$('lnName').innerHTML=escH(cur.name)+enH(cur);$('progLabel').textContent=isSimple()?cur.ch.t:`${cur.ch.t} · ${cur.name}`;
  $('idea').innerHTML=`<b>Varianta:</b> ${cur.idea}${(()=>{const S=lineStats(course,cur);return S?`<div class="lnStT">${statTxt(S)}${S.moves.length?` · nejvíc chyb v tahu <b>${S.moves[0].lab}</b>`:''} <button class="lnk" id="lnStOpen">Podrobnosti</button></div>`:''})()}${popHTML(cur,true)}<details class="chPlan"><summary>Plán kapitoly: kam hra směřuje a kam rošádovat</summary>${cur.ch.plan}</details>`;{const lo=document.getElementById('lnStOpen');if(lo)lo.onclick=()=>openLineStats(course,cur);}renderSession();renderMoves();renderSide();showEval(20);
  if(!userTurn()){card('info','Soupeř začíná','Bílý táhne první','','<p class="auto">Počkej na první tah bílého.</p>');busy=true;timer=setTimeout(()=>{oppMove();},600);}
  else{newTurn();showPrompt();showHint();}}
@@ -366,7 +366,7 @@ applyTheme();applyT1();applyAlien();renderSound();parseRoute();cur=pickStart();f
  /* když to hráč chtěl naposledy, na celou obrazovku se přepne při prvním kliknutí */
  if(can&&store.fs){const once=()=>{document.removeEventListener('pointerdown',once,true);if(!document.fullscreenElement)document.documentElement.requestFullscreen({navigationUI:'hide'}).catch(()=>{});};document.addEventListener('pointerdown',once,true);}}
 $('homeTop').onclick=()=>go('');$('rzTop').onclick=()=>go(store.ccName?'#rozbor/'+encodeURIComponent(store.ccName):'#rozbor');$('dsTop').onclick=()=>go('#sachovnice');updDsBadge();$('accTop').onclick=()=>{if(SYNC.be&&SYNC.be.kind==='supa')go('#profil');else openAccount();};$('sLvl').onclick=()=>go('#profil');renderLvl();$('devTop').onclick=openDev;window.addEventListener('hashchange',pkNav);renderAccTop();nxInitNav();setTimeout(()=>{pkEnter();nxMark();},0);try{document.fonts.ready.then(()=>nxMark());}catch(e){}addEventListener('load',()=>nxMark());
-try{$('appVer').textContent='Verze '+APP_VERSION+'.';}catch(e){}
+try{$('appVer').textContent='verze '+APP_VERSION;}catch(e){}
 initCloud();window.addEventListener('pagehide',()=>{if(SYNC.dirty){clearTimeout(SYNC.t);pushCloud();}});
 /* bez přibližování (iPhone ignoruje user-scalable=no, proto i gesta) */
 ['gesturestart','gesturechange'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));

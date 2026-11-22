@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <script src="config.js"></script>
-<script>const APP_VERSION='2026-11-22 grafika1';/* zvyš při každé změně – ukazuje se v patičce a mění adresy css/ a js/ souborů (aby hráči dostali novou verzi) */
+<script>const APP_VERSION='2026-11-22 jednoduchy1';/* zvyš při každé změně – ukazuje se v patičce a mění adresy css/ a js/ souborů (aby hráči dostali novou verzi) */
 const APP_JS=["data-kurzy", "zaklad", "puzzle", "stranky", "rozbor", "lekce", "review", "novinky", "uvod", "zebricek", "hra", "trenazer"];</script>
 <script>/* PŘEPÍNAČ VZHLEDU (pro všechny hráče): výchozí je Nový trenažér (neo), starý vzhled = sal */
 window.DESIGNS={neo:{n:'Nový trenažér',d:'Výchozí: boční menu, živá šachovnice, barevné dlaždice, hledání Ctrl K',cls:'d-klub d-sal d-neo'},
@@ -37,6 +37,7 @@ window.applyDesign(window.MUSEUM?(localStorage.getItem('trener-design')||'neo'):
 <meta name="apple-mobile-web-app-title" content="Šach trenér">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Barlow+Semi+Condensed:wght@500;600;700&display=swap">
+<script>try{if(localStorage.getItem('trener-simple')==='1')document.documentElement.classList.add('simple');}catch(e){}</script>
 <script>document.write('<link rel="stylesheet" href="css/app.css?v='+encodeURIComponent(APP_VERSION)+'">');</script>
 
 <div class="wcoDrag" aria-hidden="true"></div>
@@ -121,8 +122,7 @@ window.applyDesign(window.MUSEUM?(localStorage.getItem('trener-design')||'neo'):
   </div>
   <div class="picker" id="picker" hidden></div>
   <div class="picker gate" id="gate" hidden></div>
-  <div class="foot"><p>Každý tah, který v kurzech hraješ, je ověřený enginem Stockfish. Figury: Colin M. L. Burnett (CC BY-SA 3.0). <span id="appVer"></span></p>
-  <details class="footMore"><summary>Odkud jsou varianty</summary><p>Varianty sestavil Claude a každý tah, který hraješ ty, ověřil proti vyhodnocení enginu Stockfish z databáze Lichess. Tahy soupeře jsou nejčastěji nejlepší odpovědi enginu. Slovanskou obranu, Najdorfa a Královskou indickou (i nově doplněné varianty) jsem sestavil a ověřil enginem Stockfish 16 (hloubka 16–18). Procenta u variant jsou z databáze Lichess (hráči 1400–2500, blitz, rapid a klasika). Výjimkou je Kráva: je to vtipné zahájení, které je objektivně o kousek horší, a její varianty jsou sestavené podle plánu krávy (engine jen hlídá, abys neztratil figuru). Podobně Alien gambit je vtipný a objektivně nekorektní gambit – tahy bílého v něm vybral Stockfish 16 (hloubka 17–18) jako nejlepší pokračování po oběti. Šipkami ← → procházíš tahy.</p></details></div>
+  <div class="foot"><details class="footMore"><summary>O trenažéru · <span id="appVer"></span></summary><p>Každý tah, který v kurzech hraješ, je ověřený enginem Stockfish. Figury: Colin M. L. Burnett (CC BY-SA 3.0).</p><p>Varianty sestavil Claude a každý tah, který hraješ ty, ověřil proti vyhodnocení enginu Stockfish z databáze Lichess. Tahy soupeře jsou nejčastěji nejlepší odpovědi enginu. Slovanskou obranu, Najdorfa a Královskou indickou (i nově doplněné varianty) jsem sestavil a ověřil enginem Stockfish 16 (hloubka 16–18). Procenta u variant jsou z databáze Lichess (hráči 1400–2500, blitz, rapid a klasika). Výjimkou je Kráva: je to vtipné zahájení, které je objektivně o kousek horší, a její varianty jsou sestavené podle plánu krávy (engine jen hlídá, abys neztratil figuru). Podobně Alien gambit je vtipný a objektivně nekorektní gambit – tahy bílého v něm vybral Stockfish 16 (hloubka 17–18) jako nejlepší pokračování po oběti. Šipkami ← → procházíš tahy.</p></details></div>
 </div>
 
 <script>/* aplikace je rozdělená do souborů v js/ – načítají se v tomhle pořadí (pozdější soubory používají funkce z dřívějších) */
