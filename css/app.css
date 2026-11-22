@@ -2068,3 +2068,73 @@ html.simple .sfLvl{display:none!important}
 @media (max-width:899px){html.d-neo.d-sal .nxHead .nxTools>*{flex-shrink:0}html.d-neo.d-sal .nxHead .nxTools{gap:6px}}
 @media (max-width:400px){html.d-neo.d-sal .nxHead #nxLooks{display:none!important}html.d-neo.d-sal .nxHead .nxSimpleTop{padding:8px 9px;gap:7px}}
 @media (max-width:350px){html.d-neo.d-sal .nxHead #nxSearch{display:none!important}}
+
+/* ===================== JEDNODUCHÝ ÚVOD + VYSVĚTLIVKY + OKNO „Co trenažér umí“ (23. 11. 2026) ===================== */
+.smp{display:grid;gap:18px;max-width:880px}
+.smp .nxH2{margin:10px 0 0}
+.smpNow{position:relative;padding:28px 28px 26px;border-radius:24px;background:#0f0f10;color:#fff;overflow:hidden}
+.smpNow::after{content:"";position:absolute;right:-60px;top:-60px;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--accent) 55%,transparent),transparent 70%);pointer-events:none}
+.smpEb{display:inline-block;font-size:13px;font-weight:700;color:#0f0f10;background:#c8f560;padding:4px 10px;border-radius:99px}
+.smpNow h1{margin:12px 0 6px;font-size:clamp(30px,6vw,44px);line-height:1.05;letter-spacing:-.02em;color:#fff}
+.smpNow p{margin:0 0 18px;font-size:16px;line-height:1.45;color:rgba(255,255,255,.75);max-width:46ch}
+.smpNowBtns{position:relative;z-index:1;display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.smpNow .nxLink{color:rgba(255,255,255,.8)}
+.smpHow{border-radius:18px;background:var(--surf);border:1px solid var(--line);padding:4px 18px}
+.smpHow summary{all:unset;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 0;font-weight:700;font-size:16px}
+.smpHow summary::after{content:"";width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);margin-right:4px;transition:transform .18s}
+.smpHow[open] summary::after{transform:rotate(-135deg)}
+.smpHow ol{margin:0 0 14px;padding-left:22px;display:grid;gap:10px;line-height:1.45;font-size:15px}
+.smpHow ol b{display:block}
+.smpGot{margin:0 0 16px}
+.smpList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.smpDo,.smpCrs{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:44px minmax(0,1fr) 20px;align-items:center;gap:14px;padding:16px;border-radius:18px;background:var(--surf);border:1px solid var(--line);transition:border-color .15s,transform .15s}
+.smpDo:active,.smpCrs:active{transform:scale(.985)}
+@media (hover:hover){.smpDo:hover,.smpCrs:hover{border-color:var(--accent)}}
+.smpDo:focus-visible,.smpCrs:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.smpDoIc{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;background:var(--panel-2);color:var(--fg)}
+.smpDoIc svg{width:22px;height:22px}
+.smpDoTx b,.smpCrsTx b{display:block;font-size:16px}
+.smpDoTx small,.smpCrsTx small{display:block;margin-top:3px;font-size:13.5px;line-height:1.4;color:var(--muted)}
+.smpDoGo{color:var(--dim)}.smpDoGo svg{width:18px;height:18px}
+.smpNote{margin:6px 0 12px;color:var(--muted);font-size:15px;line-height:1.45;max-width:60ch}
+.smpCrsList{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.smpCrs{grid-template-columns:44px minmax(0,1fr) 64px}
+.smpCrsIc{display:grid;place-items:center;width:44px;height:44px;border-radius:13px;background:#c8f560}
+.smpCrsIc.b{background:#1d1d1f}.smpCrsIc svg{width:30px;height:30px}
+.smpCrsBar{height:6px;border-radius:99px;background:var(--panel-3);overflow:hidden}.smpCrsBar i{display:block;height:100%;background:var(--accent);border-radius:inherit}
+.smpFoot{margin:6px 0 0;text-align:center;color:var(--muted);font-size:14px;line-height:1.8}
+@media (max-width:640px){.smpList,.smpCrsList{grid-template-columns:1fr}.smpNow{padding:22px 20px}}
+/* vysvětlivky (jen jednoduchý režim) */
+.smpTip{margin:0 0 14px;padding:14px 16px;border-radius:14px;background:color-mix(in srgb,var(--accent) 8%,var(--bg-2));border:1px solid color-mix(in srgb,var(--accent) 25%,var(--line));font-size:15px;line-height:1.5}
+.smpSegTip{display:none}
+html.simple .smpSegTip{display:block;margin:8px 2px 4px;font-size:13.5px;line-height:1.45;color:var(--muted)}
+html.simple .smpSegTip b{color:var(--fg)}
+/* menu v jednoduchém režimu: jen hlavní položky s krátkým popisem, bez seznamu kurzů a hledání */
+html.simple .nxNav .nxCourses,html.simple .nxNav .nxCmdBtn{display:none!important}
+@media (min-width:900px){
+ html.simple .nxNav .nxTab>span:last-child::after{display:block;font-size:12px;font-weight:500;color:var(--muted);margin-top:1px}
+ html.simple .nxNav .nxTab[data-nx="#"]>span:last-child::after{content:"Co dělat teď"}
+ html.simple .nxNav .nxTab[data-nx="#hra"]>span:last-child::after{content:"Partie s kamarádem"}
+ html.simple .nxNav .nxTab[data-nx="#lekce"]>span:last-child::after{content:"Pravidla a triky"}
+ html.simple .nxNav .nxTab[data-nx="#puzzle"]>span:last-child::after{content:"Najdi nejlepší tah"}
+ html.simple .nxNav .nxTab[data-nx="#profil"]>span:last-child::after{content:"Tvůj postup"}
+ html.simple .nxNav .nxTab.nxAppBtn>span:last-child::after{content:none}}
+/* okno „Co trenažér umí“ */
+.introBox{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;background:rgba(15,15,16,.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);animation:introIn .18s ease}
+.introBox.out{opacity:0;transition:opacity .15s}
+.introCard{box-sizing:border-box;width:min(560px,100%);max-height:calc(100dvh - 32px);overflow:auto;padding:26px 24px 22px;border-radius:24px;background:var(--bg-2,#fff);color:var(--fg);box-shadow:0 24px 60px rgba(0,0,0,.3);font-family:var(--font,inherit)}
+.introCard h2{margin:0 0 6px;font-size:26px;letter-spacing:-.01em}
+.introLead{margin:0 0 16px;color:var(--muted);line-height:1.45}
+.introList{list-style:none;margin:0 0 16px;padding:0;display:grid;gap:12px}
+.introList li{display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;align-items:start}
+.introIc{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:var(--panel-2,#eee)}.introIc svg{width:20px;height:20px}
+.introList b{display:block;font-size:15.5px}.introList small{display:block;margin-top:2px;font-size:13.5px;line-height:1.4;color:var(--muted)}
+.introMode{margin:0 0 18px;padding:12px 14px;border-radius:12px;background:var(--panel,#f5f5f5);font-size:14px;line-height:1.45}
+.introGo{width:100%;justify-content:center}
+.modeMore{margin:12px 0 0}
+@keyframes introIn{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.introBox{animation:none}}
+html.d-neo.d-sal .smpHow .smpGot{height:44px;background:var(--fg);color:var(--bg-2);border-color:transparent}
+html.d-neo.d-sal .introCard .introGo{border-color:transparent}
+@media (min-width:900px){html.simple .nxNav .nxTab{justify-content:flex-start;text-align:left;height:auto;min-height:44px;padding-top:7px;padding-bottom:7px}html.simple .nxNav .nxTab>span:last-child{text-align:left}}
+html.d-neo.d-sal .smp{max-width:1100px}
