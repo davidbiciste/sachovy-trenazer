@@ -69,6 +69,7 @@ Odpovídej česky, jednoduše (majitel není programátor).
 - Nováček (19. 11. 2026): dokud nevybere „Jak hraješ šachy?“, vidí na úvodu jen tuhle otázku (`calm`, zbytek v `#nxMore` schovaný, odkaz „Ukázat celý trenažér“ = `NX.all`); noví hráči nemají nahoře zvuk, vzhled ani level. Přihlašovací okno pro úplně nové návštěvníky (bez `localStorage['trener-was-in']`, tokenu a XP) má uvítání, co web umí, a otevře se na Registrovat. Dlouhý text o původu variant je v patičce sbalený pod „Odkud jsou varianty“.
 - Tlačítko „Starý vzhled“ v menu a „Vrátit starý vzhled“ dole na úvodu vidí jen správce (muzeum); ostatním jsou schované.
 - Zálohy před novým vzhledem: větev `zaloha-pred-novym-trenazerem`.
+- Grafická úprava 22. 11. 2026 (CSS blok „GRAFICKÁ ÚPRAVA 22. 11. 2026“ na konci `css/app.css`): Zpět (`.btBack`) = odkaz vlevo jako `.backAll`, `.btPage` přes celou šířku (ne úzký sloupec uprostřed), mřížky bez osamocených položek (puzzle úrovně 8/4 sloupce, odznaky 8/4/2, časy v Hře 4/3 + „Bez času“ přes 2, „Moje úroveň“ ve Výzvě přes celou řadu), názvy kurzů v boční liště se zalamují. Kontrola: skript projde všechny stránky na 390/820/1440 px a hlídá přetékání textu, ořezané placeholdery a vodorovné posouvání.
 
 ## Starý vzhled „Turnajový sál“ (volba sal)
 - Barvy jen přes CSS proměnné v `:root` (světlý) a `@media (prefers-color-scheme:dark)` (tmavý). Zeď sálu `--bg`, papír `--bg-2`, grafit `--fg`, zelená hodin `--accent`/`--btn`, červený praporek `--bad`, mosaz `--gold`, ořech `--frame`.

@@ -1958,3 +1958,48 @@ html.d-neo.d-sal .lvInvBar .btn.primary,html .lvInvBar .btn.primary{background:v
 .lvFp.now{color:#fff;background:var(--bad);border-color:var(--bad)}
 .lvV{font-weight:700}.lvV.l0{color:var(--muted)!important}.lvV.l1{color:var(--bad)!important}.lvV.l2{color:#fff!important;background:var(--bad);padding:2px 8px;border-radius:6px;margin-top:3px;align-self:flex-start}
 .lvFair #lvEcGo{margin-top:6px}
+
+/* ===================== GRAFICKÁ ÚPRAVA 22. 11. 2026 – zarovnání, centrování, nic se neořezává (jen Nový trenažér) ===================== */
+/* boční lišta: dlouhé názvy kurzů (Sicilská obrana – Najdorf, Londýnský systém…) se zalomí na 2 řádky místo „…“ */
+@media (min-width:900px){
+ html.d-neo.d-sal .nxNav .nxCrsT{white-space:normal;overflow:visible;text-overflow:clip;line-height:1.2;overflow-wrap:anywhere}
+ html.d-neo.d-sal .nxNav .nxCrs{padding-top:6px;padding-bottom:6px}}
+/* tlačítko Zpět: stejný odkaz vlevo nahoře jako „← Všechny kurzy“ na ostatních stránkách (dřív pruh přes celou šířku) */
+html.d-neo.d-sal .btn.btBack{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin:0 0 10px;padding:0!important;color:var(--accent)!important;font-weight:600!important;font-size:14px!important;background:none!important;border:0!important;box-shadow:none!important;width:auto;flex:none}
+html.d-neo.d-sal .btn.btBack:hover{text-decoration:underline}
+html.d-neo.d-sal #home>.btn.btBack{justify-self:start}
+/* stránky Hra, Souřadnice, Výzva, Soupeři, Varianty, Plán: obsah zarovnaný se zbytkem webu (dřív úzký sloupec uprostřed, jinak široký na každé stránce) */
+html.d-neo.d-sal .btPage{width:100%;max-width:none;margin:0;box-sizing:border-box}
+/* časy v lobby Hry: 4 / 3 sloupce, „Bez času“ doplní poslední řadu */
+html.d-neo.d-sal .lvTimes{grid-template-columns:repeat(4,minmax(0,1fr))}
+html.d-neo.d-sal .lvTimes>:last-child{grid-column:span 2}
+@media (max-width:480px){html.d-neo.d-sal .lvTimes{grid-template-columns:repeat(3,minmax(0,1fr))}}
+/* Puzzle – úrovně: 16 úrovní = 2 řady po 8 (mobil 4 × 4), žádná osamocená úroveň na konci */
+html.d-neo.d-sal .pqLvGrid{grid-template-columns:repeat(8,minmax(0,1fr))}
+@media (max-width:640px){html.d-neo.d-sal .pqLvGrid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+/* Odznaky: 16 kusů = 2 řady po 8 / 4 řady po 4 / mobil 2 sloupce; obsah vycentrovaný */
+html.d-neo.d-sal .lbBadges{grid-template-columns:repeat(8,minmax(0,1fr))}
+@media (max-width:1180px){html.d-neo.d-sal .lbBadges{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:560px){html.d-neo.d-sal .lbBadges{grid-template-columns:repeat(2,minmax(0,1fr))}}
+html.d-neo.d-sal .lbBadge{align-items:center;text-align:center;padding:14px 10px}
+html.d-neo.d-sal .lbBadge b{overflow-wrap:anywhere}
+/* Výzva: „Moje úroveň“ přes celou řadu (dřív sama napůl) */
+html.d-neo.d-sal .btLv{grid-template-columns:repeat(4,minmax(0,1fr))}
+html.d-neo.d-sal .btLv>.primary{grid-column:1/-1;text-align:center;justify-items:center}
+@media (max-width:640px){html.d-neo.d-sal .btLv{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* přepínače se segmenty (Varianty od hráčů aj.): text na střed, stejně široké */
+html.d-neo.d-sal .btSeg button{text-align:center;justify-content:center;display:flex;align-items:center;line-height:1.25}
+html.d-neo.d-sal .cvTop{align-items:stretch}
+html.d-neo.d-sal .cvTop>.btn{flex:none;padding-left:20px;padding-right:20px}
+@media (max-width:640px){html.d-neo.d-sal .cvTop{flex-direction:column}html.d-neo.d-sal .cvTop>.chip2{width:100%;box-sizing:border-box}html.d-neo.d-sal .cvTop>.btn{width:100%;box-sizing:border-box}}
+/* Rozbor partie: mezera nad „Partie z chess.com“ */
+html.d-neo.d-sal .profCard .rvCcT{margin-top:20px}
+/* patička: „Odkud jsou varianty“ zarovnané s textem nad ním */
+html.d-neo.d-sal .foot summary{padding:4px 0;display:block}
+/* Hra: tlačítko Vytvořit hru nepřetéká z karty */
+html.d-neo.d-sal #lvCreate,html.d-neo.d-sal .lvCreate{box-sizing:border-box;max-width:100%}
+/* segmenty na počítači v jednom řádku */
+@media (min-width:641px){html.d-neo.d-sal .btSeg button{white-space:nowrap}}
+/* vstupní pole: placeholder se vejde (Hra – kód od kamaráda, Profil – jméno na chess.com) */
+html.d-neo.d-sal .lvJoin .btn{flex:none;padding-left:16px;padding-right:16px}
+@media (max-width:640px){html.d-neo.d-sal .titleForm input{flex:1 1 100%;min-width:0}}
