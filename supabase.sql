@@ -413,6 +413,17 @@ alter table public.live_games add column if not exists away_b int not null defau
 alter table public.live_games add column if not exists mtimes text not null default ''; -- ms na každý půltah podle serveru
 alter table public.live_games add column if not exists flag text;                         -- illegal / fakeend
 alter table public.live_games add column if not exists flag_by text;                      -- w / b (kdo nahlásil)
+-- chat v partii (22. 11. 2026)
+create table if not exists public.live_chat (
+  id         bigserial primary key,
+  game_id    bigint not null references public.live_games (id) on delete cascade,
+  author     text not null,                 -- w / b
+  body       text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists live_chat_game_idx on public.live_chat (game_id, id);
+alter table public.live_chat enable row level security;
+revoke all on public.live_chat from anon, authenticated;
 revoke all on public.live_games from anon, authenticated;
 
 create or replace function public.trener_live_pid(p_token text)
@@ -460,7 +471,8 @@ returns json language sql security definer set search_path = public, extensions 
     'ccolor', g.creator_color,
     'me', case when pid = g.white then 'w' when pid = g.black then 'b' when pid = g.creator and g.status = 'wait' then 'c' else null end,
     'draw', g.draw_offer, 'remo', g.rematch_offer, 'rematch', g.rematch,
-    'blur_w', g.blur_w, 'blur_b', g.blur_b, 'away_w', g.away_w, 'away_b', g.away_b, 'mtimes', g.mtimes, 'flag', g.flag, 'flag_by', g.flag_by)
+    'blur_w', g.blur_w, 'blur_b', g.blur_b, 'away_w', g.away_w, 'away_b', g.away_b, 'mtimes', g.mtimes, 'flag', g.flag, 'flag_by', g.flag_by,
+    'chat', (select max(id) from live_chat where game_id = g.id))
 $$;
 
 -- nová hra: p_base a p_inc v sekundách (p_base 0 = bez času), p_color w / b / r
@@ -663,3 +675,33 @@ end $$;
 
 revoke all on function public.trener_live_invite(text, text, int, int, text), public.trener_live_invites(text), public.trener_live_friends(text) from public;
 grant execute on function public.trener_live_invite(text, text, int, int, text), public.trener_live_invites(text), public.trener_live_friends(text) to anon, authenticated;
+
+-- chat: napsat zprávu (jen hráči partie, nejvýš 300 znaků, nejvýš 12 zpráv za minutu)
+create or replace function public.trener_live_say(p_token text, p_code text, p_body text)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid := trener_live_pid(p_token); g live_games; col text; b text := left(trim(coalesce(p_body,'')), 300);
+begin
+  select * into g from live_games where code = lower(trim(p_code));
+  if g.id is null then raise exception 'not_found'; end if;
+  col := case when pid = g.white then 'w' when pid = g.black then 'b' else null end;
+  if col is null then raise exception 'not_player'; end if;
+  if b = '' then raise exception 'empty'; end if;
+  if (select count(*) from live_chat where game_id = g.id and author = col and created_at > now() - interval '1 minute') >= 12 then raise exception 'too_fast'; end if;
+  insert into live_chat (game_id, author, body) values (g.id, col, b);
+  return trener_live_chat(p_token, p_code, 0);
+end $$;
+
+-- chat: zprávy partie po id p_after (posledních 100)
+create or replace function public.trener_live_chat(p_token text, p_code text, p_after bigint)
+returns json language plpgsql security definer set search_path = public, extensions as $$
+declare pid uuid := trener_live_pid(p_token); gid bigint;
+begin
+  select id into gid from live_games where code = lower(trim(p_code));
+  if gid is null then raise exception 'not_found'; end if;
+  return coalesce((select json_agg(x order by x.id) from (
+    select c.id, c.author as a, c.body as t, (extract(epoch from c.created_at) * 1000)::bigint as at
+      from live_chat c where c.game_id = gid and c.id > coalesce(p_after, 0) order by c.id desc limit 100) x), '[]'::json);
+end $$;
+
+revoke all on function public.trener_live_say(text, text, text), public.trener_live_chat(text, text, bigint) from public;
+grant execute on function public.trener_live_say(text, text, text), public.trener_live_chat(text, text, bigint) to anon, authenticated;

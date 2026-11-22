@@ -29,6 +29,8 @@ let fail=0;const ok=(c,t)=>{console.log((c?'OK   ':'CHYBA ')+t);if(!c)fail++;};
  await A.waitForFunction(()=>LV.s&&LV.s.status==='play',null,{timeout:5000});ok(true,'kamarád otevřel odkaz a hra začala u obou');
  ok(await A.evaluate(()=>LV.s.me==='w'&&!xFlip())&&await B.evaluate(()=>LV.s.me==='b'&&xFlip()),'barvy a otočení šachovnice (bílý dole / černý dole)');
  ok((await A.$eval('#lvClkB .lvTime',e=>e.textContent))==='3:00','hodiny ukazují 3:00');
+ await A.click('[data-lvq="Hodně štěstí!"]');await B.waitForFunction(()=>/Hodně štěstí!/.test(document.getElementById('lvChat').textContent),null,{timeout:6000});ok(await B.evaluate(()=>{const b=document.getElementById('lvBubble');return !!b&&b.classList.contains('in')&&/Hodně štěstí/.test(b.textContent);}),'chat: zpráva dorazila soupeři a ukázala se bublina na šachovnici');
+ await B.fill('#lvSayIn','Tobě taky');await B.press('#lvSayIn','Enter');await A.waitForFunction(()=>/Tobě taky/.test(document.getElementById('lvChat').textContent),null,{timeout:6000});ok(true,'chat: odpověď dorazila zpátky');await B.locator('#lvChatCard').scrollIntoViewIfNeeded();await B.screenshot({path:SHOTS+'/chat-mobil.png'});
  await mv(B,'e7','e5');ok(await B.evaluate(()=>LV.g.history().length===0&&LV.pre&&LV.pre.to==='e5'),'černý mimo tah netáhne, ale uloží si předtah e5');
  await mv(A,'f2','f3');await A.waitForFunction(()=>LV.g.history().length===2,null,{timeout:6000});ok(await A.evaluate(()=>LV.g.history().join(' ')==='f3 e5'),'tah bílého dorazil černému a předtah e5 se hned zahrál');
  await A.waitForTimeout(1500);const wt=await A.$eval('#lvClkB .lvTime',e=>e.textContent);ok(/^2:5[0-9]$/.test(wt)&&await A.$eval('#lvClkB',e=>e.classList.contains('run')),'po prvním tahu černého běží bílému čas ('+wt+')');

@@ -1937,3 +1937,19 @@ html.d-neo.d-sal .lvInvBar .btn.primary,html .lvInvBar .btn.primary{background:v
 .lvFair li.sus b{color:var(--bad)}
 .lvSus{color:var(--bad)!important;font-weight:600}
 .lvFair p{margin:6px 0 0;font-size:13.5px}
+
+/* chat v partii */
+.lvChatHead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}.lvChatHead .lvH{margin:0}
+.lvMute{border:0;background:none;color:var(--muted);font:inherit;font-size:13px;font-weight:600;cursor:pointer;padding:4px}
+.lvMute[aria-pressed="true"]{color:var(--bad)}
+.lvChat{max-height:220px;min-height:48px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:2px 0 8px}
+.lvMsg2{align-self:flex-start;max-width:85%;margin:0;padding:7px 11px;border-radius:14px 14px 14px 4px;background:var(--panel-2,var(--bg));overflow-wrap:anywhere}
+.lvMsg2 b{display:block;font-size:12px;color:var(--muted)}
+.lvMsg2.mine{align-self:flex-end;border-radius:14px 14px 4px 14px;background:var(--accent);color:#fff}.lvMsg2.mine b{color:rgba(255,255,255,.75)}
+.lvChatEmpty{margin:0}
+.lvQuick{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.lvQuick button{padding:5px 10px;border:1px solid var(--line);border-radius:999px;background:var(--bg);color:var(--fg);font:inherit;font-size:13px;cursor:pointer}
+.lvSay{display:flex;gap:8px}.lvSay input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);font:inherit;font-size:15px}
+.lvBubble{position:absolute;z-index:19;left:50%;top:10px;max-width:80%;padding:8px 14px;border-radius:14px;background:var(--fg);color:var(--bg);font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.3);overflow-wrap:anywhere;opacity:0;transform:translate(-50%,-8px);pointer-events:none;transition:opacity .2s,transform .25s}
+.lvBubble.in{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){.lvBubble{transition:none}}
