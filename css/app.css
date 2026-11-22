@@ -1012,6 +1012,7 @@ html.navrh .exRight .freeBtns .btn.primary{font-size:15px!important}
 .rvGraph{display:block;width:100%;height:70px;border-radius:4px;margin-bottom:12px;cursor:pointer}
 .rvCnt{width:100%;border-collapse:collapse;font-size:14px}.rvCnt td{padding:4px 6px;border-bottom:1px solid var(--line)}.rvCnt td:first-child,.rvCnt td:last-child{width:40px;text-align:center;font-family:var(--display);font-weight:600;font-size:16px}
 .rvRat td{font-weight:700}
+.rvAltMoves{line-height:2.1;font-size:14px;margin:6px 0}
 .rvMoves{max-height:300px;overflow:auto;line-height:2.1;font-size:14px}
 .rvNo{color:var(--muted);font-weight:600;margin-left:4px}
 .rvMv{all:unset;cursor:pointer;padding:1px 6px;border-radius:5px;white-space:nowrap}.rvMv:hover{background:var(--panel)}.rvMv.cur{background:var(--panel-3);font-weight:700}

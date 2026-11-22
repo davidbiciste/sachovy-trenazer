@@ -472,11 +472,11 @@ function tuBotPanel(){const el=document.getElementById('tuBot');if(!el)return;tu
  $('tuHintB').onclick=async()=>{if(B.over||B.think||TU.g.turn()!==B.side)return;if(B.view!=null)tuView(null);const s=$('tuStat');if(s)s.innerHTML='Hledám dobrý tah…';await B.evP;const ev=B.ev&&B.ev.fen===TU.g.fen()?B.ev:await tuEval();if(ev&&ev.best){xArrow(ev.best);const s2=$('tuStat');if(s2)s2.innerHTML=`Modrá šipka ukazuje dobrý tah: <b>${czSan(sanOf(TU.g.fen(),ev.best))}</b>.`;}else if(s)s.innerHTML='Nápověda teď nejde, engine se nenačetl.';};}
 /* odhad Elo z přesnosti tahů (hodnotí Stockfish): přesnost tahu podle vzorce Lichess, převod na Elo podle hrubé tabulky */
 const TU_ELO=[[25,100],[40,300],[50,450],[58,600],[65,800],[71,1000],[76,1200],[80,1400],[84,1600],[88,1850],[92,2150],[96,2500]];
-function tuEloEst(){const A=TU.bot.acc||[];const n=A.length;if(n<8)return{n};const acc=A.map(a=>Math.max(0,Math.min(100,103.1668*Math.exp(-0.04354*a.drop)-3.1669)));const av=acc.reduce((s,v)=>s+v,0)/n;
- const bl=A.filter(a=>a.drop>=25).length,mi=A.filter(a=>a.drop>=12&&a.drop<25).length,ia=A.filter(a=>a.drop>=8&&a.drop<12).length;
+function tuEloEst(){const A=TU.bot.acc||[];const n=A.length;if(n<8)return{n};const acc=A.map(a=>accMove(a.drop));const av=accGame(acc);
+ const bl=A.filter(a=>a.drop>=20).length,mi=A.filter(a=>a.drop>=10&&a.drop<20).length,ia=A.filter(a=>a.drop>=5&&a.drop<10).length;
  let e=TU_ELO[0][1];for(let i=1;i<TU_ELO.length;i++){const [a1,e1]=TU_ELO[i-1],[a2,e2]=TU_ELO[i];if(av>=a1)e=av>=a2?e2:e1+(e2-e1)*(av-a1)/(a2-a1);}
- const acpl=A.reduce((t,a)=>t+(a.cpl||0),0)/n;const T2=[[15,2400],[30,2000],[50,1500],[65,1200],[80,1000],[100,800],[130,600],[180,400],[260,250],[400,100]];let e2=T2[T2.length-1][1];if(acpl<=T2[0][0])e2=T2[0][1];else for(let i=1;i<T2.length;i++){const [c1,v1]=T2[i-1],[c2,v2]=T2[i];if(acpl>c1&&acpl<=c2){e2=v1+(v2-v1)*(acpl-c1)/(c2-c1);break;}}
- e=.2*e+.8*e2-(bl/n)*600;e=Math.max(100,Math.round(e/50)*50);const r=n>=25?150:n>=15?200:250;return{n,av:Math.round(av),e,lo:Math.max(100,e-r),hi:e+r,bl,mi,ia,acpl:Math.round(acpl)};}
+ const acpl=A.reduce((t,a)=>t+(a.cpl||0),0)/n;const e2=eloFromAcpl(acpl);
+ e=.2*e+.8*e2-(bl/n)*1500;e=Math.max(100,Math.round(e/50)*50);const r=n>=25?150:n>=15?200:250;return{n,av:Math.round(av),e,lo:Math.max(100,e-r),hi:e+r,bl,mi,ia,acpl:Math.round(acpl)};}
 function tuEloHTML(end){const E=tuEloEst();if(!E.av){if(!end)return'';return E.n?`<div class="tuElo"><small>Na odhad Elo zahraj aspoň 8 tahů (teď ${E.n}).</small></div>`:'';}
  return `<div class="tuElo"><div class="tuEloN">Odhad tvého Elo na chess.com (rapid): <b>${E.e}</b></div><small>Asi ${E.lo}–${E.hi}. Přesnost ${E.av} % ze ${E.n} tahů · průměrná ztráta ${E.acpl} setin pěšce na tah · hrubé chyby ${E.bl} · chyby ${E.mi} · nepřesnosti ${E.ia}.${end?'':' Odhad se zpřesní, když dohraješ.'} Je to hrubý odhad podle hodnocení Stockfishe – na jedné partii se Elo přesně určit nedá. ${(()=>{const G=TU_GROUPS.find(x=>x[3]&&E.e>=x[3][0]&&E.e<x[3][1]);return G?`Lekce pro tebe: <a href="#lekce/${G[0]}">${G[1]}</a>.`:'';})()}</small></div>`;}
 /* ---- Odhad Elo (#odhad): partie bez nápověd, odhad na konci ---- */
@@ -484,7 +484,7 @@ const TU_GUESS={id:'odhad',g:'play',t:'Odhad Elo',p:['Zahraj si celou partii pro
 const TU_GBOTS=[{l:2,n:'Bára',r:'asi 600'},{l:3,n:'Kryštof',r:'asi 900'},{l:4,n:'Stockfish 3',r:'asi 1300'},{l:5,n:'Stockfish 6',r:'asi 1700'}];
 function tuGuessSave(res){const E=tuEloEst();if(!E.av)return;store.guess=store.guess||[];store.guess.push({d:new Date().toISOString().slice(0,10),e:E.e,a:E.av,n:E.n,r:res,b:TU.bot.lvl});if(store.guess.length>30)store.guess=store.guess.slice(-30);}
 function tuGuessPanel(el){const B=TU.bot,g=TU.g,hist=g.history(),cur=B.view==null?hist.length:B.view;const myN=(B.acc||[]).length;const H=(store.guess||[]).slice(-6).reverse();
- const bad=(B.acc||[]).filter(a=>a.drop>=8).map(a=>`<button class="rzErr" data-k="${a.ply}"><b>${rzMvLab(a.san,a.ply-1)}</b><span>${a.k}</span></button>`).join('');
+ const bad=(B.acc||[]).filter(a=>a.drop>=5).map(a=>`<button class="rzErr" data-k="${a.ply}"><b>${rzMvLab(a.san,a.ply-1)}</b><span>${a.k}</span></button>`).join('');
  const avg=H.length?Math.round(H.reduce((s,x)=>s+x.e,0)/H.length/50)*50:0;
  el.innerHTML=`${B.over?'':`<div class="engBox tuStat" id="tuStat">${tuBotStatus()}</div>`}
  ${B.over?`<div class="tuGuessRes">${B.over}</div>${bad?`<h3 class="rzH3">Tvoje chyby a nepřesnosti</h3><p class="profEmpty">Klepni a uvidíš pozici po tahu.</p><div class="rzErrs tuGErr">${bad}</div>`:'<p class="profEmpty">Žádná chyba ani nepřesnost. Výborná partie.</p>'}`
@@ -515,8 +515,8 @@ function tuBotTry(from,to){const B=TU.bot,g=TU.g;if(B.over||B.think||B.view!=nul
  XB.sel=null;xArrow(null);tuBadge(null);xAnimate(mv);xMarks();sfx(g.inCheck()?'check':mv.captured?'capture':'move');B.verdict=null;B.opEx='';B.myEx=`${czSan(mv.san)} – ${tuExplain(arr,mv)}`.replace(/ – $/,'');B.tips=tuCoach(g,'mine');{const fb=tuMoveFeedback(g,mv);if(fb)B.tips.push(fb);}
  if(tuBotEnd())return true;B.think=true;tuBotPanel();tuAfterMine(fen0,mv);return true;}
 async function tuAfterMine(fen0,mv){const B=TU.bot,g=TU.g;const prev=await (B.evP||Promise.resolve(null));if(TU.g!==g||B.over)return;const t0=Date.now();const r=await tuEval();if(TU.g!==g||B.over)return;
- let wait=500;if(prev&&prev.fen===fen0&&r){const s=B.side==='w'?1:-1,u=mv.from+mv.to,drop=rzWp(s*prev.cp)-rzWp(s*r.cp);let k,lab;
-  if(u===(prev.best||'').slice(0,4)){k='best';lab='Nejlepší tah';}else if(drop<4){k='good';lab='Výborný tah';}else if(drop<8){k='good';lab='Dobrý tah';}else if(drop<12){k='alt';lab='Nepřesnost';}else if(drop<25){k='bad';lab='Chyba';}else{k='bad';lab='Hrubá chyba';}
+ let wait=500;if(prev&&prev.fen===fen0&&r){const s=B.side==='w'?1:-1,u=mv.from+mv.to,drop=wpStrict(s*prev.cp)-wpStrict(s*r.cp);let k,lab;
+  if(u===(prev.best||'').slice(0,4)){k='best';lab='Nejlepší tah';}else if(drop<2){k='good';lab='Výborný tah';}else if(drop<5){k='good';lab='Dobrý tah';}else if(drop<10){k='alt';lab='Nepřesnost';}else if(drop<20){k='bad';lab='Chyba';}else{k='bad';lab='Hrubá chyba';}
   const bestSan=(k==='alt'||k==='bad')&&prev.best?czSan(sanOf(fen0,prev.best)):'';const why=[];
   if(bestSan&&B.coach){const rp=r.best?tuSanExplain(g.fen(),r.best):null;if(rp&&k==='bad')why.push(`Soupeř teď může zahrát <b>${rp.san}</b>${rp.txt?' – '+rp.txt.charAt(0).toLowerCase()+rp.txt.slice(1):''}`);const bt=tuSanExplain(fen0,prev.best);if(bt&&bt.txt)why.push(`Lepší bylo <b>${bt.san}</b>: ${bt.txt.charAt(0).toLowerCase()+bt.txt.slice(1)}`);}
   else if(k==='best'&&B.coach)why.push('Přesně tohle by zahrál i Stockfish.');

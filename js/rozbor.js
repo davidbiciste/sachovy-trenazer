@@ -25,6 +25,13 @@ const rzPts=(w,d)=>{const p=w+d/2;return Number.isInteger(p)?String(p):(Math.flo
 const rzClk=s=>s==null?'–':`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
 const rzDate=t=>new Date(t*1000).toLocaleDateString('cs-CZ',{day:'numeric',month:'numeric',year:'2-digit'});
 const rzWp=cp=>50+50*(2/(1+Math.exp(-0.00368208*cp))-1);
+/* Přísnější hodnocení tahů (22. 11. 2026, blíž chess.com): strmější křivka šance na výhru (ve vyrovnané pozici stojí ztráta pěšce víc),
+   přesnost partie = průměr obyčejného a harmonického průměru (jedna hrubá chyba přesnost výrazně stáhne), přísnější odhad Elo z průměrné ztráty. */
+const wpStrict=cp=>{const c=Math.max(-3000,Math.min(3000,cp));return 50+50*(2/(1+Math.exp(-0.0055*c))-1);};
+const accMove=drop=>Math.max(0,Math.min(100,103.1668*Math.exp(-0.04354*Math.max(0,drop))-3.1669));
+function accGame(arr){if(!arr.length)return null;const am=arr.reduce((a,b)=>a+b,0)/arr.length,hm=arr.length/arr.reduce((a,v)=>a+1/Math.max(5,v),0);return Math.round((am+hm)/2*10)/10;}
+const ELO_ACPL=[[10,2500],[20,2200],[32,1900],[45,1600],[60,1350],[75,1150],[95,950],[120,750],[160,550],[220,350],[320,150]];
+function eloFromAcpl(acpl){const T=ELO_ACPL;if(acpl<=T[0][0])return T[0][1];for(let i=1;i<T.length;i++){const [c1,v1]=T[i-1],[c2,v2]=T[i];if(acpl<=c2)return Math.round((v1+(v2-v1)*(acpl-c1)/(c2-c1))/50)*50;}return 100;}
 let RZ={route:'',name:'',disp:'',token:0,tempo:['blitz','rapid'],limit:200,all:null,stats:null,err:null,offline:false,
  f:{color:'all',period:0,rated:false,bots:false},chk:new Set(),pick:null,lim:25,open:new Set(),sel:null,view:null,vg:null,showAll:false,
  eng:{run:0,busy:false,res:{},n:30,prog:''}};

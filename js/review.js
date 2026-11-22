@@ -2,40 +2,41 @@
 /* ---------- Rozbor partie (#review): hodnocení každého tahu jako game review na chess.com ---------- */
 const RV_CLS={brill:{l:'Brilantní tah',s:'!!',c:'#1fa79a'},great:{l:'Skvělý tah',s:'!',c:'#5c8bb0'},best:{l:'Nejlepší tah',s:'★',c:'#81b64c'},exc:{l:'Výborný tah',s:'✓',c:'#81b64c'},good:{l:'Dobrý tah',s:'✓',c:'#95b776'},book:{l:'Teorie',s:'T',c:'#a88865'},inacc:{l:'Nepřesnost',s:'?!',c:'#e6b43c'},mist:{l:'Chyba',s:'?',c:'#e58f2a'},miss:{l:'Promarněná šance',s:'×',c:'#d6534a'},blun:{l:'Hrubá chyba',s:'??',c:'#ca3431'}};
 const RV_ORDER=['brill','great','best','exc','good','book','inacc','mist','miss','blun'];
-let RV={g:null,run:0,busy:false,k:0,vg:null};
+let RV={g:null,run:0,busy:false,k:0,vg:null,alt:null,aev:{}};
 function rvLoadSaved(){if(RV.g)return;try{const j=sessionStorage.getItem('trener-review');if(j)RV.g=JSON.parse(j);}catch(e){}}
-function rvSet(game){/* game: {fen0, sans, w, b, me, src} */const k='rv:'+(game.fen0||'start')+':'+game.sans.join(' ');RV.g=Object.assign({key:k,ev:[],best:[],gap:[]},game);RV.k=0;/* rozbor začíná od výchozí pozice */try{sessionStorage.setItem('trener-review',JSON.stringify(RV.g));}catch(e){}}
+function rvSet(game){RV.alt=null;RV.aev={};/* game: {fen0, sans, w, b, me, src} */const k='rv:'+(game.fen0||'start')+':'+game.sans.join(' ');RV.g=Object.assign({key:k,ev:[],best:[],gap:[]},game);RV.k=0;/* rozbor začíná od výchozí pozice */try{sessionStorage.setItem('trener-review',JSON.stringify(RV.g));}catch(e){}}
 function rvOpen(game){rvSet(game);go('#review');}
 const RV_START='rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 function rvFens(){const G=RV.g;if(G._f)return G._f;const g=new CHESS(G.fen0||RV_START);const f=[g.fen()],mv=[];for(const s of G.sans){let m=null;try{m=g.move(s,{strict:false});}catch(e){}if(!m)break;mv.push(m);f.push(g.fen());}G._f=f;G._m=mv;return f;}
 async function rvAnalyse(){const G=RV.g;if(!G)return;const my=++RV.run;RV.busy=true;rvProg();
  const c=await rzGet('e',G.key);if(c&&c.ev&&c.ev.length>=rvFens().length){G.ev=c.ev;G.best=c.best;G.gap=c.gap;RV.busy=false;rvProg();rvRender();return;}
- const F=rvFens();const ms=IS_MOBILE?250:350;
+ const F=rvFens();const ms=IS_MOBILE?350:600;
  for(let k=0;k<F.length;k++){if(my!==RV.run||page!=='review')return;if(G.ev[k]!=null)continue;
   const g=new CHESS(F[k]);if(g.isCheckmate()){G.ev[k]=g.turn()==='w'?-3000:3000;continue;}if(g.isDraw()){G.ev[k]=0;continue;}
+  while(RV.alt&&my===RV.run&&page==='review')await new Promise(z=>setTimeout(z,300));if(my!==RV.run||page!=='review')return;
   let r=null;try{r=await sfAnalyse(F[k],{movetime:ms,multipv:2});}catch(e){RV.fail=true;break;}
   if(!r){if(my!==RV.run||page!=='review')return;k--;continue;}
-  const l1=r.lines[0],l2=r.lines[1];G.ev[k]=l1?Math.max(-3000,Math.min(3000,l1.cp)):0;G.best[k]=l1&&l1.pv[0];G.gap[k]=l1&&l2?Math.abs(rzWp(l1.cp)-rzWp(l2.cp)):null;
+  const l1=r.lines[0],l2=r.lines[1];G.ev[k]=l1?Math.max(-3000,Math.min(3000,l1.cp)):0;G.best[k]=l1&&l1.pv[0];G.gap[k]=l1&&l2?Math.abs(wpStrict(l1.cp)-wpStrict(l2.cp)):null;
   rvProg(k+1,F.length);if(page==='review'&&(k%4===0||k===F.length-1))rvRender(true);if(page==='review'&&(k===RV.k||k===RV.k-1))rvShow();}
  if(my!==RV.run)return;RV.busy=false;rvProg();if(!RV.fail)rzPut('e',G.key,{ev:G.ev,best:G.best,gap:G.gap});if(page==='review')rvRender();}
 function rvProg(a,n){const el=document.getElementById('rvProg');if(!el)return;if(!RV.busy){el.hidden=true;return;}el.hidden=false;el.querySelector('span').textContent=n?`Stockfish hodnotí tahy… ${a} z ${n}`:'Spouštím Stockfish…';if(n)el.querySelector('i').style.width=(a/n*100)+'%';}
 /* klasifikace tahu k (1..N) z pohledu toho, kdo táhl */
 function rvClass(k){const G=RV.g,F=rvFens(),m=G._m[k-1];if(!m)return null;const b=G.ev[k-1],a=G.ev[k];if(b==null||a==null)return null;
- const s=m.color==='w'?1:-1,wb=rzWp(s*b),wa=rzWp(s*a),drop=wb-wa;const uci=m.from+m.to+(m.promotion||'');const isBest=G.best[k-1]&&G.best[k-1].slice(0,4)===uci.slice(0,4);
+ const s=m.color==='w'?1:-1,wb=wpStrict(s*b),wa=wpStrict(s*a),drop=wb-wa;const uci=m.from+m.to+(m.promotion||'');const isBest=G.best[k-1]&&G.best[k-1].slice(0,4)===uci.slice(0,4);
  if(k<=24&&rvBook(k))return{c:'book',drop};
  const prev=k>1?rvDrop(k-1):0;
  if(!isBest&&drop>=10&&prev>=10&&wb>=55)return{c:'miss',drop};
  if(drop>=20)return{c:'blun',drop};if(drop>=10)return{c:'mist',drop};if(drop>=5)return{c:'inacc',drop};
  if((isBest||drop<1)&&wb<95&&wa>=45&&rvSac(k))return{c:'brill',drop};
- if(isBest&&G.gap[k-1]!=null&&G.gap[k-1]>=15&&wb<90&&wb>10)return{c:'great',drop};
+ if(isBest&&G.gap[k-1]!=null&&G.gap[k-1]>=20&&wb<90&&wb>10)return{c:'great',drop};
  if(isBest)return{c:'best',drop};if(drop<2)return{c:'exc',drop};return{c:'good',drop};}
-function rvDrop(k){const G=RV.g,m=G._m[k-1];if(!m)return 0;const b=G.ev[k-1],a=G.ev[k];if(b==null||a==null)return 0;const s=m.color==='w'?1:-1;return rzWp(s*b)-rzWp(s*a);}
+function rvDrop(k){const G=RV.g,m=G._m[k-1];if(!m)return 0;const b=G.ev[k-1],a=G.ev[k];if(b==null||a==null)return 0;const s=m.color==='w'?1:-1;return wpStrict(s*b)-wpStrict(s*a);}
 function rvBook(k){const I=rzIdx();if(!I)return false;const F=rvFens();for(let i=1;i<=k;i++){if(!I.has(F[i].split(' ').slice(0,3).join(' ')))return false;}return true;}
 function rvSac(k){/* oběť: tažená figura (nebo jiná) zůstane napadená a nedostatečně krytá a má cenu aspoň 3 */const F=rvFens(),m=RV.g._m[k-1];try{const g=new CHESS(F[k]);const me=m.color,op=me==='w'?'b':'w';const V={p:1,n:3,b:3,r:5,q:9,k:0};
   for(const row of g.board())for(const x of row){if(!x||x.color!==me||V[x.type]<3)continue;const att=g.attackers(x.square,op);if(!att.length)continue;const def=g.attackers(x.square,me);const minA=Math.min(...att.map(q=>{const t=g.get(q).type;return t==='k'?100:V[t];}));if(!def.length||minA<V[x.type]){if(m.captured&&V[m.captured]>=V[x.type])continue;return true;}}}catch(e){}return false;}
-function rvAcc(col){const G=RV.g,out=[];for(let k=1;k<=G._m.length;k++){const m=G._m[k-1];if(m.color!==col)continue;const d=rvDrop(k);if(G.ev[k]==null)continue;out.push(Math.max(0,Math.min(100,103.1668*Math.exp(-0.04354*Math.max(0,d))-3.1669)));}return out.length?Math.round(out.reduce((a,b)=>a+b,0)/out.length*10)/10:null;}
-function rvRating(col){const G=RV.g;let t=0,n=0;const cl=v=>Math.max(-1000,Math.min(1000,v));for(let k=1;k<=G._m.length;k++){const m=G._m[k-1];if(m.color!==col||G.ev[k]==null||G.ev[k-1]==null)continue;const s=col==='w'?1:-1;t+=Math.max(0,cl(s*G.ev[k-1])-cl(s*G.ev[k]));n++;}if(n<6)return null;const acpl=t/n;
- const T=[[15,2400],[30,2000],[50,1500],[65,1200],[80,1000],[100,800],[130,600],[180,400],[260,250],[400,100]];if(acpl<=T[0][0])return T[0][1];for(let i=1;i<T.length;i++){const [c1,v1]=T[i-1],[c2,v2]=T[i];if(acpl<=c2)return Math.round((v1+(v2-v1)*(acpl-c1)/(c2-c1))/50)*50;}return 100;}
+function rvAcc(col){const G=RV.g,out=[];for(let k=1;k<=G._m.length;k++){const m=G._m[k-1];if(m.color!==col||G.ev[k]==null||G.ev[k-1]==null)continue;out.push(accMove(rvDrop(k)));}return accGame(out);}
+function rvRating(col){const G=RV.g;let t=0,n=0,bl=0;const cl=v=>Math.max(-1000,Math.min(1000,v));for(let k=1;k<=G._m.length;k++){const m=G._m[k-1];if(m.color!==col||G.ev[k]==null||G.ev[k-1]==null)continue;const s=col==='w'?1:-1;t+=Math.max(0,cl(s*G.ev[k-1])-cl(s*G.ev[k]));n++;if(rvDrop(k)>=20)bl++;}if(n<6)return null;
+ return Math.max(100,eloFromAcpl(t/n)-Math.round(bl/n*1500/50)*50);}
 /* ---- Rozbor partie: poslední partie z chess.com (veřejné API, stejné jako Rozbor hráče) ---- */
 async function rvCcLoad(name){const msg=$('rvCcMsg'),list=$('rvCcList');if(!msg)return;name=(name||'').trim().toLowerCase();
  if(!name){msg.textContent='Napiš své jméno na chess.com.';return;}msg.textContent='Načítám partie z chess.com…';list.innerHTML='';
@@ -77,12 +78,12 @@ async function renderReview(){document.body.classList.add('homeMode');XB.mode='r
  <div class="tuNav rvNav"><button class="btn" id="rvS" title="Na začátek">⏮</button><button class="btn" id="rvB" title="Tah zpět (←)">◀</button><button class="btn" id="rvF" title="Tah vpřed (→)">▶</button><button class="btn" id="rvE" title="Na konec">⏭</button><button class="btn" id="rvFlip" title="Otočit šachovnici">⇅</button></div></div></div>
  <div class="exRight"><div class="profCard"><h2>Rozbor partie</h2><div class="rzProg" id="rvProg" hidden><span></span><div class="bar"><i style="width:2%"></i></div></div><div id="rvMove"></div></div><div class="profCard" id="rvSum"></div><div class="profCard"><h2>Tahy</h2><div class="rvMoves" id="rvMoves"></div><div class="tuBtns"><button class="btn" id="rvNew">Jiná partie</button></div></div></div></div>`;
  renderSide();RV.flip=G.me==='b';xBuild();xInput();
- $('rvS').onclick=()=>rvGo(0);$('rvB').onclick=()=>rvGo(RV.k-1);$('rvF').onclick=()=>rvGo(RV.k+1);$('rvE').onclick=()=>rvGo(G._m.length);$('rvFlip').onclick=()=>{RV.flip=!RV.flip;xBuild();rvShow();};
+ $('rvS').onclick=()=>rvGo(0);$('rvB').onclick=()=>rvStep(-1);$('rvF').onclick=()=>rvStep(1);$('rvE').onclick=()=>rvGo(G._m.length);$('rvFlip').onclick=()=>{RV.flip=!RV.flip;xBuild();rvShow();};
  $('rvNew').onclick=()=>{RV.g=null;RV.run++;try{sessionStorage.removeItem('trener-review');}catch(e){}renderReview();};
  $('rvMoves').onclick=e=>{const b=e.target.closest('[data-k]');if(b)rvGo(+b.dataset.k);};
  $('rvSum').onclick=e=>{const b=e.target.closest('[data-k]');if(b){rvGo(+b.dataset.k);return;}const sv=e.target.closest('.rvGraph');if(sv){const r=sv.getBoundingClientRect();rvGo(Math.round((e.clientX-r.left)/r.width*RV.g._m.length));}};
  rvRender();if(G.ev.length<rvFens().length||G.ev.some(v=>v==null))rvAnalyse();else{RV.busy=false;}}
-function rvGo(k){if(!RV.g)return;RV.k=Math.max(0,Math.min(RV.g._m.length,k));rvShow();sfx('move');}
+function rvGo(k){if(!RV.g)return;RV.alt=null;RV.k=Math.max(0,Math.min(RV.g._m.length,k));rvShow();sfx('move');}
 function rvRender(partial){if(page!=='review'||!RV.g||!document.getElementById('rvSum'))return;const G=RV.g,N=G._m.length;
  const cls=[];for(let k=1;k<=N;k++)cls[k]=rvClass(k);G._c=cls;
  /* souhrn */const cnt=c=>({w:cls.filter((x,k)=>x&&x.c===c&&G._m[k-1].color==='w').length,b:cls.filter((x,k)=>x&&x.c===c&&G._m[k-1].color==='b').length});
@@ -94,11 +95,11 @@ function rvRender(partial){if(page!=='review'||!RV.g||!document.getElementById('
  <tr class="rvRat"><td>${rw||'–'}</td><td>Výkon v partii (odhad Elo)</td><td>${rb||'–'}</td></tr></tbody></table>${partial||RV.busy?'<p class="profEmpty">Hodnocení se ještě doplňuje…</p>':''}`;
  /* tahy */$('rvMoves').innerHTML=G._m.map((m,i)=>{const k=i+1,c=cls[k];return (i%2===0?`<b class="rvNo">${i/2+1}.</b>`:'')+`<button class="rvMv${k===RV.k?' cur':''}" data-k="${k}">${c?`<span class="rvIc sm" style="background:${RV_CLS[c.c].c}">${RV_CLS[c.c].s}</span>`:''}${czSan(m.san)}</button>`;}).join(' ');
  rvShow();}
-function rvGraph(){const G=RV.g,N=G._m.length;if(!N)return'';const W=300,H=70;const pts=[];for(let k=0;k<=N;k++){const v=G.ev[k];if(v==null)continue;const y=H-rzWp(v)/100*H;pts.push([k/N*W,y]);}if(pts.length<2)return'';
+function rvGraph(){const G=RV.g,N=G._m.length;if(!N)return'';const W=300,H=70;const pts=[];for(let k=0;k<=N;k++){const v=G.ev[k];if(v==null)continue;const y=H-wpStrict(v)/100*H;pts.push([k/N*W,y]);}if(pts.length<2)return'';
  const area=`M0,${H} `+pts.map(p=>`L${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ')+` L${pts[pts.length-1][0].toFixed(1)},${H} Z`;
- const marks=(G._c||[]).map((c,k)=>c&&(c.c==='blun'||c.c==='mist'||c.c==='miss'||c.c==='brill'||c.c==='great')&&G.ev[k]!=null?`<circle cx="${(k/N*W).toFixed(1)}" cy="${(H-rzWp(G.ev[k])/100*H).toFixed(1)}" r="3" fill="${RV_CLS[c.c].c}" data-k="${k}"/>`:'').join('');
+ const marks=(G._c||[]).map((c,k)=>c&&(c.c==='blun'||c.c==='mist'||c.c==='miss'||c.c==='brill'||c.c==='great')&&G.ev[k]!=null?`<circle cx="${(k/N*W).toFixed(1)}" cy="${(H-wpStrict(G.ev[k])/100*H).toFixed(1)}" r="3" fill="${RV_CLS[c.c].c}" data-k="${k}"/>`:'').join('');
  return `<svg class="rvGraph" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Graf hodnocení partie"><rect width="${W}" height="${H}" fill="#3c3a37"/><path d="${area}" fill="#f3f3f1"/><line x1="0" x2="${W}" y1="${H/2}" y2="${H/2}" stroke="#888" stroke-width=".5"/><line id="rvCur" x1="0" x2="0" y1="0" y2="${H}" stroke="var(--accent)" stroke-width="1.5"/>${marks}</svg>`;}
-function rvShow(){const G=RV.g;if(!G||!document.getElementById('xBoard'))return;const k=RV.k,F=rvFens();RV.vg=new CHESS(F[k]);
+function rvShow(){const G=RV.g;if(!G||!document.getElementById('xBoard'))return;if(RV.alt){rvAltShow();return;}const k=RV.k,F=rvFens();RV.vg=new CHESS(F[k]);
  if(k>0){/* aby se ukázal poslední tah, přehraj partii po tah k */const g=new CHESS(F[0]);for(let i=0;i<k;i++)g.move(G._m[i].san);RV.vg=g;}
  xMorph();document.querySelectorAll('#xPcs .rvBadgeB').forEach(e=>e.remove());xArrow(null);
  const c=k>0&&G._c?G._c[k]:null,m=k>0?G._m[k-1]:null;
@@ -109,7 +110,7 @@ function rvShow(){const G=RV.g;if(!G||!document.getElementById('xBoard'))return;
  document.querySelectorAll('.rvMv').forEach(b=>b.classList.toggle('cur',+b.dataset.k===k));{const mv=$('rvMoves');const cb=mv&&mv.querySelector('.rvMv.cur');if(cb){const r=cb.getBoundingClientRect(),R=mv.getBoundingClientRect();if(r.top<R.top||r.bottom>R.bottom)mv.scrollTop+=r.top-R.top-R.height/2;}}
  /* hráči nad/pod šachovnicí */const top=RV.flip?'w':'b',bot=RV.flip?'b':'w';$('rvPlTop').textContent=G[top];$('rvPlBot').textContent=G[bot];
  /* popis tahu */const el=$('rvMove');if(!el)return;
- if(!m){el.innerHTML=`<p class="profEmpty">${escH(G.w)} – ${escH(G.b)}. Klepni na ▶ nebo na tah v seznamu. Šipkami ← → procházíš partii.</p>`;return;}
+ if(!m){el.innerHTML=`<p class="profEmpty">${escH(G.w)} – ${escH(G.b)}. Klepni na ▶ nebo na tah v seznamu. Šipkami ← → procházíš partii. V kterékoli pozici můžeš táhnout figurou a zkusit jiný tah – Stockfish ho hned ohodnotí.</p>`;return;}
  const who=m.color==='w'?G.w:G.b;let txt='';
  if(!c){el.innerHTML=`<div class="rvCard"><b>${rzMvLab(m.san,k-1)}</b> <span class="profEmpty">čeká na hodnocení…</span></div>`;return;}
  const C=RV_CLS[c.c];const arr=(()=>{const g=new CHESS(F[k-1]);return tuArr(g);})();const ex=tuExplain(arr,m);
@@ -121,4 +122,43 @@ function rvShow(){const G=RV.g;if(!G||!document.getElementById('xBoard'))return;
  ${bestSan&&!['best','brill','great','book'].includes(c.c)&&bestSan!==czSan(m.san)?`<p><b>Nejlepší bylo ${bestSan}</b> (zelená šipka).</p>`:''}
  ${rep?`<p>Soupeř teď může zahrát <b>${rep.san}</b>${rep.txt?' – '+rep.txt.charAt(0).toLowerCase()+rep.txt.slice(1):''}</p>`:''}
  <p class="profEmpty">Hodnocení po tahu: ${G.ev[k]!=null?fmtCp(G.ev[k]):'–'}</p></div>`;}
-addEventListener('keydown',e=>{if(page!=='review'||!RV.g||(e.target&&/input|textarea|select/i.test(e.target.tagName)))return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){rvGo(RV.k+(e.key==='ArrowLeft'?-1:1));e.preventDefault();e.stopImmediatePropagation();}},true);
+addEventListener('keydown',e=>{if(page!=='review'||!RV.g||(e.target&&/input|textarea|select/i.test(e.target.tagName)))return;if(e.key==='ArrowLeft'||e.key==='ArrowRight'){rvStep(e.key==='ArrowLeft'?-1:1);e.preventDefault();e.stopImmediatePropagation();}},true);
+
+/* ---- Rozbor partie: vlastní varianta (22. 11. 2026) – v kterékoli pozici jde táhnout a zkoušet jiné tahy, Stockfish je hned hodnotí ---- */
+const RV_ALT_LAB={best:'Nejlepší tah',exc:'Výborný tah',good:'Dobrý tah',inacc:'Nepřesnost',mist:'Chyba',blun:'Hrubá chyba'};
+function rvStep(d){if(!RV.g)return;const A=RV.alt;if(A){const i=A.i+d;if(i<=0){RV.alt=null;rvShow();sfx('move');return;}if(i>A.mv.length)return;A.i=i;rvShow();sfx('move');return;}rvGo(RV.k+d);}
+function rvTry(from,to){const g=RV.vg;if(!g||!RV.g)return false;let mv=null;try{mv=g.move({from:sqName(from),to:sqName(to),promotion:XPROMO||'q'});}catch(e){}if(!mv)return false;
+ XB.sel=null;xAnimate(mv);sfx(mv.flags.includes('k')||mv.flags.includes('q')?'castle':g.inCheck()?'check':mv.captured?'capture':'move');rvAltPush(mv.san);return true;}
+function rvAltPush(san){if(!RV.alt){const nx=RV.g._m[RV.k];if(nx&&nx.san===san){RV.k++;rvShow();return;}RV.alt={k:RV.k,mv:[],i:0};}
+ const A=RV.alt;if(A.mv[A.i]===san){A.i++;}else{A.mv=A.mv.slice(0,A.i);A.mv.push(san);A.i++;}rvShow();}
+function rvAltPlay(u){const g=RV.vg;if(!g||!u)return;let mv=null;try{mv=g.move({from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||'q'});}catch(e){}if(!mv)return;xAnimate(mv);sfx(mv.captured?'capture':'move');rvAltPush(mv.san);}
+/* hodnocení pozice ve variantě: z rozboru partie (výchozí pozice), z mezipaměti, nebo nový výpočet */
+function rvAltEv(fen){if(RV.aev[fen])return RV.aev[fen];const G=RV.g,F=rvFens();const i=F.indexOf(fen);if(i>=0&&G.ev[i]!=null)return{cp:G.ev[i],best:G.best[i]||null};
+ const g=new CHESS(fen);if(g.isCheckmate())return RV.aev[fen]={cp:g.turn()==='w'?-3000:3000,best:null,end:'mat'};if(g.isDraw())return RV.aev[fen]={cp:0,best:null,end:'remiza'};return null;}
+async function rvAltEval(fen){if(RV.aBusy===fen)return;RV.aBusy=fen;let r=null;try{r=await sfAnalyse(fen,{movetime:IS_MOBILE?700:1100,multipv:1});}catch(e){}if(RV.aBusy===fen)RV.aBusy=null;
+ if(!r||!r.lines[0])return;const l=r.lines[0];RV.aev[fen]={cp:Math.max(-3000,Math.min(3000,l.cp)),best:l.pv[0]||r.best||null};
+ if(page==='review'&&RV.alt&&RV.vg&&RV.vg.fen()===fen)rvAltShow();}
+function rvAltClass(before,after,m){if(!before||!after)return null;const s=m.color==='w'?1:-1,drop=Math.max(0,wpStrict(s*before.cp)-wpStrict(s*after.cp));const isBest=before.best&&before.best.slice(0,4)===m.from+m.to;
+ const c=isBest?'best':drop<2?'exc':drop<5?'good':drop<10?'inacc':drop<20?'mist':'blun';return{c,drop};}
+function rvAltShow(){const G=RV.g,A=RV.alt,F=rvFens();if(!G||!A)return;
+ const g=new CHESS(F[0]);for(let i=0;i<A.k;i++)g.move(G._m[i].san);const lab=[],fens=[g.fen()];let last=null;
+ for(let j=0;j<A.i;j++){const n=g.moveNumber(),w=g.turn()==='w';let m=null;try{m=g.move(A.mv[j]);}catch(e){}if(!m){A.mv=A.mv.slice(0,j);A.i=j;break;}lab.push((w?n+'.':(j===0?n+'…':''))+' '+czSan(m.san));fens.push(g.fen());last=m;}
+ RV.vg=g;XB.sel=null;xMorph();document.querySelectorAll('#xPcs .rvBadgeB').forEach(e=>e.remove());xArrow(null);
+ const fen=g.fen(),ev=rvAltEv(fen),evB=A.i>0?rvAltEv(fens[fens.length-2]):null,cls=last?rvAltClass(evB,ev,last):null;
+ if(ev)xBar(ev.cp);if(ev&&ev.best&&!ev.end)xArrow(ev.best,'green');
+ if(cls&&last){const C=RV_CLS[cls.c];const el=document.createElement('div');el.className='badge rvBadgeB';xPlace(el,sqOf(last.to));el.innerHTML=`<span style="background:${C.c}">${C.s}</span>`;$('xPcs').appendChild(el);}
+ const top=RV.flip?'w':'b',bot=RV.flip?'b':'w';$('rvPlTop').textContent=G[top];$('rvPlBot').textContent=G[bot];
+ document.querySelectorAll('.rvMv').forEach(b=>b.classList.toggle('cur',+b.dataset.k===A.k));
+ const el=$('rvMove');if(!el)return;
+ const base=A.k>0?`po tahu ${rzMvLab(G._m[A.k-1].san,A.k-1)}`:'z výchozí pozice';
+ {const t=new CHESS(fens[fens.length-1]);for(let j=lab.length;j<A.mv.length;j++){const n=t.moveNumber(),w=t.turn()==='w';let m=null;try{m=t.move(A.mv[j]);}catch(e){}if(!m){A.mv=A.mv.slice(0,j);break;}lab.push((w?n+'.':'')+' '+czSan(m.san));}}
+ const moves=A.mv.map((sn,j)=>{const t=lab[j]||czSan(sn);return `<button class="rvMv rvAltMv${j===A.i-1?' cur':''}" data-ai="${j+1}">${escH(t.trim())}</button>`;}).join(' ');
+ let verdict='';if(last){if(cls){const C=RV_CLS[cls.c];verdict=`<div class="rvCardH"><span class="rvIc" style="background:${C.c}">${C.s}</span><b>${czSan(last.san)} – ${RV_ALT_LAB[cls.c]}</b></div>`;}else verdict=`<div class="rvCardH"><b>${czSan(last.san)}</b> <span class="profEmpty">Stockfish počítá…</span></div>`;}
+ const bestB=evB&&evB.best&&cls&&cls.c!=='best'?czSan(sanOf(fens[fens.length-2],evB.best)):'';
+ const evTxt=ev?(ev.end==='mat'?'Mat.':ev.end==='remiza'?'Remíza.':`Hodnocení: <b>${fmtCp(ev.cp)}</b>${ev.best?` · nejlepší teď ${czSan(sanOf(fen,ev.best))} (zelená šipka)`:''}`):'Stockfish počítá…';
+ el.innerHTML=`<div class="rvCard rvAlt" style="border-left-color:${cls?RV_CLS[cls.c].c:'var(--accent,#81b64c)'}"><p class="profEmpty">Vlastní varianta ${base}. Táhni dál za kteroukoli stranu.</p>
+ ${verdict}${bestB?`<p>Lepší bylo <b>${bestB}</b>.</p>`:''}<p>${evTxt}</p>${moves?`<div class="rvAltMoves">${moves}</div>`:''}
+ <div class="tuBtns"><button class="btn" id="rvAltSf"${ev&&ev.best&&!ev.end?'':' disabled'}>Zahrát tah Stockfishe</button><button class="btn" id="rvAltBack">Zpět do partie</button></div></div>`;
+ $('rvAltBack').onclick=()=>{RV.alt=null;rvShow();sfx('move');};$('rvAltSf').onclick=()=>{const e=rvAltEv(RV.vg.fen());if(e&&e.best)rvAltPlay(e.best);};
+ el.querySelectorAll('[data-ai]').forEach(b=>b.onclick=()=>{A.i=+b.dataset.ai;rvShow();sfx('move');});
+ if(!ev)rvAltEval(fen);else if(A.i>0&&!evB)rvAltEval(fens[fens.length-2]);}
