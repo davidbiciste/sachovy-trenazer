@@ -229,11 +229,11 @@ function pqDo(f,t,pr){const u=f+t+pr;const fen0=PQ.g.fen();pqBadge(null);const m
   if(mate||st+1>=PQ.lines[0].length){pqSolved();return;}
   PQ.lock=true;const tok=PQ.tok;PQ.step=st+1;setTimeout(()=>{if(tok!==PQ.tok)return;pzClearMarks();xArrow(null);pqAuto(PQ.lines[0][PQ.step]);PQ.step++;PQ.lock=false;pqMsg('<b>Dobře.</b> Pokračuj.','ok');pqEvPre();},450);return;}
  sfx('wrong');pzMark(to2(t),'bad');PQ.lock=true;const first=!PQ.fail;PQ.fail=true;const tok=PQ.tok;
- if(PQ.ctx==='rush'){pqResult(false);setTimeout(()=>{if(tok!==PQ.tok)return;PQ.g.undo();pzClearMarks();xSet();PQ.done=true;pqShowLine(()=>{if(PQ.rush&&!PQ.rush.end){if(PQ.rush.miss>=3)pqRushEnd();else pqRushNext();}},true);},500);return;}
+ if(PQ.ctx==='rush'){pqResult(false);setTimeout(()=>{if(tok!==PQ.tok)return;PQ.g.undo();pzClearMarks();xMorph();PQ.done=true;pqShowLine(()=>{if(PQ.rush&&!PQ.rush.end){if(PQ.rush.miss>=3)pqRushEnd();else pqRushNext();}},true);},500);return;}
  if(first&&(PQ.ctx==='rated'||PQ.ctx==='theme'||PQ.ctx==='test'||PQ.ctx==='daily'))pqResult(false);
- if(PQ.ctx==='test'){setTimeout(()=>{if(tok!==PQ.tok)return;PQ.g.undo();pzClearMarks();xSet();PQ.done=true;pqShowLine(()=>pqTestEnd(false),true);},600);return;}
+ if(PQ.ctx==='test'){setTimeout(()=>{if(tok!==PQ.tok)return;PQ.g.undo();pzClearMarks();xMorph();PQ.done=true;pqShowLine(()=>pqTestEnd(false),true);},600);return;}
  pqMsg(PQ.ctx==='rated'&&first?'✕ Tohle není ono. Hodnocení už se odečetlo, ale úlohu můžeš dořešit.':'✕ Tohle ne – zkus to znovu.','bad');
- setTimeout(()=>{if(tok!==PQ.tok)return;PQ.g.undo();pzClearMarks();xSet();PQ.lock=false;},700);}
+ setTimeout(()=>{if(tok!==PQ.tok)return;PQ.g.undo();pzClearMarks();xMorph();PQ.lock=false;},700);}
 const to2=s=>sqOf(s);
 function pqResult(ok,skip){const p=PQ.p,s=pqStore();if(PQ.counted===p)return;PQ.counted=p;s.all++;if(ok)s.ok++;
  if(p.own){const F=s.ownF[p.id];if(ok&&!skip){if(F){F.n=(F.n||0)+1;if(F.n>=SR_DAYS.length){delete s.ownF[p.id];s.own[p.id]=1;}else F.d=srDue(F.n);}else s.own[p.id]=1;}else{s.ownF[p.id]={n:0,d:srDue(0)};}const L=PQO.list||[],n=document.getElementById('pqOwnN'),tx=document.getElementById('pqOwnTx');if(n)n.textContent=`${L.filter(x=>s.own[x.id]).length} z ${L.length}`;if(tx)tx.innerHTML=pqOwnAfter(p);}
@@ -268,7 +268,7 @@ function pqLineSan(){const p=PQ.p;const g=new CHESS(p.fen);g.move({from:PQ.lines
 async function pqShowLine(cb,fast){PQ.lock=true;const tok=PQ.tok;const wait=ms=>new Promise(r=>setTimeout(r,ms));pzClearMarks();
  while(PQ.step<PQ.lines[0].length){if(tok!==PQ.tok)return;const u=PQ.lines[0][PQ.step];xArrow(u);await wait(fast?250:550);if(tok!==PQ.tok)return;xArrow(null);if(!pqAuto(u))break;PQ.step++;await wait(fast?250:550);}
  if(tok===PQ.tok&&cb)cb();}
-async function pqReplay(){if(PQ.playing)return;PQ.playing=true;const tok=PQ.tok;const p=PQ.p;const wait=ms=>new Promise(r=>setTimeout(r,ms));try{PQ.g=new CHESS(p.fen);pqAuto(PQ.lines[0][0]);xSet();await wait(500);
+async function pqReplay(){if(PQ.playing)return;PQ.playing=true;const tok=PQ.tok;const p=PQ.p;const wait=ms=>new Promise(r=>setTimeout(r,ms));try{PQ.g=new CHESS(p.fen);xMorph();await wait(300);if(tok!==PQ.tok)return;pqAuto(PQ.lines[0][0]);await wait(500);
  for(const u of PQ.lines[0].slice(1)){if(tok!==PQ.tok)return;xArrow(u);await wait(450);xArrow(null);pqAuto(u);await wait(550);}}finally{PQ.playing=false;}}
 function pqAdvance(){const c=PQ.ctx;
  if(c==='lvl'){const L=PQ.lvl;if(L.res[L.i]===undefined)L.res[L.i]=false;if(L.i+1<L.list.length){L.i++;pqLoad(L.list[L.i]);return;}return pqLevelEnd();}
@@ -356,7 +356,7 @@ function vyChoose(i){if(VY.pick!=null)return;const p=VY.p,o=p.o[i],v=vySt();VY.p
  document.querySelectorAll('[data-vw]').forEach(b=>b.onclick=()=>{const k=+b.dataset.vw;const x=p.o[k];exp.insertAdjacentHTML('beforeend',`<div class="vyBox bad"><b>Proč ne ${x.san}?</b><p>${x.txt}</p>${x.line.length?`<p class="vyLine">Varianta: ${vyLineSan(p.fen,[x.u,...x.line])}</p>`:''}</div>`);b.remove();vyShow(k);});
  if(!ok&&o.line.length)setTimeout(()=>{if(VY.p===p&&VY.pick===i)vyShow(i,true);},900);}
 async function vyShow(k,cont){const p=VY.p,o=p.o[k];PQ.tok++;const tok=PQ.tok;const wait=ms=>new Promise(r=>setTimeout(r,ms));pzClearMarks();xArrow(null);
- PQ.g=new CHESS(p.fen);if(!cont){xSet();await wait(350);}else{xSet();}
+ PQ.g=new CHESS(p.fen);if(!cont){xMorph();await wait(350);}else{xSet();}
  const seq=[o.u,...o.line];for(let j=cont?0:0;j<seq.length;j++){if(tok!==PQ.tok)return;const u=seq[j];if(j>0||!cont){xArrow(u,j%2?'#e8573f':VY_COL[k]);await wait(550);}if(tok!==PQ.tok)return;xArrow(null);let mv;try{mv=PQ.g.move({from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||undefined});}catch(e){}if(!mv)break;xAnimate(mv);xMarks();sfx(PQ.g.inCheck()?'check':mv.captured?'capture':'move');await wait(650);}
  if(tok===PQ.tok&&PQ.g.isCheckmate())pzMark(sqOf(seq[seq.length-1].slice(2,4)),o.ok?'ok':'bad');}
 

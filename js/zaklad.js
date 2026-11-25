@@ -279,7 +279,7 @@ async function renderExplore(){document.body.classList.add('homeMode');XB.mode='
  <div class="exCtl"><button class="btn" id="exStart" title="Na začátek">⏮</button><button class="btn" id="exBack" title="Tah zpět">◀</button><button class="btn" id="exFwd" title="Tah vpřed">▶</button><button class="btn" id="exFlip" title="Otočit šachovnici">⇅</button></div>
  <div class="exMoves" id="exMoves"></div></div></div><div class="exRight" id="exRight"></div></div>`;
  renderSide();XB.redo=[];xBuild();xSet();exPanels();if(isBeta()&&!CV.names)cvNames().then(()=>{if(page==='explore')exPanels();}).catch(()=>{});if(isBeta()&&!CV.list)cvRefresh(false).then(()=>{if(page==='explore')exPanels();});
- $('exStart').onclick=()=>{if(!EX.moves.length)return;XB.redo=EX.moves.slice().reverse().concat(XB.redo);EX.moves=[];xJump();};
+ $('exStart').onclick=()=>{if(!EX.moves.length)return;XB.redo=EX.moves.slice().concat(XB.redo);EX.moves=[];xJump();};
  $('exBack').onclick=()=>{if(!EX.moves.length)return;XB.redo.unshift(EX.moves.pop());xJump();};
  $('exFwd').onclick=()=>{if(!XB.redo.length)return;exPlay(XB.redo.shift(),true);};
  $('exFlip').onclick=()=>{EX.flip=!EX.flip;xBuild();xSet();$('xEval').classList.toggle('flip',EX.flip);if(XE.last)xEvalShow(XE.last);};
@@ -314,7 +314,7 @@ function xViewG(){const g=xLiveG();if(XB.vw!=null&&(!g||XB.vwF!==g.fen()||XB.vwM
 function xView(v){const g=xLiveG();if(!g)return;const h=g.history({verbose:true}),n=h.length;
  if(v==null||v>=n){if(XB.vw==null)return;XB.vw=null;XB.vg=null;const a=$('xArrows');if(a&&XB.vwA!=null)a.innerHTML=XB.vwA;XB.vwA=null;}
  else{if(!n)return;v=Math.max(0,v);if(XB.vw==null){const a=$('xArrows');XB.vwA=a?a.innerHTML:null;}const vg=new CHESS(h[0].before);for(let i=0;i<v;i++)vg.move(h[i].san);XB.vw=v;XB.vg=vg;XB.vwF=g.fen();XB.vwM=XB.mode;const a=$('xArrows');if(a)a.innerHTML='';}
- XB.sel=null;xSet();xVwBadge();sfx('move');}
+ XB.sel=null;xMorph();xVwBadge();sfx('move');}
 function xVwBadge(){const B=$('xBoard');if(!B)return;let el=document.getElementById('xVwB');
  if(XB.vw==null){if(el)el.remove();return;}const g=xLiveG();const n=g?g.history().length:0;
  if(!el){el=document.createElement('button');el.id='xVwB';el.type='button';el.className='xVwB';el.onclick=e=>{e.stopPropagation();xView(null);};B.appendChild(el);}
@@ -335,7 +335,7 @@ function xSet(){const g=xGame(),P=$('xPcs');if(!P)return;P.innerHTML='';XB.pcs={
 /* plynulý přechod na jinou pozici (Rozbor partie): figury, které zůstaly, stojí; přesunuté sklouznou z nejbližšího pole; sebrané zmizí, vrácené se objeví */
 function xMorph(){const g=xGame(),P=$('xPcs');if(!P)return;const old=XB.pcs||{};const olds=Object.keys(old);if(!olds.length||olds.some(i=>!old[i].dataset.p||!old[i].isConnected)){xSet();return;}
  const b=g.board(),want={};for(let r=0;r<8;r++)for(let f=0;f<8;f++){const pc=b[r][f];if(pc)want[(7-r)*8+f]=pc.color+pc.type.toUpperCase();}
- const next={},free=[];for(const i of olds){const el=old[i];if(want[i]===el.dataset.p){next[i]=el;}else free.push([+i,el]);}
+ const next={},free=[];for(const i of olds){const el=old[i];if(want[i]===el.dataset.p){next[i]=el;xPlace(el,+i);}else free.push([+i,el]);}
  const dist=(a,c)=>Math.abs((a&7)-(c&7))+Math.abs((a>>3)-(c>>3));
  for(const t of Object.keys(want).map(Number)){if(next[t])continue;const code=want[t];let bi=-1,bd=99;free.forEach(([i,el],k)=>{if(el.dataset.p===code){const d=dist(i,t);if(d<bd){bd=d;bi=k;}}});
   if(bi>=0){const el=free.splice(bi,1)[0][1];el.style.zIndex=3;xPlace(el,t);setTimeout(()=>{el.style.zIndex='';},260);next[t]=el;}
@@ -351,7 +351,7 @@ function xAnimate(mv){const from=sqOf(mv.from),to=sqOf(mv.to);const el=XB.pcs[fr
  if(mv.flags.includes('k')||mv.flags.includes('q')){const h=mv.color==='w'?0:56;const [a,b2]=mv.flags.includes('k')?[h+7,h+5]:[h,h+3];const r=XB.pcs[a];delete XB.pcs[a];XB.pcs[b2]=r;if(r)xPlace(r,b2);}}
 function exPlay(san,keepRedo){const g=exGame();let mv;try{mv=g.move(san,{strict:false});}catch(e){return false;}if(!mv)return false;
  if(!keepRedo){XB.redo=XB.redo[0]===mv.san?XB.redo.slice(1):[];}EX.moves.push(mv.san);XB.sel=null;xAnimate(mv);xMarks();sfx(mv.flags.includes('k')||mv.flags.includes('q')?'castle':g.inCheck()?'check':mv.captured?'capture':'move');exPanels();return true;}
-function xJump(){XB.sel=null;xSet();exPanels();sfx('move');}
+function xJump(){XB.sel=null;xMorph();exPanels();sfx('move');}
 function xSqAt(x,y){const r=$('xBoard').getBoundingClientRect();const col=Math.floor((x-r.left)/r.width*8),row=Math.floor((y-r.top)/r.height*8);if(col<0||col>7||row<0||row>7)return null;const f=xFlip()?7-col:col,rk=xFlip()?row:7-row;return rk*8+f;}
 function xTry(from,to){if(XB.mode==='rz'||(XB.mode==='rv'&&!RV.vg))return false;if(XB.mode!=='pq'&&!XPROMO){const m=XB.mode;const pg=m==='rv'?RV.vg:m==='lv'?(lvCanMove()?LV.g:null):m==='tu'?(TU.lock?null:TU.g):m==='pz'?(PZ.lock||!PZ.cur?null:PZ.g):m==='eg'?(EG.lock||EG.done?null:EG.g):exGame();if(askPromo(pg,sqName(from),sqName(to),$('xBoard'),()=>xTry(from,to),()=>xSet()))return true;}if(XB.mode==='rv')return rvTry(from,to);if(XB.mode==='lv')return lvTry(from,to);if(XB.mode==='tu')return tuTry(from,to);if(XB.mode==='pz')return pzTry(from,to);if(XB.mode==='pq')return pqTry(from,to);if(XB.mode==='eg')return egTry(from,to);const g=exGame();let mv=null;try{mv=g.move({from:sqName(from),to:sqName(to),promotion:XPROMO||'q'});}catch(e){}if(!mv)return false;return exPlay(mv.san);}
 /* kreslení šipek a značek na šachovnici stránek Pasti / Koncovky / Hledání – stejně jako v lekcích */
@@ -446,7 +446,7 @@ async function pzPlayCont(z){if(PZ.playing)return;PZ.playing=true;pzClearMarks()
 function pzTry(from,to){const z=PZ.cur;if(!z||PZ.lock)return false;const u=sqName(from)+sqName(to);let mv;try{mv=PZ.g.move({from:sqName(from),to:sqName(to),promotion:XPROMO||'q'});}catch(e){return false;}if(!mv)return false;
  const ok=z.acc.some(a=>a.slice(0,4)===u);
  if(ok){XB.sel=null;xAnimate(mv);xMarks();pzSolve(false);return true;}
- PZ.tries++;sfx('wrong');XB.sel=null;PZ.lock=true;xAnimate(mv);pzMark(sqOf(mv.to),'bad');{const m=$('pzMsg');m.className='bad';m.textContent=PZ.tries>=2?'✕ Pořád ne. Zkus nápovědu.':'✕ Tohle ne – zkus to znovu.';}setTimeout(()=>{if(PZ.cur!==z)return;PZ.g.undo();pzClearMarks();xSet();PZ.lock=false;},700);return true;}
+ PZ.tries++;sfx('wrong');XB.sel=null;PZ.lock=true;xAnimate(mv);pzMark(sqOf(mv.to),'bad');{const m=$('pzMsg');m.className='bad';m.textContent=PZ.tries>=2?'✕ Pořád ne. Zkus nápovědu.':'✕ Tohle ne – zkus to znovu.';}setTimeout(()=>{if(PZ.cur!==z)return;PZ.g.undo();pzClearMarks();xMorph();PZ.lock=false;},700);return true;}
 function pzSolve(shown){const z=PZ.cur;PZ.lock=true;if(shown){const u=z.pv[0];let mv;try{mv=PZ.g.move({from:u.slice(0,2),to:u.slice(2,4),promotion:u[4]||'q'});}catch(e){}if(mv){XB.sel=null;xAnimate(mv);xMarks();}}
  const first=!pzDone(z.id);if(!shown&&first){store.pz=store.pz||{};store.pz[z.id]=1;addXp(PZ.tries?5:10);save();}
  sfx(shown?'move':'win');xBar(z.best);xArrow(null);{const u=z.pv[0];pzMark(sqOf(u.slice(2,4)),shown?'ok':'ok');}if(!shown)pzCelebrate();{const m=$('pzMsg');if(m)m.className='ok';}setTimeout(()=>{if(PZ.cur===z)pzPopup(z,shown,!shown&&first?(PZ.tries?5:10):0);},shown?600:900);

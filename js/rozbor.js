@@ -499,7 +499,7 @@ function rzRenderV(scroll){const V=$('rzV');if(!V)return;if(!RZ.view){V.hidden=t
  rzVSet();if(scroll)V.scrollIntoView({block:'start',behavior:'smooth'});}
 function rzVGo(k){if(!RZ.view)return;RZ.view.k=Math.max(0,Math.min(RZ.view.x.N,k));rzVSet();sfx('move');}
 function rzVMarks(x){const em=rzEngMarks(x);const m={};if(em)em.forEach(e=>{m[e.k]={c:e.miss&&e.cls!=='b'?'m':e.cls,best:e.best,miss:e.miss,eng:true};});else x.bl.forEach(b=>{m[b.k]={c:'b',lost:b.lost,kind:b.kind};});return m;}
-function rzVSet(){const V=RZ.view;if(!V||!$('xBoard'))return;const x=V.x,k=V.k;const g=new CHESS();for(let i=0;i<k;i++){try{g.move(x.sans[i],{strict:false});}catch(e){break;}}RZ.vg=g;xSet();
+function rzVSet(){const V=RZ.view;if(!V||!$('xBoard'))return;const x=V.x,k=V.k;const g=new CHESS();for(let i=0;i<k;i++){try{g.move(x.sans[i],{strict:false});}catch(e){break;}}RZ.vg=g;xMorph();
  const M=rzVMarks(x);const mk=M[k];const SYM={b:'??',m:'?',i:'?!'};const KIND={b:'bad',m:'bad',i:'alt'};
  if(mk&&k>0){const el=document.createElement('div');el.className='badge '+KIND[mk.c];xPlace(el,x.mv[k-1].t);el.innerHTML=`<span>${ICON[KIND[mk.c]]||''}</span>`;$('xPcs').appendChild(el);}
  const dv=V.dev&&k===V.dev.k+1?V.dev:null;let dvW=[];if(dv){try{const g2=new CHESS(x.fens[k-1]+' 0 1');dv.want.forEach(w=>{const m=new CHESS(g2.fen()).move(w,{strict:false});if(m)dvW.push(m);});}catch(e){}}

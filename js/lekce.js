@@ -298,7 +298,7 @@ function tuLoad(l,first){if(TU.bot.think)sfStop();TU.les=l;{const w=document.que
  if(ex.pre){TU.lock=true;tuMsg('Teď táhne černý…','');setTimeout(()=>{if(TU.les!==l)return;let mv=null;try{mv=TU.g.move({from:ex.pre.slice(0,2),to:ex.pre.slice(2,4)});}catch(e){}if(mv){xAnimate(mv);xMarks();sfx('move');xArrow(ex.pre);}tuLNav();tuMsg(ex.preTxt+' Teď jsi na tahu ty.','');TU.lock=false;},900);}}
 /* šipky v lekcích: projdi tahy úlohy (nejde táhnout, dokud se nevrátíš na konec) */
 function tuLViewGame(k){const g=new CHESS(TU.les.ex.fen);const h=TU.g.history();for(let i=0;i<k&&i<h.length;i++)g.move(h[i]);return g;}
-function tuLView(k){if(!TU.les||!TU.g||!TU.g.history)return;const n=TU.g.history().length;if(k==null||k>=n){TU.view=null;TU.vg=null;}else{TU.view=Math.max(0,k);TU.vg=tuLViewGame(TU.view);}XB.sel=null;xSet();tuLNav();}
+function tuLView(k){if(!TU.les||!TU.g||!TU.g.history)return;const n=TU.g.history().length;if(k==null||k>=n){TU.view=null;TU.vg=null;}else{TU.view=Math.max(0,k);TU.vg=tuLViewGame(TU.view);}XB.sel=null;xMorph();tuLNav();}
 function tuLNav(){const el=document.getElementById('tuNavL');if(!el)return;const t=TU.les&&TU.les.ex.type;const on=t&&t!=='stars'&&t!=='bot';el.hidden=!on;if(!on)return;
  const n=TU.g.history().length,c=TU.view==null?n:TU.view;$('tuLS').disabled=$('tuLB').disabled=c<=0;$('tuLF').disabled=$('tuLE').disabled=TU.view==null;
  $('tuLPos').textContent=n?(TU.view==null?`tah ${n} z ${n}`:`prohlížíš tah ${c} z ${n}`):'zatím žádný tah';}
@@ -318,7 +318,7 @@ function tuTry(from,to){const l=TU.les;if(!l||TU.lock)return false;const ex=l.ex
  const okMove=ex.type==='mate1'?TU.g.isCheckmate():ex.ok.includes(u);
  if(okMove){tuFlash(true,mv.to);tuWin(ex.okTxt||'Správně.');return true;}
  TU.lock=true;sfx('wrong');tuFlash(false,mv.to);const mt=!TU.g.isGameOver()?tuMateIn1(TU.g):null;const why=(ex.bad&&ex.bad[u])||(mt?`Pozor – teď by soupeř dal mat tahem <b>${czSan(mt.san)}</b>.`:'')||(ex.type==='mate1'&&TU.g.isStalemate()?'Pat! Soupeř nemá tah, ale není v šachu – to je jen remíza.':ex.type==='mate1'&&TU.g.inCheck()?'Šach, ale ne mat – soupeř má kam uhnout. Zkus jiný tah.':'Tohle není ono. Zkus jiný tah.');
- tuMsg(why,'bad');setTimeout(()=>{if(TU.les!==l)return;TU.g.undo();TU.moves--;tuBadge(null);xSet();tuLNav();TU.lock=false;},1100);return true;}
+ tuMsg(why,'bad');setTimeout(()=>{if(TU.les!==l)return;TU.g.undo();TU.moves--;tuBadge(null);xMorph();tuLNav();TU.lock=false;},1100);return true;}
 /* ---- lekce s víc tahy a otázkami (type:'seq'): kroky {task, ok, okTxt, okBy, alt, bad, reply, replyTxt, hint} nebo otázky {q, choices, ans, why, no} ---- */
 /* krátká odezva na tah v lekci: zelené / červené zablikání šachovnice a značka na poli */
 function tuFlash(ok,sq){const b=$('xBoard');if(b){b.classList.remove('flashOk','flashBad');void b.offsetWidth;b.classList.add(ok?'flashOk':'flashBad');setTimeout(()=>b.classList.remove('flashOk','flashBad'),900);}
@@ -338,7 +338,7 @@ async function tuSeqRefute(l,head,cls,full){const g=TU.g,tok=TU.seqTok,alive=()=
   xAnimate(mv);xMarks();xArrow(pv[i],i%2?'green':null);sfx(g.inCheck()?'check':mv.captured?'capture':'move');shown.push(tuMvNo(f,mv.san));
   say(`<div class="tuLine">Jak by to pokračovalo: <b>${shown.join(' ')}</b>${score}</div>`);}
  await tuSleep(n?1900:1300);if(!alive())return;
- for(let i=0;i<shown.length+1;i++)g.undo();TU.moves--;tuBadge(null);xSet();xArrow(null);tuLNav();if(TU.seqCp!=null)xBar(TU.seqCp);TU.lock=false;const st=tuSeqStep();if(st&&st.arrow)xArrow(st.arrow);}
+ for(let i=0;i<shown.length+1;i++)g.undo();TU.moves--;tuBadge(null);xMorph();xArrow(null);tuLNav();if(TU.seqCp!=null)xBar(TU.seqCp);TU.lock=false;const st=tuSeqStep();if(st&&st.arrow)xArrow(st.arrow);}
 function tuSeqStep(){return TU.les&&TU.les.ex.steps?TU.les.ex.steps[TU.step]:null;}
 function tuSeqShow(){const ex=TU.les.ex,st=tuSeqStep(),el=document.getElementById('tuStepT');if(!el||!st)return;const n=ex.steps.length;
  el.innerHTML=`<div class="tuSeqK"><span>Krok ${TU.step+1} z ${n}</span><span class="tuSeqBar"><i style="width:${TU.step/n*100}%"></i></span></div>`+(st.q?`<div class="tuQTx"><b>Otázka:</b> ${st.q}</div><div class="tuQ">${st.choices.map((c,i)=>`<button type="button" class="tuQB" data-q="${i}">${c}</button>`).join('')}</div>`:`<div class="tuQTx"><b>Tvůj tah:</b> ${st.task}</div>`);
@@ -360,7 +360,7 @@ function tuSeqMove(l,mv,u){const ex=l.ex,st=tuSeqStep();if(!st)return true;
  tuSeqRefute(l,head,alt?'':'bad',!alt);return true;}
 /* úloha „dohraj to“: soupeř se brání podle databáze koncovek, tah, který pokazí výhru, se vrátí */
 async function tuPlayAfter(l,mv,u){const ex=l.ex,g=TU.g,me=ex.fen.split(' ')[1];TU.lock=true;if(ex.goal==='draw'&&g.isDraw()&&!g.isCheckmate())return tuWin('Remíza! '+ex.okTxt);
- const fail=t=>{sfx('wrong');tuMsg(t+' Tah vracím, zkus jiný.','bad');setTimeout(()=>{if(TU.les!==l)return;g.undo();TU.moves--;xSet();tuLNav();TU.lock=false;},1700);};
+ const fail=t=>{sfx('wrong');tuMsg(t+' Tah vracím, zkus jiný.','bad');setTimeout(()=>{if(TU.les!==l)return;g.undo();TU.moves--;xMorph();tuLNav();TU.lock=false;},1700);};
  if(g.isCheckmate())return tuWin(ex.okTxt);
  if(g.isStalemate())return fail('Pat! Černý nemá žádný tah a není v šachu – to je remíza.');
  if(g.isDraw())return fail('Tohle vede k remíze.');
@@ -437,7 +437,7 @@ function tuCoach(g,after){const B=TU.bot,me=B.side,op=me==='w'?'b':'w',out=[];if
 async function tuEval(){const B=TU.bot,g=TU.g,fen=g.fen();if(g.isGameOver())return null;let r=null;try{r=await sfAnalyse(fen,{movetime:IS_MOBILE?250:350});}catch(e){return null;}
  if(!r||!r.lines[0]||TU.g!==g||g.fen()!==fen)return r&&r.lines[0]?{fen,cp:r.lines[0].cp,best:r.lines[0].pv[0]}:null;const o={fen,cp:r.lines[0].cp,best:r.lines[0].pv[0]};B.ev=o;xBar(o.cp);const el=document.getElementById('tuEv');if(el)el.innerHTML=`<b>Hodnocení:</b> ${evalTxt(o.cp,B.side)} <small>(${fmtCp(o.cp)})</small>`;return o;}
 function tuViewGame(){const B=TU.bot,h=TU.g.history();const g=new CHESS();for(let i=0;i<B.view&&i<h.length;i++)g.move(h[i]);return g;}
-function tuView(k){const B=TU.bot,n=TU.g.history().length;if(k==null||k>=n){B.view=null;TU.vg=null;}else{B.view=Math.max(0,k);TU.vg=tuViewGame();}XB.sel=null;xSet();xArrow(null);if(B.view==null&&B.badge){const b=B.badge;tuBadge(b.sq,b.kind);}tuBotPanel();}
+function tuView(k){const B=TU.bot,n=TU.g.history().length;if(k==null||k>=n){B.view=null;TU.vg=null;}else{B.view=Math.max(0,k);TU.vg=tuViewGame();}XB.sel=null;xMorph();xArrow(null);if(B.view==null&&B.badge){const b=B.badge;tuBadge(b.sq,b.kind);}tuBotPanel();}
 function tuBotNew(keep){const B=TU.bot;B.side=B.col==='r'?(Math.random()<.5?'w':'b'):B.col;B.bookIn=!!B.book;B.bookTxt=B.book?'Soupeř hraje tahy, které proti tobě hráli lidé na chess.com.':'';if(B.book&&B.bookSide&&B.side!==B.bookSide){B.side=B.bookSide;}
  TU.g=new CHESS();TU.flip=B.side==='b';B.over=false;B.acc=[];B.eloTxt='';B.think=false;B.tips=[];B.verdict=null;B.myEx='';B.opEx='';B.view=null;TU.vg=null;B.ev=null;B.badge=null;TU.lock=false;
  if(document.getElementById('tuBot')){xBuild();xSet();xArrow(null);xBar(0);tuBotPanel();}
@@ -468,7 +468,7 @@ function tuBotPanel(){const el=document.getElementById('tuBot');if(!el)return;tu
  $('tuMoves').onclick=e=>{const b=e.target.closest('[data-k]');if(b)tuView(+b.dataset.k);};
  $('tuVS').onclick=()=>tuView(0);$('tuVB').onclick=()=>tuView((B.view==null?hist.length:B.view)-1);$('tuVF').onclick=()=>tuView(B.view==null?null:B.view+1);$('tuVE').onclick=()=>tuView(null);
  {const mv=$('tuMoves');const c=mv.querySelector('.cur');if(c)mv.scrollTop=c.offsetTop-mv.offsetTop-40;}
- $('tuUndo').onclick=()=>{if(B.think){sfStop();B.think=false;}const g2=TU.g;if(g2.turn()!==B.side)g2.undo();else{g2.undo();g2.undo();}if(B.acc&&B.acc.length>Math.floor((g2.history().length+(B.side==='w'?1:0))/2))B.acc.length=Math.floor((g2.history().length+(B.side==='w'?1:0))/2);B.eloTxt='';B.view=null;TU.vg=null;B.tips=[];B.verdict=null;B.myEx='';B.opEx='';TU.lock=false;xSet();xArrow(null);tuBadge(null);B.evP=tuEval();tuBotPanel();};
+ $('tuUndo').onclick=()=>{if(B.think){sfStop();B.think=false;}const g2=TU.g;if(g2.turn()!==B.side)g2.undo();else{g2.undo();g2.undo();}if(B.acc&&B.acc.length>Math.floor((g2.history().length+(B.side==='w'?1:0))/2))B.acc.length=Math.floor((g2.history().length+(B.side==='w'?1:0))/2);B.eloTxt='';B.view=null;TU.vg=null;B.tips=[];B.verdict=null;B.myEx='';B.opEx='';TU.lock=false;xMorph();xArrow(null);tuBadge(null);B.evP=tuEval();tuBotPanel();};
  $('tuHintB').onclick=async()=>{if(B.over||B.think||TU.g.turn()!==B.side)return;if(B.view!=null)tuView(null);const s=$('tuStat');if(s)s.innerHTML='Hledám dobrý tah…';await B.evP;const ev=B.ev&&B.ev.fen===TU.g.fen()?B.ev:await tuEval();if(ev&&ev.best){xArrow(ev.best);const s2=$('tuStat');if(s2)s2.innerHTML=`Modrá šipka ukazuje dobrý tah: <b>${czSan(sanOf(TU.g.fen(),ev.best))}</b>.`;}else if(s)s.innerHTML='Nápověda teď nejde, engine se nenačetl.';};}
 /* odhad Elo z přesnosti tahů (hodnotí Stockfish): přesnost tahu podle vzorce Lichess, převod na Elo podle hrubé tabulky */
 const TU_ELO=[[25,100],[40,300],[50,450],[58,600],[65,800],[71,1000],[76,1200],[80,1400],[84,1600],[88,1850],[92,2150],[96,2500]];
@@ -547,7 +547,7 @@ async function tuBotMove(){const B=TU.bot,g=TU.g;if(!TU.les||TU.les.ex.type!=='b
  else{try{const r=await sfAnalyse(fen,{movetime:B.lvl>=4?300:120,skill:({3:0,4:3,5:6})[B.lvl]||0});if(r&&r.best){const b=r.best;u=ms.find(m=>m.from===b.slice(0,2)&&m.to===b.slice(2,4))||null;}}catch(e){}
   if(!u)u=ms[Math.floor(Math.random()*ms.length)];}
  if(g.fen()!==fen||TU.g!==g||!TU.les||TU.les.ex.type!=='bot'||page!=='tutorial'){B.think=false;return;}
- const mv=g.move({from:u.from,to:u.to,promotion:u.promotion||'q'});B.think=false;if(!mv)return;if(B.view!=null){B.view=null;TU.vg=null;xSet();}xArrow(null);
+ const mv=g.move({from:u.from,to:u.to,promotion:u.promotion||'q'});B.think=false;if(!mv)return;if(B.view!=null){B.view=null;TU.vg=null;xMorph();}xArrow(null);
  if(B.badge&&B.badge.sq===mv.to)tuBadge(null);xAnimate(mv);xMarks();sfx(g.inCheck()?'check':mv.captured?'capture':'move');
  B.opEx=`${czSan(mv.san)} – ${tuExplain(arr,mv)}`.replace(/ – $/,'');
  if(tuBotEnd())return;

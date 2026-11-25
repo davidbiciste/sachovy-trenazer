@@ -348,11 +348,20 @@ function buildSquares(){sqsEl.innerHTML='';SQ=[];
   if(col===0)d.innerHTML+=`<span class="co r">${r+1}</span>`;if(row===7)d.innerHTML+=`<span class="co f">${FILES[f]}</span>`;sqsEl.appendChild(d);SQ[i]=d;}}
 const colOf=sq=>flipped?7-(sq&7):(sq&7),rowOf=sq=>flipped?(sq>>3):7-(sq>>3);
 function place(el,sq){el.style.transform=`translate(${colOf(sq)*100}%,${rowOf(sq)*100}%)`;}
-function mkPiece(p,sq){const el=document.createElement('div');el.className='pc';el.innerHTML=PC(p);place(el,sq);pcsEl.appendChild(el);return el;}
-function setPosition(b){pcsEl.innerHTML='';pcs={};b.forEach((p,i)=>{if(p)pcs[i]=mkPiece(p,i);});}
+function mkPiece(p,sq){const el=document.createElement('div');el.className='pc';el.dataset.p=p;el.innerHTML=PC(p);place(el,sq);pcsEl.appendChild(el);return el;}
+function setPosition(b){pcsEl.innerHTML='';pcs={};b.forEach((p,i)=>{if(p){pcs[i]=mkPiece(p,i);pcs[i].dataset.p=p;}});}
+/* plynulý přechod na jinou pozici (tahy zpět, skoky v seznamu tahů): figury, které zůstaly, stojí; přesunuté sklouznou z nejbližšího pole; sebrané zmizí, vrácené se objeví – stejně jako xMorph u ostatních šachovnic */
+function morphPosition(b){const olds=Object.keys(pcs);if(!olds.length||olds.some(i=>!pcs[i].dataset.p||!pcs[i].isConnected)){setPosition(b);return;}
+ const next={},free=[];for(const i of olds){const el=pcs[i];if(b[i]===el.dataset.p){next[i]=el;place(el,+i);}else free.push([+i,el]);}
+ const dist=(a,c)=>Math.abs((a&7)-(c&7))+Math.abs((a>>3)-(c>>3));
+ b.forEach((code,t)=>{if(!code||next[t])return;let bi=-1,bd=99;free.forEach(([i,el],k)=>{if(el.dataset.p===code){const d=dist(i,t);if(d<bd){bd=d;bi=k;}}});
+  if(bi>=0){const el=free.splice(bi,1)[0][1];el.classList.remove('drag');el.style.zIndex=3;place(el,t);setTimeout(()=>{el.style.zIndex='';},260);next[t]=el;}
+  else{const el=mkPiece(code,t);el.dataset.p=code;el.classList.add('gone');requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove('gone')));next[t]=el;}});
+ free.forEach(([i,el])=>{el.style.zIndex=1;el.classList.add('gone');setTimeout(()=>el.remove(),230);});
+ pcs=next;}
 function animate(m,after){const el=pcs[m.from];const capSq=m.ep!=null?m.ep:m.to;const cap=pcs[capSq];
  if(cap&&cap!==el){delete pcs[capSq];cap.style.zIndex=1;setTimeout(()=>{cap.classList.add('gone');setTimeout(()=>cap.remove(),220);},130);}
- delete pcs[m.from];pcs[m.to]=el;if(el){el.classList.remove('drag');place(el,m.to);if(m.promo)el.innerHTML=PC(after[m.to]);}
+ delete pcs[m.from];pcs[m.to]=el;if(el){el.classList.remove('drag');place(el,m.to);if(m.promo){el.innerHTML=PC(after[m.to]);el.dataset.p=after[m.to];}}
  if(m.castle){const r=pcs[m.castle[0]];delete pcs[m.castle[0]];pcs[m.castle[1]]=r;if(r)place(r,m.castle[1]);}}
 function clr(c){SQ.forEach(s=>s.classList.remove(c));}
 function markLast(m){clr('last');if(m){SQ[m.from].classList.add('last');SQ[m.to].classList.add('last');}}
